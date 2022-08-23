@@ -1,0 +1,5 @@
+---
+title: "ICP5006 Progress Blog"
+site: distill::distill_website
+listing: posts
+---
