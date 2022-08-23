@@ -1,19 +1,36 @@
 [
   {
     "path": "posts/welcome/",
-    "title": "Welcome to ICP5006 Progress Blog",
-    "description": "Welcome to our new blog, ICP5006 Progress Blog. We hope you enjoy \nreading what we have to say!",
+    "title": "Welcome to ICP5006 Blog of Farley Rimon",
+    "description": "Welcome to our new blog, ICP5006 Blog of Farley Rimon. Here you can keep track of the progress made during the course. I will document my     opinion on findings about projects related to urban data analysis.",
     "author": [
       {
-        "name": "Nora Jones",
-        "url": "https://example.com/norajones"
+        "name": "Farley Rimon",
+        "url": {}
       }
     ],
-    "date": "2022-08-23",
+    "date": "2022-08-19",
     "categories": [],
     "contents": "\r\n\r\n\r\n\r\n",
     "preview": {},
-    "last_modified": "2022-08-23T09:17:10-04:00",
-    "input_file": {}
+    "last_modified": "2022-08-23T09:34:06-04:00",
+    "input_file": "welcome.knit.md"
+  },
+  {
+    "path": "posts/2022-08-19-week-1/",
+    "title": "Week 1",
+    "description": "A short description of the post.",
+    "author": [
+      {
+        "name": "Farley Rimon",
+        "url": "https://example.com/norajones"
+      }
+    ],
+    "date": "2022-08-19",
+    "categories": [],
+    "contents": "\r\nSo far, struggling a little\r\nbit\r\nThings tend to go slow for several reasons:\r\n\r\nI just want to get started with the projects!\r\n\r\nProgram interface (to zoom or not to zoom?)\r\nDisbalance in student expertise\r\nI just want to get started with the projects!Or the hardcore\r\n(new) theory. I believe reviewing old material is to be done in\r\nsomeone’s own time. Well, that’s how my uni went so I am used to the\r\nstress hahaha. It is also just part of my natural character. Because of\r\nthis, I am excited for what is to come…\r\nFinished taller de R\r\nExperience: + Not very different to Python + Need to get used to the\r\nsyntax + Actually pretty easy to use. The interface is insanely simple +\r\nI am scared some solutions I will not know because of a lack of\r\ndominance of R. Hopefully we can help each other with\r\nthis.\r\n\r\n\r\n\r\n",
+    "preview": {},
+    "last_modified": "2022-08-23T09:34:32-04:00",
+    "input_file": "week-1.knit.md"
   }
 ]
