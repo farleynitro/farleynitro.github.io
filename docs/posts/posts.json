@@ -1,5 +1,22 @@
 [
   {
+    "path": "posts/2022-08-25-formulando-la-pregunta-de-investigacin/",
+    "title": "Formulando la pregunta de investigación",
+    "description": "En este post describo mi tema de interes y las variables disponible para este analisis.Esta sera la base de mi investigación para ICP5006.",
+    "author": [
+      {
+        "name": "Farley Rimon",
+        "url": {}
+      }
+    ],
+    "date": "2022-08-25",
+    "categories": [],
+    "contents": "\r\nIntroducción\r\nEn la sociedad de hoy nos encontramos con un fenómeno interesante\r\nc\r\n\r\n\r\ndf_lapop_chile <- readRDS(\"output/lapop_chile_220824.rds\")\r\ndf_lapop_int <- readRDS(\"output/lapop_int_220824.rds\")\r\n\r\n\r\nTema de enfoque\r\nDependiendo de la base de datos disponibles puedo determinar cual mi\r\nenfoque sera. El enfoque principal es en ‘datos politicos’. En este se\r\ninterpretan dos opciones: * 1. Socio-economia y confianza en gobierno:\r\nEnfocarse en la dinamica a traves del tiempo entre la percepcion\r\ndemocratica de Chile y cambios socio-economicos. * 2. Socio-economia y\r\npolucion: Enfocarse en la dinamica a traves del tiempo entre cambios\r\nsocio-economicos y la polucion en diferentes partes del ecosistema\r\n(agua, aire)\r\nPara esto he encontrado varios bases de datos:\r\nhttps://datosretc.mma.gob.cl/organization/retc\r\nhttps://data.worldbank.org/country/chile\r\nhttps://www.vanderbilt.edu/lapop/raw-data.php\r\nhttps://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709\r\nHipotesis\r\nMi hipotesis es la siguiente: ‘hipotesis’\r\nLas emiciones son mas altas cuando el desaroyo economico es mas\r\nalto y la urbanizacion incrementa\r\nLas personas confian mas en el gobierno cuando el mercado laboral\r\ny la economia incrementa\r\nCon subhipotesis:\r\n\r\n\r\n\r\n\r\nArgumentos para mi hipotesis:\r\nVariables operacionales\r\nEmisiones\r\nSexo\r\nEdad\r\nUrbanizacion\r\nAgricultura area\r\nEstatus economico individual\r\nDatos laborales (empleo, ingreso)\r\nEnergia renovable y acceso a energia renovable\r\nDistill is a publication format for scientific and technical writing,\r\nnative to the web.\r\nLearn more about using Distill at https://rstudio.github.io/distill.\r\n\r\n\r\n\r\n",
+    "preview": {},
+    "last_modified": "2022-08-30T14:27:06-04:00",
+    "input_file": "formulando-la-pregunta-de-investigacin.knit.md"
+  },
+  {
     "path": "posts/welcome/",
     "title": "Welcome to ICP5006 Blog of Farley Rimon",
     "description": "Welcome to our new blog, ICP5006 Blog of Farley Rimon. Here you can keep track of the progress made during the course. I will document my     opinion on findings about projects related to urban data analysis.",

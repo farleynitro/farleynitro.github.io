@@ -1,0 +1,11 @@
+http://datasets.americasbarometer.org/database/index.php?freeUser=true (LAPOP)
+
+https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+(for R markdown tables)
+
+https://rmarkdown.rstudio.com/lesson-3.html (Chunk options to show different arguments)
+
+
+https://datosretc.mma.gob.cl/group (emission data of Chile)
+
+Hadley Wickham book

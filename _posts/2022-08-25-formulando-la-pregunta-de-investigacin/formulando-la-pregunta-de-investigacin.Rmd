@@ -1,0 +1,77 @@
+---
+title: "Formulando la pregunta de investigación"
+description: |
+  En este post describo mi tema de interes y las variables disponible para este analisis.Esta sera la base de mi investigación para ICP5006.
+author:
+  - name: Farley Rimon
+    url: {}
+date: 2022-08-25
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+### Introducción
+
+En la sociedad de hoy nos encontramos con un fenómeno interesante c
+
+```{r}
+df_lapop_chile <- readRDS("output/lapop_chile_220824.rds")
+df_lapop_int <- readRDS("output/lapop_int_220824.rds")
+```
+
+### Tema de enfoque
+
+Dependiendo de la base de datos disponibles puedo determinar cual mi enfoque sera. El enfoque principal es en 'datos politicos'. En este se interpretan dos opciones:
+* 1. Socio-economia y confianza en gobierno: Enfocarse en la dinamica a traves del tiempo entre la percepcion democratica de Chile y cambios socio-economicos.
+* 2. Socio-economia y polucion: Enfocarse en la dinamica a traves del tiempo entre cambios socio-economicos y la polucion en diferentes partes del ecosistema (agua, aire)
+
+Para esto he encontrado varios bases de datos:
+
+* https://datosretc.mma.gob.cl/organization/retc 
+* https://data.worldbank.org/country/chile
+* https://www.vanderbilt.edu/lapop/raw-data.php 
+* https://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709 
+
+
+### Hipotesis
+
+Mi *hipotesis* es la siguiente: *'hipotesis'*
+
+*Las emiciones son mas altas cuando el desaroyo economico es mas alto y la urbanizacion incrementa*
+
+*Las personas confian mas en el gobierno cuando el mercado laboral y la economia incrementa*
+
+Con *subhipotesis*:
+
+* a)
+* b)
+
+
+Argumentos para mi hipotesis:
+
+
+
+### Variables operacionales
+
+
+1. Emisiones
+2. Sexo
+3. Edad
+4. Urbanizacion
+5. Agricultura area
+6. Estatus economico individual
+7. Datos laborales (empleo, ingreso)
+8. Energia renovable y acceso a energia renovable
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Distill is a publication format for scientific and technical writing, native to the web.
+
+Learn more about using Distill at <https://rstudio.github.io/distill>.
+
+
