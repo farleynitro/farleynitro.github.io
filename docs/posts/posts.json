@@ -11,27 +11,10 @@
     ],
     "date": "2022-08-25",
     "categories": [],
-    "contents": "\r\nIntroducción\r\nEn la sociedad de hoy nos encontramos con un fenómeno interesante\r\nc\r\n\r\n\r\ndf_lapop_chile <- readRDS(\"output/lapop_chile_220824.rds\")\r\ndf_lapop_int <- readRDS(\"output/lapop_int_220824.rds\")\r\n\r\n\r\nTema de enfoque\r\nDependiendo de la base de datos disponibles puedo determinar cual mi\r\nenfoque sera. El enfoque principal es en ‘datos politicos’. En este se\r\ninterpretan dos opciones: * 1. Socio-economia y confianza en gobierno:\r\nEnfocarse en la dinamica a traves del tiempo entre la percepcion\r\ndemocratica de Chile y cambios socio-economicos. * 2. Socio-economia y\r\npolucion: Enfocarse en la dinamica a traves del tiempo entre cambios\r\nsocio-economicos y la polucion en diferentes partes del ecosistema\r\n(agua, aire)\r\nPara esto he encontrado varios bases de datos:\r\nhttps://datosretc.mma.gob.cl/organization/retc\r\nhttps://data.worldbank.org/country/chile\r\nhttps://www.vanderbilt.edu/lapop/raw-data.php\r\nhttps://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709\r\nHipotesis\r\nMi hipotesis es la siguiente: ‘hipotesis’\r\nLas emiciones son mas altas cuando el desaroyo economico es mas\r\nalto y la urbanizacion incrementa\r\nLas personas confian mas en el gobierno cuando el mercado laboral\r\ny la economia incrementa\r\nCon subhipotesis:\r\n\r\n\r\n\r\n\r\nArgumentos para mi hipotesis:\r\nVariables operacionales\r\nEmisiones\r\nSexo\r\nEdad\r\nUrbanizacion\r\nAgricultura area\r\nEstatus economico individual\r\nDatos laborales (empleo, ingreso)\r\nEnergia renovable y acceso a energia renovable\r\nDistill is a publication format for scientific and technical writing,\r\nnative to the web.\r\nLearn more about using Distill at https://rstudio.github.io/distill.\r\n\r\n\r\n\r\n",
+    "contents": "\r\nIntroducción\r\nLa sociedad contemporeana enfrenta un desafio importante que podria\r\ndeterminar como nuestro futuro se vera, el cambio climatico\r\nantropogenico. El cambio climatico esta definido como el cambio en largo\r\nplazo de temperaturas y los patrones climaticos (UN, 2021). El cambio\r\nclimatico antropogenico es negativo porque puede cambiar el ecosistema a\r\nuno con recursos escarcos, biodiversidad reducida, probalidad\r\nincrementada de hazards naturales, y mas. Todos estas fenomenas haran el\r\nvivir en este planeta como lo conocemos mas dificil. El cambio climatico\r\nantropogenico tendra consecuencias sociales de gran magnitud.\r\nEl cambio climatico es mayormente causado por las emisiones de gases\r\n(o emisiones) que retienen el calor solar en nuestro planeta. Estas\r\nemisiones de gases son mayormente consecuencia directa del uso de\r\nrecursos de combustibles fósiles, i.e., recursos esenciales para la\r\neconomia contemporanea.\r\nPara contrarestar este cambio climatico antropogenico, diferentes\r\ngobiernos alrededor del mundo han firmado varios acuerdos desde 1992\r\npara mitigar el cambio climatico. El acuerdo mas importante hasta\r\nahorita ha sido el Paris Agreement (2015) al cual se\r\nunieron no mas que ‘193 paises’! El proposito es tener\r\nuna meta para la regulacion local de emisiones.\r\nEl viaje a formulacion de politicas para\r\nreducir emisionesTambien en Chile (y Latino America) la situacion de emisiones es\r\ncritica. En Santiago es evidente con la cantidad de smog que hay atrasa\r\nseveramente la salud ambiental y de las personas, posiblemente con\r\nconsecuencias a largo plazo. En la imagen podemos ver que Chile en el\r\n2014 queda en segundo lugar como emitor de gases de invernadero per\r\ncapita.\r\nLas emisiones CO2 de Chile per capita en\r\ncifras (Banco Mundial,2014)Cuando vemos el tiempo transcurrir entre 2008 y 2018 vemos que las\r\nemisiones han subido con un 23.8 %. Esto plantea la pregunta politica:\r\n### Ha tenido efecto la politica chilena a la polucion causada por\r\ngases de invierno?\r\n Para\r\ncualitativamente contestar esta pregunta hay que entender que politicas\r\nambientales el gobierno Chileno ha introducido desde 1990 (fin de la\r\ndemocracia). Estas se pueden sumarizar a base de las metas y politicas\r\npropuestas. Es importante notar que hay una distincion entre la politica\r\ny su efecto. Por esta misma razon, se vuelve interesante evaluar el\r\nefecto agregado de la politica a las emisiones. Asi que, que las\r\nsiguientes politicas han sido introducidas:\r\nFalta informacion de primero que esto….\r\n2017: Implementacion impuestos verdes de US$5 por tonelada CO2\r\neq.\r\n2018: Plan de Adaptación del Sector Energía\r\n2017-2022:Plan de Acción Nacional de Cambio Climático 2017-2022\r\n2019: El Gobierno se comprometió en 2019 cerrar todas las centrales\r\nde Carbón en Chile al 2040. En 2019 cerraron 4. En 2021 cerraron 4 mas.\r\nEn total hay 28. (Energia, 2021)\r\n2019: Relac en todo Latino America; el 70% de la\r\ngeneración eléctrica en esta parte del mundo sea generada con fuentes de\r\nenergía renovable para el año 2030. Para Chile seria un\r\nmaximo de 95 millones de toneladas de gases de efecto\r\ninvernadero para 2030.\r\nTema de enfoque\r\nDependiendo de la base de datos disponibles puedo determinar cual mi\r\nenfoque sera. El enfoque principal es en ‘datos politicos’. En este se\r\ninterpreta: * Politica y polucion: Enfocarse en la dinamica a\r\ntraves del tiempo entre cambios politicos y la polucion en diferentes\r\npartes del ecosistema (agua, aire).\r\nVariables operacionales\r\nEmisiones en CO2 equivalentes\r\n\r\nPorcentage de Urbanizacion\r\n\r\nPorcentage de Agricultura\r\n\r\nConsumo energetico\r\n\r\nGeneracion energetica (no-renovable, o renovable)\r\n\r\nEstatus socio-economico de la poblacion\r\n\r\nAcuerdos internacionales/ Cumbres\r\n\r\nCambio de partido politico\r\n\r\nGobernancia de legislicacion\r\n\r\nCambios electorales\r\n\r\nInclinacion democratica del gobierno\r\n\r\nPara esto he encontrado varios bases de datos:\r\nRegistro de\r\nEmisiones y Transferencias de Contaminantes (RETC)\r\nWorld Bank Data\r\npara Chile\r\nOCHA\r\nUN de Chile para indicadores ecologicos\r\nEmisiones\r\nde Chile segun el Banco Mundial Chile\r\nHipotesis\r\nMi hipotesis es la siguiente: Las emisiones tienen\r\nuna relacion debil con el cambio de politica\r\nSubhipotesis: a) Dependiendo de la industria el efecto de la\r\npolitica es mas fuerte o menos fuerte.\r\nArgumentos:\r\nViendo que las emisiones siguien subiendo en Chile, es la pregunta si\r\nestas politicas han tenido efecto.\r\nReferencias\r\nUN,\r\n2021; What is climate change\r\nCR2,\r\n2014; Emisiones latino america per capita\r\nStatista,\r\n2019; Emisiones de paises Latino Americanos\r\nGobierno\r\nde Chile, 2021; Cierre de Centrales de carbon\r\nDistill is a publication format for scientific and technical writing,\r\nnative to the web.\r\n\r\n\r\n\r\n",
     "preview": {},
-    "last_modified": "2022-08-30T14:27:06-04:00",
-    "input_file": "formulando-la-pregunta-de-investigacin.knit.md"
-  },
-  {
-    "path": "posts/welcome/",
-    "title": "Welcome to ICP5006 Blog of Farley Rimon",
-    "description": "Welcome to our new blog, ICP5006 Blog of Farley Rimon. Here you can keep track of the progress made during the course. I will document my     opinion on findings about projects related to urban data analysis.",
-    "author": [
-      {
-        "name": "Farley Rimon",
-        "url": {}
-      }
-    ],
-    "date": "2022-08-19",
-    "categories": [],
-    "contents": "\r\n\r\n\r\n\r\n",
-    "preview": {},
-    "last_modified": "2022-08-23T09:34:06-04:00",
-    "input_file": "welcome.knit.md"
+    "last_modified": "2022-08-31T15:44:15-04:00",
+    "input_file": {}
   },
   {
     "path": "posts/2022-08-19-week-1/",
@@ -48,6 +31,23 @@
     "contents": "\r\nSo far, struggling a little\r\nbit\r\nThings tend to go slow for several reasons:\r\n\r\nI just want to get started with the projects!\r\n\r\nProgram interface (to zoom or not to zoom?)\r\nDisbalance in student expertise\r\nI just want to get started with the projects!Or the hardcore\r\n(new) theory. I believe reviewing old material is to be done in\r\nsomeone’s own time. Well, that’s how my uni went so I am used to the\r\nstress hahaha. It is also just part of my natural character. Because of\r\nthis, I am excited for what is to come…\r\nFinished taller de R\r\nExperience: + Not very different to Python + Need to get used to the\r\nsyntax + Actually pretty easy to use. The interface is insanely simple +\r\nI am scared some solutions I will not know because of a lack of\r\ndominance of R. Hopefully we can help each other with\r\nthis.\r\n\r\n\r\n\r\n",
     "preview": {},
     "last_modified": "2022-08-23T09:34:32-04:00",
-    "input_file": "week-1.knit.md"
+    "input_file": {}
+  },
+  {
+    "path": "posts/welcome/",
+    "title": "Welcome to ICP5006 Blog of Farley Rimon",
+    "description": "Welcome to our new blog, ICP5006 Blog of Farley Rimon. Here you can keep track of the progress made during the course. I will document my     opinion on findings about projects related to urban data analysis.",
+    "author": [
+      {
+        "name": "Farley Rimon",
+        "url": {}
+      }
+    ],
+    "date": "2022-08-19",
+    "categories": [],
+    "contents": "\r\n\r\n\r\n\r\n",
+    "preview": {},
+    "last_modified": "2022-08-23T09:34:07-04:00",
+    "input_file": {}
   }
 ]

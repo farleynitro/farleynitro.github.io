@@ -3,7 +3,7 @@
     "path": "~/GitHub/farleynitro.github.io/_posts/2022-08-25-formulando-la-pregunta-de-investigacin/formulando-la-pregunta-de-investigacin.Rmd",
     "project_path": "_posts/2022-08-25-formulando-la-pregunta-de-investigacin/formulando-la-pregunta-de-investigacin.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "93236382",
     "contents": "",
     "dirty": false,
     "created": 1661864106783.0,
@@ -12,16 +12,16 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "41,22",
-        "scrollLine": "21",
+        "cursorPosition": "57,25",
+        "scrollLine": "41",
         "last_setup_crc32": "AE994FFCc4e2d899"
     },
     "folds": "",
-    "lastKnownWriteTime": 1661884024,
+    "lastKnownWriteTime": 1661975053,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1661884024398,
+    "last_content_update": 1661975053187,
     "read_only": false,
     "read_only_alternatives": []
 }

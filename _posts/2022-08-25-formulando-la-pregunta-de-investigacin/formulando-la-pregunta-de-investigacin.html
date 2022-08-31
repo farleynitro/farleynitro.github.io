@@ -118,7 +118,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["databases.txt","formulando-la-pregunta-de-investigacin_files/anchor-4.2.2/anchor.min.js","formulando-la-pregunta-de-investigacin_files/bowser-1.9.3/bowser.min.js","formulando-la-pregunta-de-investigacin_files/distill-2.2.21/template.v2.js","formulando-la-pregunta-de-investigacin_files/header-attrs-2.15/header-attrs.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.min.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.min.map","formulando-la-pregunta-de-investigacin_files/popper-2.6.0/popper.min.js","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy-bundle.umd.min.js","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy-light-border.css","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy.css","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy.umd.min.js","formulando-la-pregunta-de-investigacin_files/webcomponents-2.0.0/webcomponents.js","output/chile_indicators.xls","output/lapop_chile_220824.rds","output/lapop_int_220824.rds"]}
+  {"type":"character","attributes":{},"value":["databases.txt","formulando-la-pregunta-de-investigacin_files/anchor-4.2.2/anchor.min.js","formulando-la-pregunta-de-investigacin_files/bowser-1.9.3/bowser.min.js","formulando-la-pregunta-de-investigacin_files/distill-2.2.21/template.v2.js","formulando-la-pregunta-de-investigacin_files/header-attrs-2.15/header-attrs.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.min.js","formulando-la-pregunta-de-investigacin_files/jquery-3.6.0/jquery-3.6.0.min.map","formulando-la-pregunta-de-investigacin_files/popper-2.6.0/popper.min.js","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy-bundle.umd.min.js","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy-light-border.css","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy.css","formulando-la-pregunta-de-investigacin_files/tippy-6.2.7/tippy.umd.min.js","formulando-la-pregunta-de-investigacin_files/webcomponents-2.0.0/webcomponents.js","images/co2","images/co2_total.jpeg.crdownload","images/co2_total_.png","images/emisiones comparadas.jpeg.crdownload","images/Infographic_Climate_Summits.jpg","images/latercera_emisiones.jpg","output/chile_indicators.xls","output/lapop_chile_220824.rds","output/lapop_int_220824.rds"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1515,67 +1515,152 @@ ICP5006.</p></p>
 
 <div class="d-article">
 <h3 id="introducción">Introducción</h3>
-<p>En la sociedad de hoy nos encontramos con un fenómeno interesante
-c</p>
-<div class="layout-chunk" data-layout="l-body">
-<div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>df_lapop_chile</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/readRDS.html'>readRDS</a></span><span class='op'>(</span><span class='st'>"output/lapop_chile_220824.rds"</span><span class='op'>)</span></span>
-<span><span class='va'>df_lapop_int</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/readRDS.html'>readRDS</a></span><span class='op'>(</span><span class='st'>"output/lapop_int_220824.rds"</span><span class='op'>)</span></span></code></pre>
-</div>
-</div>
+<p>La sociedad contemporeana enfrenta un desafio importante que podria
+determinar como nuestro futuro se vera, el cambio climatico
+antropogenico. El cambio climatico esta definido como el cambio en largo
+plazo de temperaturas y los patrones climaticos (UN, 2021). El cambio
+climatico antropogenico es negativo porque puede cambiar el ecosistema a
+uno con recursos escarcos, biodiversidad reducida, probalidad
+incrementada de hazards naturales, y mas. Todos estas fenomenas haran el
+vivir en este planeta como lo conocemos mas dificil. El cambio climatico
+antropogenico tendra consecuencias sociales de gran magnitud.</p>
+<p>El cambio climatico es mayormente causado por las emisiones de gases
+(o emisiones) que retienen el calor solar en nuestro planeta. Estas
+emisiones de gases son mayormente consecuencia directa del uso de
+recursos de combustibles fósiles, i.e., recursos esenciales para la
+economia contemporanea.</p>
+<p>Para contrarestar este cambio climatico antropogenico, diferentes
+gobiernos alrededor del mundo han firmado varios acuerdos desde 1992
+para mitigar el cambio climatico. El acuerdo mas importante hasta
+ahorita ha sido el <strong>Paris Agreement (2015)</strong> al cual se
+unieron no mas que ‘<strong>193 paises</strong>’! El proposito es tener
+una meta para la regulacion local de emisiones.</p>
+<figure>
+<img src="images/Infographic_Climate_Summits.jpg"
+alt="El viaje a formulacion de politicas para reducir emisiones" />
+<figcaption aria-hidden="true">El viaje a formulacion de politicas para
+reducir emisiones</figcaption>
+</figure>
+<p>Tambien en Chile (y Latino America) la situacion de emisiones es
+critica. En Santiago es evidente con la cantidad de smog que hay atrasa
+severamente la salud ambiental y de las personas, posiblemente con
+consecuencias a largo plazo. En la imagen podemos ver que Chile en el
+2014 queda en segundo lugar como emitor de gases de invernadero per
+capita.</p>
+<figure>
+<img src="images/latercera_emisiones.jpg"
+alt="Las emisiones CO2 de Chile per capita en cifras (Banco Mundial,2014)" />
+<figcaption aria-hidden="true">Las emisiones CO2 de Chile per capita en
+cifras (Banco Mundial,2014)</figcaption>
+</figure>
+<p>Cuando vemos el tiempo transcurrir entre 2008 y 2018 vemos que las
+emisiones han subido con un 23.8 %. Esto plantea la pregunta politica:
+### <em>Ha tenido efecto la politica chilena a la polucion causada por
+gases de invierno?</em></p>
+<p><img src="images/co2_total_.png"
+alt="Las emisiones CO2 de Chile total por ano (Statista, 2018)" /> Para
+cualitativamente contestar esta pregunta hay que entender que politicas
+ambientales el gobierno Chileno ha introducido desde 1990 (fin de la
+democracia). Estas se pueden sumarizar a base de las metas y politicas
+propuestas. Es importante notar que hay una distincion entre la politica
+y su efecto. Por esta misma razon, se vuelve interesante evaluar el
+efecto agregado de la politica a las emisiones. Asi que, que las
+siguientes politicas han sido introducidas:</p>
+<ul>
+<li>Falta informacion de primero que esto….</li>
+<li>2017: Implementacion impuestos verdes de US$5 por tonelada CO2
+eq.</li>
+<li>2018: Plan de Adaptación del Sector Energía</li>
+<li>2017-2022:Plan de Acción Nacional de Cambio Climático 2017-2022</li>
+<li>2019: El Gobierno se comprometió en 2019 cerrar todas las centrales
+de Carbón en Chile al 2040. En 2019 cerraron 4. En 2021 cerraron 4 mas.
+En total hay 28. (Energia, 2021)</li>
+<li>2019: Relac <strong>en todo Latino America</strong>; el 70% de la
+generación eléctrica en esta parte del mundo sea generada con fuentes de
+energía renovable para el año 2030. Para Chile seria un
+<strong>maximo</strong> de 95 millones de toneladas de gases de efecto
+invernadero para 2030.</li>
+</ul>
 <h3 id="tema-de-enfoque">Tema de enfoque</h3>
 <p>Dependiendo de la base de datos disponibles puedo determinar cual mi
 enfoque sera. El enfoque principal es en ‘datos politicos’. En este se
-interpretan dos opciones: * 1. Socio-economia y confianza en gobierno:
-Enfocarse en la dinamica a traves del tiempo entre la percepcion
-democratica de Chile y cambios socio-economicos. * 2. Socio-economia y
-polucion: Enfocarse en la dinamica a traves del tiempo entre cambios
-socio-economicos y la polucion en diferentes partes del ecosistema
-(agua, aire)</p>
+interpreta: * <strong>Politica y polucion: Enfocarse en la dinamica a
+traves del tiempo entre cambios politicos y la polucion en diferentes
+partes del ecosistema (agua, aire).</strong></p>
+<h1 id="variables-operacionales">Variables operacionales</h1>
+<ul>
+<li><ol type="1">
+<li>Emisiones en CO2 equivalentes</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Porcentage de Urbanizacion</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>Porcentage de Agricultura</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>Consumo energetico</li>
+</ol></li>
+<li><ol start="5" type="1">
+<li>Generacion energetica (no-renovable, o renovable)</li>
+</ol></li>
+<li><ol start="6" type="1">
+<li>Estatus socio-economico de la poblacion</li>
+</ol></li>
+<li><ol start="7" type="1">
+<li>Acuerdos internacionales/ Cumbres</li>
+</ol></li>
+<li><ol start="8" type="1">
+<li>Cambio de partido politico</li>
+</ol></li>
+<li><ol start="9" type="1">
+<li>Gobernancia de legislicacion</li>
+</ol></li>
+<li><ol start="10" type="1">
+<li>Cambios electorales</li>
+</ol></li>
+<li><ol start="11" type="1">
+<li>Inclinacion democratica del gobierno</li>
+</ol></li>
+</ul>
 <p>Para esto he encontrado varios bases de datos:</p>
 <ul>
-<li><a href="https://datosretc.mma.gob.cl/organization/retc"
-class="uri">https://datosretc.mma.gob.cl/organization/retc</a></li>
-<li><a href="https://data.worldbank.org/country/chile"
-class="uri">https://data.worldbank.org/country/chile</a></li>
-<li><a href="https://www.vanderbilt.edu/lapop/raw-data.php"
-class="uri">https://www.vanderbilt.edu/lapop/raw-data.php</a></li>
+<li><a href="https://datosretc.mma.gob.cl/organization/retc">Registro de
+Emisiones y Transferencias de Contaminantes (RETC)</a></li>
+<li><a href="https://data.worldbank.org/country/chile">World Bank Data
+para Chile</a></li>
 <li><a
-href="https://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709"
-class="uri">https://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709</a></li>
+href="https://data.humdata.org/dataset/world-bank-environment-indicators-for-chile/resource/2c62322f-3ab9-4a22-af03-f67df894a709">OCHA
+UN de Chile para indicadores ecologicos</a></li>
+<li><a
+href="https://datos.bancomundial.org/indicador/en.atm.co2e.pc?locations=CL">Emisiones
+de Chile segun el Banco Mundial Chile</a></li>
 </ul>
 <h3 id="hipotesis">Hipotesis</h3>
-<p>Mi <em>hipotesis</em> es la siguiente: <em>‘hipotesis’</em></p>
-<p><em>Las emiciones son mas altas cuando el desaroyo economico es mas
-alto y la urbanizacion incrementa</em></p>
-<p><em>Las personas confian mas en el gobierno cuando el mercado laboral
-y la economia incrementa</em></p>
-<p>Con <em>subhipotesis</em>:</p>
+<p>Mi <em>hipotesis</em> es la siguiente: <strong>Las emisiones tienen
+una relacion debil con el cambio de politica</strong></p>
+<p>Subhipotesis: a) <em>Dependiendo de la industria el efecto de la
+politica es mas fuerte o menos fuerte.</em></p>
+<p>Argumentos:</p>
+<p>Viendo que las emisiones siguien subiendo en Chile, es la pregunta si
+estas politicas han tenido efecto.</p>
+<h3 id="referencias">Referencias</h3>
 <ul>
-<li><ol type="a">
-<li></li>
-</ol></li>
-<li><ol start="2" type="a">
-<li></li>
-</ol></li>
+<li><a
+href="https://www.un.org/es/climatechange/what-is-climate-change">UN,
+2021; What is climate change</a></li>
+<li><a
+href="https://www.cr2.cl/chile-el-segundo-pais-que-mas-emisiones-per-capita-genera-en-latinoamerica/">CR2,
+2014; Emisiones latino america per capita</a></li>
+<li><a
+href="https://es.statista.com/grafico/20195/emisiones-de-co2-en-paises-latinoamericanos-seleccionados/">Statista,
+2019; Emisiones de paises Latino Americanos</a></li>
+<li><a
+href="https://energia.gob.cl/noticias/los-lagos/ministerio-de-energia-anuncia-historico-cierre-adelantado-de-centrales-carbon">Gobierno
+de Chile, 2021; Cierre de Centrales de carbon</a></li>
 </ul>
-<p>Argumentos para mi hipotesis:</p>
-<h3 id="variables-operacionales">Variables operacionales</h3>
-<ol type="1">
-<li>Emisiones</li>
-<li>Sexo</li>
-<li>Edad</li>
-<li>Urbanizacion</li>
-<li>Agricultura area</li>
-<li>Estatus economico individual</li>
-<li>Datos laborales (empleo, ingreso)</li>
-<li>Energia renovable y acceso a energia renovable</li>
-</ol>
 <p>Distill is a publication format for scientific and technical writing,
 native to the web.</p>
-<p>Learn more about using Distill at <a
-href="https://rstudio.github.io/distill"
-class="uri">https://rstudio.github.io/distill</a>.</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
