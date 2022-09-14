@@ -1,0 +1,7 @@
+{
+    "installOptions": {
+        "installFromRepository": true,
+        "libraryPath": "C:/Users/Farley Nick Rimon/AppData/Local/R/win-library/4.2",
+        "installDependencies": true
+    }
+}

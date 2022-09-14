@@ -1,0 +1,44 @@
+"0",""
+"0","library(haven)"
+"0","library(sjmisc)"
+"0","library(tidyverse)"
+"0","df_test <- read_sav(""data/Base_en_SAV_Primera_Encuesta_Nacional_de_Medio_Ambiente_2014.sav"")"
+"0",""
+"0","frq(df_test, P4_5)"
+"1","[31mP4.5.- Las empresas están haciendo el mejor esfuerzo para cuidar el medio ambiente (P4_5)[39m[34m <numeric>[39m 
+[34m# total N=5057 valid N=5057 mean=5.64 sd=13.37[39m
+
+Value |                                 Label |    N | Raw % | Valid % | Cum. %
+-------------------------------------------------------------------------------
+    1 |                        Muy de acuerdo |  119 |  2.35 |    2.35 |   2.35
+    2 |                            De acuerdo |  972 | 19.22 |   19.22 |  21.57
+    3 | Ni de acuerdo ni desacuerdo (no leer) |  112 |  2.21 |    2.21 |  23.79
+    4 |                         En desacuerdo | 2624 | 51.89 |   51.89 |  75.68
+    5 |                     Muy en desacuerdo | 1129 | 22.33 |   22.33 |  98.00
+   99 |                            NS/NR (NL) |  101 |  2.00 |    2.00 | 100.00
+ <NA> |                                  <NA> |    0 |  0.00 |    <NA> |   <NA>
+"
+"0","df_test <- df_test %>% mutate(labels = as_factor(P4_5))"
+"0","frq(df_test, REGION)"
+"1","[31mREGION[39m[34m <numeric>[39m 
+[34m# total N=5057 valid N=5057 mean=8.28 sd=4.31[39m
+
+Value | Label |   N | Raw % | Valid % | Cum. %
+----------------------------------------------
+    1 |     I | 305 |  6.03 |    6.03 |   6.03
+    2 |    II | 304 |  6.01 |    6.01 |  12.04
+    3 |   III | 303 |  5.99 |    5.99 |  18.03
+    4 |    IV | 301 |  5.95 |    5.95 |  23.99
+    5 |     V | 391 |  7.73 |    7.73 |  31.72
+    6 |    VI | 313 |  6.19 |    6.19 |  37.91
+    7 |   VII | 297 |  5.87 |    5.87 |  43.78
+    8 |  VIII | 378 |  7.47 |    7.47 |  51.26
+    9 |    IX | 308 |  6.09 |    6.09 |  57.35
+   10 |     X | 305 |  6.03 |    6.03 |  63.38
+   11 |    XI | 300 |  5.93 |    5.93 |  69.31
+   12 |   XII | 304 |  6.01 |    6.01 |  75.32
+   13 |  XIII | 642 | 12.70 |   12.70 |  88.02
+   14 |   XIV | 306 |  6.05 |    6.05 |  94.07
+   15 |    XV | 300 |  5.93 |    5.93 | 100.00
+ <NA> |  <NA> |   0 |  0.00 |    <NA> |   <NA>
+"

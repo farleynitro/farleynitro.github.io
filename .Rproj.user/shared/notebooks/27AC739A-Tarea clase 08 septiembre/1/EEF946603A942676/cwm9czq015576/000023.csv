@@ -1,0 +1,21 @@
+"0","library(haven)"
+"0","library(sjmisc)"
+"0","library(tidyverse)"
+"0","df_test <- read_sav(""data/Base_en_SAV_Primera_Encuesta_Nacional_de_Medio_Ambiente_2014.sav"")"
+"0",""
+"0","frq(df_test, P4_5)"
+"1","[31mP4.5.- Las empresas están haciendo el mejor esfuerzo para cuidar el medio ambiente (P4_5)[39m[34m <numeric>[39m 
+[34m# total N=5057 valid N=5057 mean=5.64 sd=13.37[39m
+
+Value |                                 Label |    N | Raw % | Valid % | Cum. %
+-------------------------------------------------------------------------------
+    1 |                        Muy de acuerdo |  119 |  2.35 |    2.35 |   2.35
+    2 |                            De acuerdo |  972 | 19.22 |   19.22 |  21.57
+    3 | Ni de acuerdo ni desacuerdo (no leer) |  112 |  2.21 |    2.21 |  23.79
+    4 |                         En desacuerdo | 2624 | 51.89 |   51.89 |  75.68
+    5 |                     Muy en desacuerdo | 1129 | 22.33 |   22.33 |  98.00
+   99 |                            NS/NR (NL) |  101 |  2.00 |    2.00 | 100.00
+ <NA> |                                  <NA> |    0 |  0.00 |    <NA> |   <NA>
+"
+"0","df_test <- df_test %>% mutate(labels = as_factor(P4_5))"
+"0",""
