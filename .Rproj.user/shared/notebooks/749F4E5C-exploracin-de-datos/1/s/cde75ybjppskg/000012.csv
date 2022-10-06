@@ -1,0 +1,23 @@
+"0","skimr::skim(df_2018)"
+"1","── Data Summary ────────────────────────
+"
+"1","                           Values 
+"
+"1","Name                       df_2018
+"
+"1","Number of rows             7601   
+"
+"1","Number of columns          169    
+"
+"1","_______________________           
+"
+"1","Column type frequency:            
+"
+"1","  character                85     
+"
+"1","  numeric                  84     
+"
+"1","________________________          
+"
+"1","Group variables            None   
+"

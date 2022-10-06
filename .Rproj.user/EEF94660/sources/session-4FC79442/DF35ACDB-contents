@@ -1,0 +1,349 @@
+---
+title: "Modelos logit"
+author: 
+  - "Soledad Araya"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    css: xaringan-themer.css
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r include=F, warning=F, message=F}
+library(tidyverse)
+theme_set(theme_minimal(base_family = "Roboto Condensed"))
+```
+
+
+# La regresión logística
+
+Los modelos de mínimos cuadrados ordinarios (MCO) son unos de los más usados en Ciencia Política y si los supuestos son respetados, los coeficientes estimados de una muestra aleatoria son los estimadores menos sesgados de los parámetros poblacionales.
+
+>Hablamos de insesgado porque no sobre ni subestima los valores de los parámetros, y da la menor varianza entre todos los posibles estimadores.
+
+**¿Pero qué pasa si los supuestos se violan?**
+
+Debemos adoptar técnicas que se ajusten mejor a los datos que estamos manejando. Por ejemplo, ¿qué pasa si queremos investigar si el gasto de las campañas electorales impacta en la elección (o no) de un candidato?
+
+Claramente, algunos de los supuestos que vimos para los modelos MCO **no se cumplirían** (homocedasticidad, linealidad y normalidad) y sus estimadores serían inconsistentes.
+
+.content-box-yellow[
+La regresión logística es la mejor herramienta para manejar variables dependientes dicotómicas, o sea, cuando Y puede sólo tomar dos valores o categorías: si el candidato fue electo o no, si una ley fue aprobada o no, si se implementó un programa o no en una municipalidad, o si los electores votaron por el apruebo o por el rechazo.
+]
+
+---
+
+## La lógica de las regresiones logísticas
+
+En una regresión logístico, la variable dependiente sólo tiene **dos categorías**. Generalmente, la ocurrencia de un evento es 1 y su ausencia es 0. Aun así, es necesario tener en consideración que la codificación cambia los coeficientes y por lo tanto, su interpretación sustantiva.
+
+Por ejemplo, el modelo lineal se escibe de la siguiente manera:
+
+$$Y = \alpha + \beta X + \mu  $$
+Donde Y representa la variable dependiente que estamos tratando de explicar, X representa la variable independiente. El intercepto $\alpha$ representa el valor de Y cuando X es igual a cero. El coeficiente de regresión $\beta$ representa la variación observada en Y asociada con el incremento de una unidad de X. El modelo nos permite ver la relación entre ambas variables, y además observar la magnitud de esta relación y ver su significancia estadística.
+
+---
+
+Una regresión logística puede ser interpretada como un caso particular de un Modelo Lineal Generalizado (GLM) en el cual la variable dependiente es dicotómica. 
+
+```{r echo=F, fig.align='center', out.width="25%"}
+x <- seq(-4,4, length.out = 100)
+p <- 1/(1 + exp(-x))
+c <- rnorm(100)
+plot(x, p, type = "l")
+```
+
+Dado que la variable dependiente sólo toma dos valores (0 o 1), la probabilidad predicha del modelo también debe estar limitada a ese intervalo.
+
+>GLM: En estadística, este tipo de modelo representa una *generalización flexible de la regresión lineal* y permite que las variables dependientes tengan modelos de distribución de errores distintos de una distribución normal --en este caso particular, los errores se distribuyen con la distribucion binomial.
+
+---
+
+## Estimación de Máxima Verosiimlitud 
+
+---
+
+## Preparación de base de datos
+
+Nuestra base de datos contiene datos municipales de las elecciones del 2012, además de contener datos sobre crímenes y características comunales para este año. Para el análisis, utilizaremos la variable `reeleccion_alcalde` y `iadm44`.
+
+* Reelección alcalde: reelección del alcalde (persona) en ejercicio.
+* IADM44: Ingreso por impuestos
+
+```{r echo=F, warning=F, message=F, include=F}
+library(tidyverse)
+library(sjmisc)
+library(lubridate)
+library(labelled)
+
+df_municipal <- haven::read_dta("data/entire_sample_chile_2020may29.dta")
+df_elecciones <- read_rds("data/data_municipal.rds")
+
+df_municipal <- df_municipal %>% 
+  select(!ends_with("_x"))
+
+df_elecciones <- df_elecciones %>% 
+  mutate(year = year(fecha_eleccion),
+         county = stringi::stri_trans_general(comuna, "latin-ascii"),
+         county = str_to_lower(county))
+
+df <- df_municipal %>% left_join(df_elecciones,
+                                 by = c("county"="county", "year"="year"))
+df <- df %>% 
+  filter(!is.na(reeleccion_alcalde))
+
+look_for(df, "iadm")
+
+df <- df %>% distinct()
+
+df <- df %>% filter(year== 2012)
+
+```
+
+Teniendo nuestras variables, veremos la distribución de la variable dependiente e independiente: 
+
+---
+
+```{r}
+skimr::skim(df, reeleccion_alcalde, iadm44)
+```
+
+En los histogramas, podemos ver que la variable IADM44 tiene un sesgo positivo. Por lo tanto, necesitamos transformarla para que su distribución se asemeje a la distribución normal.
+
+>La **transformación logarítmica** es útil para transformar distribuciones con sesgo positivo (con cola más larga hacia la derecha): la parte izquierda se expandirá, mientras que la derecha se comprimirá, favoreciendo que la curva resultante se ajuste mejor a una normal.
+
+---
+
+.pull-left[
+
+```{r}
+iadm <- df$iedu018[df$year == 2012]
+hist(iadm, main = "", xlab = "log Igreso por impuestos", ylab = "Frecuencia")
+```
+
+]
+
+.pull-right[
+```{r}
+logiadm <- log(iadm)
+hist(logiadm, main = "", xlab = "log Igreso por impuestos", ylab = "Frecuencia")
+```
+]
+
+---
+
+.pull-left[
+
+```{r}
+qqnorm(iadm, main = "", xlab = "Cuantiles teóricos", ylab = "Cuantiles muestrales")
+qqline(iadm)
+```
+
+]
+
+.pull-right[
+```{r}
+qqnorm(logiadm, main = "", xlab = "Cuantiles teóricos", ylab = "Cuantiles muestrales", ylim = c(8,18))
+qqline(logiadm)
+```
+]
+
+---
+
+Finalmente, observamos cómo se distirbuyen ambas en un scatterplot:
+
+.pull-left[
+
+```{r plot-label, eval=FALSE}
+df %>% 
+  filter(year == 2012) %>% 
+  mutate(log_iedu018 = log(iedu018)) %>% 
+  ggplot(aes(y = reeleccion_alcalde, x = log_iedu018)) +
+  geom_point() +
+  labs(x = "Ingreso por impuesto (2012)",
+       y = "Reelección de alcalde (2012)")
+```
+
+]
+
+.pull-right[
+
+```{r plot-label-out, ref.label="plot-label", echo=FALSE, warning=FALSE}
+```
+
+]
+
+---
+
+Podríamos decir que hay cinco etapas que deberían seguirse al hacer una regresión logística:
+
+1. Identificar la variable dependiente.
+
+--
+
+2. Tener en consideración los requerimientos técnicos.
+
+--
+
+3. Estimación y ajuste del modelo.
+
+--
+
+4. Interpretar los resultados.
+
+--
+
+5. Validar los resultados.
+
+---
+
+Nosotros ya identificamos la variable dependiente que utilizaremos. Paramos a la segunta etapa de nuestro análisis:
+
+### 2. Requerimientos técnicos
+
+A pesar de ser un modelo más flexible, sí es muy sensible a la multicolinealidad. Hay diferentes procedimientos que pueden utilizarse para minimizar este problema. El más simple siempre será **aumentar el número de observaciones**.
+
+a.
+
+>En un modelo de regresión logístico **hay que tener en consideración la muestra que se está utilizando**: muestras pequeñas producen estimadores inconsistentes, pero muestras extremadamente grandes incrementarán el poder estadísticos de los tests en tal manera que **todo efecto será estadísticamente significativo**.
+
+b.
+
+>Los modelos de regresión logística son muy sensibles a los outliers presentes en nuestros datos. Algunas de las posibles soluciones es eliminar el caso y ver cuál es el impacto de outlier en los coeficientes, también es posible recodificar el caso por un valor menos extremo (la media, por ejemplo). Siempre es necesario decir qué estamos haciendo con ellos.
+
+---
+
+### 3. Estimar el modelo
+
+Paquetes que necesitaremos para el siguiente módulo:
+
+```{r message=FALSE, warning=F}
+library(ggcorrplot)
+library(margins)
+library(prediction)
+library(texreg)
+library(jtools)
+library(pscl)
+library(DescTools)
+library(broom)
+library(plotROC)
+library(separationplot)
+```
+
+
+>Hay que tener en consideración la **replicabilidad**.
+
+---
+
+Estimaremos un primer modelo que tiene como variable dependiente la `reelección_alcaldes`. A medida que agregemos variables independientes, iremos definiendo qué representa cada una de ellas. La función `glm` necesita que definamos los datos y el modelo que utilizaremos porque es la misma función para los Modelos Lineales Generalizados (que incluyen otras funciones y distribuciones menos comunes en la Ciencia Política).
+
+```{r include=FALSE}
+df <- df %>% mutate(log_iedu018 = log(iedu018)) %>% 
+  filter(!log_iedu018 == '-Inf')
+```
+
+
+```{r}
+modelo_1 <- glm(reeleccion_alcalde ~ pobreza03,
+                data = df,
+                family = binomial("logit"))
+
+modelo_2 <- glm(reeleccion_alcalde ~ alineamiento + pobreza03 + 
+                  inv_mun + log_iedu018, 
+                data = df, family = binomial("logit"))
+
+modelos <- list(modelo_1, modelo_2)
+```
+
+---
+
+Para el segundo modelo, incluimos las variables de `alineamiento` (alineamiento con el gobierno central), `dummy_genero` (genero del alcalde electo), `inv_mun` (inversión municipal anual) y `log_iedu018` (logaritmo de la inversión en educación).
+
+.pull-left[
+
+```{r}
+screenreg(modelos)
+```
+
+]
+
+.pull-right[
+
+En este caso, el coeficiente de la variable `alineamiento` está asociado positivamente a la probabilidad de reelección del alcalde (1.082) y es estadísticamente significativa.
+
+En el caso de las regresiones logísticas la interpretación no es tan directa como lo es en los modelos MCO, de hecho, es bastante menos intuitivo. *Debemos transformar los coeficientes en probabilidaddes o chances*.
+
+¿Por qué?
+
+Porque la transformación logística informa el efecto de la variable independiente en la variación del logaritmo natural de la variable dependiente. Por ejemplo, cuando tomamos `alineamiento` con un coeficiente de 0.8, se espera un incremento de 0.8 unidades en el *logit* de Y cada vez que X incrementa por una unidad. Pero esto no ayuda a entender la relación entre las variables.
+
+]
+
+---
+
+### 4.Interpretación de resultados: *Odds*
+
+Una segunda posibilidad es analizar el impacto de la variable independiente en los *odds* de Y. Para eso, el investigador debe calcular el exponente del coeficiente. En nuestro ejemplo, el coeficiente era de `0.8`, y cuando hacemos el cálculo, el número que obtenemos es de `2.2`. Esto significa que por cada unidad adicional de X, se espera un incremento de 2.2 en **las chances** de que ocurra Y, cuando todas las otras variables son constantes. 
+
+>En una regresión logística, cuando potenciamos un valor positivo, el coeficiente será mayor de 1. Cuando es negativo, el coeficiente será menor que 1 (de 0 a 1). Un coeficiente con valor cero produce un coeficiente igual a 1, indicando que la variable independiente no afecta las chances de la ocurrencia de Y.
+
+Entre más lejos esté el coeficiente de 1, sin importar la dirección, más grande será su impacto.
+
+---
+
+Lo que haremos será transformar los coeficientes en una probabilidad, con la variable dependiente asumiendo el valor 1. Sabemos, por ejemplo, que `pobreza03` es el porcentaje de pobreza para cada comuna y va de 0 a 100. Entre menos % de pobreza, más cercana a 0 y entre más pobreza, más cercana a 1.
+
+```{r message=F, warning=F}
+ggplot(df, aes(x = pobreza03)) +
+  geom_histogram()
+```
+
+Sabemos, por ejemplo, que el alineamiento político sólo toma los valors 1 y 0. En el caso de tener una variable métrica o cualitativa con más de dos categorías, es necesario ver su distribución a través de un histograma o gráfico de barras.
+
+---
+
+Y revisaremos los valores más extremos de `pobreza03`:
+
+.pull-left[
+
+```{r}
+df %>% 
+  dplyr::select(county, pobreza03) %>% 
+  arrange(pobreza03) %>% 
+  slice(1)
+```
+
+]
+
+.pull-right[
+
+```{r}
+df %>% 
+  dplyr::select(county, pobreza03) %>% 
+  arrange(-pobreza03) %>% 
+  slice(1)
+```
+
+]
+
+>En este caso, tuve que decirle a R que quería ocupar `select` de `dplyr` porque hay más de una función `select` activa.
+
+¿Cómo podemos calcular cuánto cambia la probabilidad de reelección si el nivel de pobreza va de 0.4 (mínimo observado) a 58.8 (máximo observado)?
+
+---
+
+Primero, calcularemos cuál es la probabilidad de reelección a un nivel 0.4 y a 58.3. Luego calcularemos la diferencia de ambas probabilidades:
+
+$$ \hat p = \frac{e^{(0+(-0.02*0.4))}}{1 + e^{(0+(-0.02*0.4))}}   $$
+Como el intercepto no es estadísticamente significtivo, dejamos su valor en 0. Después del cálculo de la fórmula anterior, la probabilidad de reelección en ese valor de pobreza es igual a 0,16 o 16%.
+
+---
+
+Probabilidades y *odds* son intercambiables: una proabilidad puede convertirse en odds mediante la fórmula $probabilidad/1-probabilidad$ y un odds convertirse en una probabilidad mediante la fórmula $odds/odds+1$. Pero ¿qué es un *odds ratio*?

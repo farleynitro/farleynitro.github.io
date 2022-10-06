@@ -1,0 +1,109 @@
+---
+title: "Exploración de datos"
+description: |
+  Explorando
+author:
+  - name: Farley Rimon
+    url: {}
+date: 2022-10-05
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+## Variables operacionales
+
+Primero, cargaremos los paquetes que utilizaremos en esta sesión:
+
+```{r paquetes, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+```
+
+Y cargaremos la base de datos con variables ya seleccionadas:
+
+```{r}
+df_2014 <- read_sav("data/Base_en_SAV_Primera_Encuesta_Nacional_de_Medio_Ambiente_2014.sav")
+df_2015 <- read_sav("data/Base_en_SAV_Encuesta_Medio_Ambiente_2015.sav")
+df_2016 <- read_sav("data/Base_en_SAV_Encuesta_de_Medio_Ambiente_2016.sav")
+df_2018 <- read_excel("data/Base-en-excel-Encuesta-Nacional-de-Medio-Ambiente-2018.xlsx")
+```
+
+Es importante mencionar que algunas preguntas están doble. Como pregunta abierta, y luego fueron codificadas a base de respuestas similares.
+
+```{r}
+skimr::skim(df_2018)
+sjPlot::view_df(df_2018)
+```
+
+```{r}
+skimr::skim(df_2016)
+sjPlot::view_df(df_2016)
+(sum(is.na(df_2016))/prod(dim(df_2016)))*100
+```
+Vemos que la cantidad de datos faltantes es poca, un 2% de la base. Si ocurre en solo unas columnas, se pueden remover de la base para tener una base de datos limpia. Para eso usamos la funcion sort:
+
+```{r}
+sort( colSums( sapply(df_2016, is.na) ), decreasing=TRUE)
+df_2016 %>% select_if(colSums( sapply(df_2016, is.na)>500))
+
+```
+Vemos que son 14 columnas con datos faltantes. De 2170 observaciones, falta más de el 25% (598/2170*100%= 27.2%) de los datos para los indicadores. Removemos estas columnas. Hacemos lo mismo para 2015 y 2014.
+
+```{r}
+skimr::skim(df_2015)
+sjPlot::view_df(df_2015)
+(sum(is.na(df_2015))/prod(dim(df_2015)))*100
+sort( colSums( sapply(df_2015, is.na) ), decreasing=TRUE)
+```
+
+```{r}
+skimr::skim(df_2014)
+sjPlot::view_df(df_2014)
+(sum(is.na(df_2014))/prod(dim(df_2014)))*100
+sort( colSums( sapply(df_2014, is.na) ), decreasing=TRUE)
+```
+
+
+Primero voy a limpiar mis datos. Decido remover cualqueir columna que se acerque a una falta de 30% de los datos totales, eso serian.Es un porcentaje alto, pero hay muchos datos faltantes asi que para no perder demasiado datos, se mantiene toda variable con >30% datos hasta que se encuentre un metodo para estimarlos. Si no se puede, seran removidos.
+
+En este contexto, P1_COD_2/3/4,P8_OTRO_COD_1/2/3/4,P9_COD_1/2/3,P14,P14_OTRO_COD_1/2/3,P16_OTRO_COD_1/2/3,P17_OTRO_COD_1/2,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6 seran removidos.
+
+El siguiente Excel ofrece una descripción de la base de datos de las encuestas: 
+
+```{r echo = F}
+
+readxl::read_excel("data/Book1.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:2, width_min = "2cm", border_left = T) %>%
+      column_spec(3:8, width_min = "3cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+
+## Construcción de modelo
+
+INSERT
+
+Iterativamente haré lo siguiente:
+
+* Formular una pregunta
+* Crear un subset de los datos
+* Limpiar los datos
+* Análisis de indicadores usando plots (ggplots)
+* Aplicar metodo multidimensional
+* Colectar resultados
+* Validacion de hipotesis usando metodos estadisticos
+
+Distill is a publication format for scientific and technical writing, native to the web.
+
+Learn more about using Distill at <https://rstudio.github.io/distill>.
+
+

@@ -1,0 +1,181 @@
+library(tidyverse)
+library(haven)
+library(texreg)
+library(survival)
+library(glmmML)
+library(survminer)
+library(ggalt)
+
+d <- haven::read_dta("data_for_hazard_analysis.dta")
+
+colnames(d)
+
+skimr::skim(d)
+
+modelo_1a <- visit_from_us_pres ~ eAge + W + S + election + log_pop + log_gdp + growthWB + lag_ideal_diff + unsc_temp + lag_instab_ind + 
+  lag_log_imports + lag_log_exports + lag_log_milaid + lag_log_econaid + lag_ally + rents_imputed_cy_lag
+
+modelo_1b <- visit_from_us_pres ~ eAge + W + S + election + log_pop + log_gdp + growthWB + lag_ideal_diff + unsc_temp + lag_instab_ind + 
+  lag_log_imports + lag_log_exports + lag_log_milaid + lag_log_econaid + lag_ally + rents_imputed_cy_lag + strata(year)
+
+modelo_2 <- visit_in_us_any ~ eAge + W + S + election + log_pop + log_gdp + growthWB + lag_ideal_diff + unsc_temp + lag_instab_ind + 
+  lag_log_imports + lag_log_exports + lag_log_milaid + lag_log_econaid + lag_ally + rents_imputed_cy_lag + strata(year)
+
+modelo_3 <- AnyVisit ~ eAge + W + S + election + log_pop + log_gdp + growthWB + lag_ideal_diff + unsc_temp + lag_instab_ind + 
+  lag_log_imports + lag_log_exports + lag_log_milaid + lag_log_econaid + lag_ally + rents_imputed_cy_lag + strata(year)
+
+# Modelos logísticos
+
+mod1a <- glm(modelo_1a, family = binomial(link = "logit"), data = d)
+
+mod1b <- glm(modelo_1b, family = binomial(link = "logit"), data = d)
+
+modelos_a <- list(mod1a, mod1b)
+
+screenreg(modelos_a)
+
+#ya no toma año porque asume efectos fijos
+
+mod2 <- glm(modelo_2, family = binomial(link = "logit"), data = d)
+
+mod3 <- glm(modelo_3, family = binomial(link = "logit"), data = d)
+
+modelos <- list(mod1b, mod2, mod3)
+
+screenreg(modelos,
+          custom.model.names = c("Modelo 1", "Modelo 2", "Modelo 3"),
+          omit.coef = "year"
+          )
+
+# Representación gráfica de los resultados
+
+library(margins)
+library(prediction)
+
+predict_model_1a <- prediction::prediction(
+  mod1a, at = list(W = unique(model.frame(mod1a)$W))
+)
+
+summary(predict_model_1a)
+
+cdat <- cplot(mod1a, "W", what = "prediction",
+              main = "Pr(Tamaño de la coalición ganadora)", draw = F)
+
+ggplot(cdat, aes(x = xvals)) +
+  geom_line(aes(y = yvals)) +
+  geom_line(aes(y = upper), linetype = 2)+
+  geom_line(aes(y = lower), linetype = 2) +
+  geom_hline(yintercept = 0) +
+  labs(title = "Pr. las visitas diplomáticas de EEUU",
+       x = "Tamaño de la coalición ganadora", y = "Prob. predicha") +
+  hrbrthemes::theme_ipsum_rc()
+
+# ¿Cuál es el efecto medio?
+
+marginal_ef <- margins(mod1a)
+
+plot(marginal_ef)
+
+library(pscl)
+
+# Pseudo R-cuadrado
+
+pR2(mod1b)[["McFadden"]]
+
+pR2(mod2)[["McFadden"]]
+
+pR2(mod3)[["McFadden"]]
+
+
+# Pseudo R cuadrado ajustado
+
+library(DescTools)
+
+PseudoR2(mod1b, c("McFadden"))
+
+PseudoR2(mod2, c("McFadden"))
+
+PseudoR2(mod3, c("McFadden"))
+
+# Conteo
+
+library(broom)
+
+pred_mod1a <- augment(mod1a, type.predict = "response")
+
+pred_mod1a %>%
+  dplyr::select(.rownames, W, .fitted) %>%
+  mutate(predict_binary = if_else(.fitted >= 0.5, 1, 0),
+         predict_binary = if_else(W == predict_binary, 1, 0)) %>%
+  summarize(pcp = mean(predict_binary))
+
+# ROC
+
+library(plotROC)
+
+pred_models <- bind_rows(augment(mod1b, response.type = "pred") %>%
+                           mutate(model = "Modelo 1"),
+                         augment(mod2, response.type = "pred") %>%
+                           mutate(model = "Modelo 2"),
+                         augment(mod3, response.type = "pred") %>%
+                           mutate(model = "Modelo 3"))
+
+roc <- ggplot(pred_models, aes(d = election, m = .fitted, color = model)) +
+  geom_roc(n.cuts = 0) + 
+  geom_abline(slope = 1) +
+  labs(x = "1 - especificidad", y = "Sensibilidad") +
+  hrbrthemes::theme_ipsum_rc()
+
+roc
+
+calc_auc(roc)
+
+
+
+# Modelo de supervivencia
+
+dd <- d %>% 
+  select(obsid, leader, year, startdate, enddate, entry, exit, fail, visit_from_us_sec, visit_in_us_any, AnyVisit) %>% 
+  group_by(obsid) %>% 
+  mutate(risk_end = row_number(),
+         risk_start = risk_end-1)
+  
+
+modelo_surv <- survfit( Surv(time = risk_start, time2 = risk_end, event =  fail) ~ AnyVisit,
+                      type = "kaplan-meier", conf.type = "log", data = dd)
+
+ggsurvplot(modelo_surv, conf.int = T, 
+           risk.table = T,
+           legend.title = "",
+           #break.x.by = 20,
+           legend.labs = c("Cualquier tipo de visita del presidente de EEUU = 0",
+                           "Cualquier tipo de visita del presidente de EEUU = 1"),
+           data = dd) +
+  labs(title    = "Estimaciones de supervivencia de Kaplan-Meier")
+
+
+modelo_cox <- coxph(Surv(time = risk_start, time2 = risk_end, event =  fail) ~ AnyVisit + visit_from_us_sec + visit_in_us_any, 
+                    data = dd, method = "breslow")
+
+summary(modelo_cox)
+
+# No estima el riesgo base (¡No hay intercepto!), pero podemos estimar los riesgos.
+# Concordance equivale al área bajo la curva en la regresión logística.
+
+ggforest(modelo_cox)
+
+# Test de riesgo proporcional:
+
+cox.zph(modelo_cox)
+
+# Cambiamos los coeficientes exponenciados:
+
+#remotes::install_github("arcruz0/paqueteadp")
+
+library(paqueteadp)
+
+screenreg(modelo_cox,
+          override.coef = exp(coef(modelo_cox)),
+          override.se = odds_se(modelo_cox),
+          override.pvalues = odds_pvalues(modelo_cox))
+
