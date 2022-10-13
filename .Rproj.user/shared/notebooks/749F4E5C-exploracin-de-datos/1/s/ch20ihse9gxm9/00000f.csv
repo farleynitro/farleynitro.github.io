@@ -1,0 +1,6 @@
+"0",""
+"0","#re-ordering dataframe to have indicators in front"
+"0",""
+"0","df_2018_final <- df_2018 %>%"
+"0","  select(""ZONAS"", ""ID"", ""COMUNA"", ""NSE"",""TNSE"",""NEDAD"",""TEDAD"",""REGION"",""CUOTA"",""POND"", P32,P33,P34,P35,P36,P37,P38,P39, everything())"
+"0","sjPlot::view_df(df_2018_final)"

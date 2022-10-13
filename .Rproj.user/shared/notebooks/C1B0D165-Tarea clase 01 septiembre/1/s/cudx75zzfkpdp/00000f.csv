@@ -1,0 +1,11 @@
+"0","##create subset"
+"0","vdem_subset <- vdem %>% "
+"0","select(country_name, v2x_partipdem, "
+"0","       v2x_cspart, v2elmulpar, v2psprlnks, e_peedgini, "
+"0","       e_regionpol, e_gdppc, e_pop) %>% "
+"0","group_by(country_name) %>% "
+"0","summarise_all(function(x)  mean(x, na.rm = T)) %>%"
+"0","na.omit() "
+"2","Error in select(., country_name, v2x_partipdem, v2x_cspart, v2elmulpar,  : 
+  object 'vdem' not found
+"

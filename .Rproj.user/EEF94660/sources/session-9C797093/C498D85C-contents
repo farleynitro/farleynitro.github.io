@@ -1,0 +1,40 @@
+---
+title: "Week 1"
+description: |
+  Experiencia de la primera semana
+author:
+  - name: Farley Rimon
+    url: https://example.com/norajones
+date: 2022-08-19
+output:
+  distill::distill_article:
+    self_contained: false
+---
+## So far, struggling a little bit ####
+
+Things tend to go slow for several reasons:
+
+> I just want to get started with the projects!
+
+1. Program interface (to zoom or not to zoom?)
+2. Disbalance in student expertise
+
+
+3. I just want to get started with the projects!Or the hardcore (new) theory. I believe reviewing old material is to be done in someone's own time. Well, that's how my uni went so I am used to the stress hahaha. It is also just part of my natural character. Because of this, I am excited for **what is to come...**
+
+### Finished taller de R ###
+
+Experience:
++ Not very different to Python
++ Need to get used to the syntax
++ Actually pretty easy to use. The interface is insanely simple
++ I am scared some solutions I will not know because of a lack of dominance of R. **Hopefully we can help each other with this.**
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+

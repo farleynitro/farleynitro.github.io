@@ -1,0 +1,4 @@
+"0","df_2016_final <- df_2016[, colMeans(is.na(df_2016)) <= .15]"
+"0","df_2015_final <- df_2015[, colMeans(is.na(df_2015)) <= .15]"
+"0","df_2014_final <- df_2014[, colMeans(is.na(df_2014)) <= .15]"
+"0",""

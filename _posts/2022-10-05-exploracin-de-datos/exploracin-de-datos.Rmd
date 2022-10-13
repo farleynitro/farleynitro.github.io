@@ -12,7 +12,7 @@ output:
 ---
 
 
-## Variables operacionales
+# Limpiando el database
 
 Primero, cargaremos los paquetes que utilizaremos en esta sesión:
 
@@ -24,6 +24,8 @@ library(kableExtra)
 library(readxl)
 library(skimr)
 library(sjPlot)
+library(naniar)
+library(ggcorrplot)
 ```
 
 Y cargaremos la base de datos con variables ya seleccionadas:
@@ -37,49 +39,87 @@ df_2018 <- read_excel("data/Base-en-excel-Encuesta-Nacional-de-Medio-Ambiente-20
 
 Es importante mencionar que algunas preguntas están doble. Como pregunta abierta, y luego fueron codificadas a base de respuestas similares.
 
-```{r}
+```{r, results='hide'}
 skimr::skim(df_2018)
-sjPlot::view_df(df_2018)
 ```
 
-```{r}
+```{r,results='hide'}
 skimr::skim(df_2016)
 sjPlot::view_df(df_2016)
+```
+
+
+```{r}
 (sum(is.na(df_2016))/prod(dim(df_2016)))*100
 ```
-Vemos que la cantidad de datos faltantes es poca, un 2% de la base. Si ocurre en solo unas columnas, se pueden remover de la base para tener una base de datos limpia. Para eso usamos la funcion sort:
 
-```{r}
-sort( colSums( sapply(df_2016, is.na) ), decreasing=TRUE)
-df_2016 %>% select_if(colSums( sapply(df_2016, is.na)>500))
-
-```
-Vemos que son 14 columnas con datos faltantes. De 2170 observaciones, falta más de el 25% (598/2170*100%= 27.2%) de los datos para los indicadores. Removemos estas columnas. Hacemos lo mismo para 2015 y 2014.
-
-```{r}
+```{r,results='hide'}
 skimr::skim(df_2015)
-sjPlot::view_df(df_2015)
-(sum(is.na(df_2015))/prod(dim(df_2015)))*100
-sort( colSums( sapply(df_2015, is.na) ), decreasing=TRUE)
 ```
+
 
 ```{r}
+(sum(is.na(df_2015))/prod(dim(df_2015)))*100
+```
+
+```{r,results='hide'}
 skimr::skim(df_2014)
-sjPlot::view_df(df_2014)
-(sum(is.na(df_2014))/prod(dim(df_2014)))*100
-sort( colSums( sapply(df_2014, is.na) ), decreasing=TRUE)
 ```
 
 
-Primero voy a limpiar mis datos. Decido remover cualqueir columna que se acerque a una falta de 30% de los datos totales, eso serian.Es un porcentaje alto, pero hay muchos datos faltantes asi que para no perder demasiado datos, se mantiene toda variable con >30% datos hasta que se encuentre un metodo para estimarlos. Si no se puede, seran removidos.
+```{r}
+(sum(is.na(df_2014))/prod(dim(df_2014)))*100
+```
 
-En este contexto, P1_COD_2/3/4,P8_OTRO_COD_1/2/3/4,P9_COD_1/2/3,P14,P14_OTRO_COD_1/2/3,P16_OTRO_COD_1/2/3,P17_OTRO_COD_1/2,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6 seran removidos.
+Vemos que la cantidad de datos faltantes es poca para el 2016, un 2% de la base.2014 y 2015 ya tienen mas del 30% de datos faltantes. Si ocurre en solo unas de las columnas, se pueden remover de la base para tener una base de datos limpia. Para eso usamos la funcion sort:
 
-El siguiente Excel ofrece una descripción de la base de datos de las encuestas: 
+```{r}
+sort( colSums( sapply(df_2016, is.na) ), decreasing=TRUE) %>% head(20)
+```
+Vemos que son 14 columnas con datos faltantes para el 2016. De 2170 observaciones, falta más de el 25% (598/2170*100%= 27.2%) de los datos para los indicadores. Removemos todas las columnas que le falten mas de 15% de las observaciones. En vez de observar cuales columnas tiene mas de 15% en el 2015 y 2014, removemos las columnas directamente ya que no son útiles en todo caso.
 
-```{r echo = F}
+```{r}
+df_2016_final <- df_2016[, colMeans(is.na(df_2016)) <= .15]
+df_2015_final <- df_2015[, colMeans(is.na(df_2015)) <= .15]
+df_2014_final <- df_2014[, colMeans(is.na(df_2014)) <= .15]
+```
 
-readxl::read_excel("data/Book1.xlsx") %>%
+
+El siguiente Excel ofrece una descripción de la base de datos de las encuestas.
+
+Primero la data era la siguiente.
+
+```{r, echo= FALSE}
+
+readxl::read_excel("data/Overview data.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:2, width_min = "2cm", border_left = T) %>%
+      column_spec(3:8, width_min = "3cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+vemos que habian columnas especificas con la mayoria de los datos faltantes. Las columnas que quedan, juntas, tienen menos del 0.19% con datos faltantes. Esta fracción del total se puede ignorar. Despues de limpiar el database, el *overview* cambia a la siguiente.
+
+```{r}
+(sum(is.na(df_2016_final))/prod(dim(df_2016_final)))*100
+(sum(is.na(df_2015_final))/prod(dim(df_2015_final)))*100
+(sum(is.na(df_2014_final))/prod(dim(df_2014_final)))*100
+```
+
+```{r, results='hide'}
+skimr::skim(df_2014_final)
+skimr::skim(df_2015_final)
+skimr::skim(df_2016_final)
+```
+
+
+
+
+
+```{r, echo = FALSE}
+
+readxl::read_excel("data/Overview data 2.xlsx") %>%
   knitr::kable(., align = 'lccccccc') %>%
     kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
       column_spec(1:2, width_min = "2cm", border_left = T) %>%
@@ -88,7 +128,263 @@ readxl::read_excel("data/Book1.xlsx") %>%
 ```
 
 
-## Construcción de modelo
+# Encontrando las variables operacionales
+
+## Encuesta nacional del 2018
+
+Para simplificar el analisis, decido enfocarme solo en el 2016 y 2018 ya que es el mas completo de los años. A base del 2016 y 2018 decido cuales van a ser mis variables operacionales para todos los años.
+
+```{r, results='hide'}
+
+#re-ordering dataframe to have indicators in front
+
+df_2018_final <- df_2018 %>%
+  select("ZONAS", "ID", "COMUNA", "NSE","TNSE","NEDAD","TEDAD","REGION","CUOTA","POND", P32,P33,P34,P35,P36,P37,P38,P39, everything())
+sjPlot::view_df(df_2018_final)
+```
+
+```{r, results='hide', echo=FALSE}
+df_2018_final %>% head()
+
+# Just some tests for myself
+
+n_distinct(df_2018_final$P17_COD)
+unique(df_2018_final$P17_COD)
+
+n_distinct(df_2018_final$P26_OTRO)
+# unique(df_2018_final$P26_OTRO)
+```
+
+## Exploración de variables independientes
+
+Primero que escoger mis variables independientes voy a tener que entender su sesgo y varianca. Tengo mas que nada entender mis datos para asi tambien entender mis resultados.
+
+Variables socio-económicos y socio-demograficas son:
+
+* **Zonas (macrozona en Chile)**
+* ID (xxxxx)
+* Comuna (xxxxxxx)
+* **NSE (nivel Soco-Economico)**
+* **TNSE (xxxxx)**
+* **NEDAD (categórica de edad; 18-34;31-45; 46-60; 61+)**
+* **TEDAD (categórica de edad; 18-34; 35-54; 55+)**
+* REGION (16 regiones)
+* **CUOTA (xxxxxx)**
+* POND
+* **P32: Sexo (categórica: Hombre (1); Mujer (0))**
+* **P33: Edad (variable continua)**
+* **P34: Nivel de educación (categórica del 1-10)**
+* **P36: Estudia (categórica: Si(1);No (2))**
+* **P37: Nivel de educación con mas aporte al ingreso del hogar (categórica: 1-10)**
+* **P38: Profesión con mas aporte al ingreso del hogar (categórica: 1-10)**
+* **P39: Religión (categórica: 1-9)**
+* **P43: Tipo de combustible que usa el vehiculo del encuestado (categórica: 1-..)**
+* **P8: Razón por la que alguien no usa bicicleta (categórica: 1-..)**
+* **P18: Opinion de la causa del cambio climatico (categórca: 1-..)**
+
+De estas solo considero las cursivas. Las cursivas voy a analizar para multicolineadid y asi reducir las variables independientes usadas mas.
+
+```{r, results= 'hide', echo=FALSE}
+# unique(df_2018_final$POND)
+unique(df_2018_final$TNSE)
+unique(df_2018_final$NSE)
+n_distinct(df_2018_final$CUOTA)
+```
+
+```{r}
+# Rename columns of independent variables
+df_2018_final <-  df_2018_final %>% rename('Razon_Bici'= 'P8','Razon_Cambio_Cl'= 'P18','Automovil_Combustible'= 'P43', 'Sexo'='P32' ,'Edad'='P33' ,'Niv_Edu'='P34','Estudiante'='P36','Edu_Ingr'='P37','Trab_Ingr'= 'P38','Religion'='P39', 'Transporte_mas_freq' = 'P7')
+```
+
+```{r}
+var_ind <- df_2018_final %>% 
+  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, CUOTA, Sexo, Edad, Niv_Edu, Estudiante, Edu_Ingr, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS) %>% 
+summarise_all(function(x)  mean(x, na.rm = T))
+  # na.omit()
+```
+Vemos que hay un warning. Vamos a ver cual variable ocasiona estos warning y porque. Yo pienso que son Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible. Las ultimas 3 variables tienen un ".", un dato que se puede considerar NA. Como no se puede reemplezar lo mejor es imputarlo con el valor que es equivalente a "No Responde" para estas preguntas, el número **9** para *Razon_Cambio_Cl(P18) y Automovil_Combustible (P43)*, el número **99** para *Razon_Bici (P8)*. Cambiamos las columnas a *numeric* y terminamos. Despues, volvemos a formar un subset de las variables independientes.
+
+```{r, results='hide'}
+
+unique(df_2018_final$ZONAS)
+unique(df_2018_final$NSE)
+unique(df_2018_final$TNSE)
+unique(df_2018_final$NEDAD)
+unique(df_2018_final$TEDAD)
+unique(df_2018_final$CUOTA)
+unique(df_2018_final$Sexo)
+unique(df_2018_final$Edad)
+unique(df_2018_final$Niv_Edu)
+unique(df_2018_final$Estudiante)
+unique(df_2018_final$Razon_Bici)
+unique(df_2018_final$Razon_Cambio_Cl)
+unique(df_2018_final$Automovil_Combustible)
+unique(df_2018_final$Transporte_mas_freq)
+
+df_2018_final["Razon_Bici"][df_2018_final["Razon_Bici"] == "."] <- "9"
+df_2018_final["Razon_Cambio_Cl"][df_2018_final["Razon_Cambio_Cl"] == "."] <- "99"
+df_2018_final["Automovil_Combustible"][df_2018_final["Automovil_Combustible"] == "."] <- "99"
+
+var_ind <- df_2018_final %>% 
+  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, CUOTA, Sexo, Edad, Niv_Edu, Estudiante, Edu_Ingr, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS) 
+
+#checking the class of every column
+sapply(var_ind, class)
+
+#applying a new class
+var_ind[] <- lapply(var_ind, function(x) as.numeric(as.character(x)))
+sjPlot::view_df(var_ind)
+```
+
+```{r}
+colnames(var_ind)
+corr_vdem <- var_ind %>% 
+  select(1:17) %>% 
+  cor(use = "pairwise") %>% 
+  round(1)
+ggcorrplot(corr_vdem, type = "lower", lab = T, tl.cex = 9, show.legend = F)
+```
+Para reducir dimensionalidad y ocuparnos de tener las variables que son significante vamos a reducir la cantidad de variables independientes. 
+
+El nivel de correlación para todas las variables es alta ya que las variables son mayormente categóricas. Por eso, solo removemos variables que presenten una correlación alta para la mayoria de variables y que tengan una relación explicativa conceptualmente lógica. Es decir, no consideramos el TNSE,porque el NSE ya captura el estatus socio-económico. TEDAD, NEDAD es reemplazado por la variable continua de edad para tener mejor ajuste y distribución para el input del modelo (la edad es algo que se puede medir). 
+
+
+## Variables dependientes
+
+Las variables dependientes tienen el proposito de capturar la **percepción pública**. Como esto no es algo que se puede medir, se requiere el uso de variables latentes, cuales son subvariables las que se puede preguntar con mas precisión la opinion de alguien para una subcategoria. Es decir, la percepción pública la vamos a medir a traves de dos latentes, **seriedad de cambio climatico percibido** y **preocupación hacia el cambio climatico**. La manera de capturar la percepción pública sobre el cambio climatica es visible en la imagen abajo. Nos enfocamos en los cuadrantes naranjas (las dos latentes de interes). Estas dos latentes constituyen de diferentes preguntas en la Encuesta Nacional del 2018. 
+
+![La división de la variable ](images/variables latentes.jpg)
+
+
+
+
+
+```{r}
+#create subset of dependent variables
+var_dep <- df_2018_final %>%
+          select(P1_MAmb,P2_COD,P3A,P3B,P3C,P3D,P3E,P3F,P4,
+                 P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,
+                 P19_7,P19_8,P20,P21A,P21B,P21C,
+                 P21D,P30)
+```
+
+
+```{r}
+#1 to 7
+
+#no NA values
+
+unique(var_dep$P1_MAmb)
+unique(var_dep$P2_COD)
+unique(var_dep$P3A)
+unique(var_dep$P3B)
+
+unique(var_dep$P3C)
+unique(var_dep$P3D)
+unique(var_dep$P3E)
+unique(var_dep$P3F)
+unique(var_dep$P4)
+```
+
+
+```{r}
+#17 to 19
+
+#no NA
+unique(var_dep$P17_COD)
+
+#has NA
+unique(var_dep$P19_1)
+unique(var_dep$P19_2)
+unique(var_dep$P19_3)
+unique(var_dep$P19_4)
+unique(var_dep$P19_5)
+unique(var_dep$P19_6)
+unique(var_dep$P19_7)
+unique(var_dep$P19_8)
+
+
+#cleaning NAs by putting the "." as NA
+var_dep %>% replace_with_na(replace = list(P19_1 = ".", P19_2= ".",P19_3=".",P19_4=".",P19_5=".",
+                                           P19_6=".",P19_7=".",P19_8="."))
+
+
+```
+```{r}
+#no NA
+unique(var_dep$P20)
+
+#has NA
+unique(var_dep$P21A)
+unique(var_dep$P21B)
+unique(var_dep$P21C)
+unique(var_dep$P21D)
+
+#cleaning NAs by putting the "." as NA
+var_dep %>% replace_with_na(replace = list(P21A = ".", P21B= ".",P21C=".",P21D="."))
+
+#no NA
+unique(var_dep$P30)
+```
+
+Ahora que he limpiado todos los datos, en orden para obtener la preocupación pública decido sumar las respuestas de los encuestados. Para que esto sea posible, voy a sumar las respuestas a lo que llamo el **perception score**. Mientras mas alto sea este perception score, mas alto sera la preocupación y seriedad percibida. Para realizar esto hay que normalizar todos los valores de todas las preguntas en la siguiente forma:
+
+* 0 - No responde, No disponible
+* 1 - No importante
+* 2 - No tan importante
+* 3 - Neutral
+* 4 - Importante
+* 5 - Muy importante
+
+
+**Es importante entender que todas las preguntas tienen otro formato y no todos indican relevancia hacia el medio ambiente directa. Esto es claramente una limitación. Sin embargo, asumimos que es la asumción es valida ya que indirectamente un número mas bajo en las preguntas codificadas se relaciona con acciones, y percepciones menos enfocadas hacia el medio ambiente.** Donde este no sea el caso, me ocupo manualmente de cambiar el formato en algo que concuerde con el formato para el perception score mencionado arriba. Ya esto forma la primera base útil para el modelo. 
+
+
+* P1_Mambm: 1 a 5 -> 5 (=1) a 1 (=5)
+* P3;A-F: 1 a 5 -> 5 (=1) a 1 (=5), 8 (=0), 9 (=0)
+* P4: 1 a 3 -> 1 (=1), 2 (=3), 3 (=5), 8 (=0), 9 (=0)
+* P19;1-7: 0 a 1 -> 0 (=1), 1 (=5)
+* P19;8: 0 a 1 -> 0 (=5), 1 (=1)
+* P20: 1 a 4 -> 4 (=1), 3 (=5), 2 (=3), 1 (=4), 8 (=0), 9 (=0)
+* P21;A-D: 1 a 5 -> 1 (=1) a 5 (=5), 8 (=0), 9 (=0)
+* P30: 1 a 3 -> 1 (=5), 2 (=3), 3 (=1), 9 (=0)
+
+Excepciones:
+* P2_COD tiene que ser una variable dependiente separada, porque calcula la percepción del cambio climatico en terminos no-cuantitativos. Ve la diferencia en percepcion, y no la preocupación o relevancia.
+* P17_COD tiene que ser una variable dependiente separada, porque calcula la percepción del cambio climatico en terminos no-cuantitativos. Ve la diferencia en percepcion, y no la preocupación o relevancia.
+
+Como trataremos a estas excepciones se vera luego.
+
+
+```{r}
+#Normalizing input values
+
+
+
+```
+
+```{r}
+#summing up all the columns to make the variable perception score
+# var_dep %>%
+#   score_perc = rowSums(select(everything()))
+ 
+# var_dep$percepcion_score <- rowSums(var_dep[,c(1,2,3,4,5,6,7,8,9,30)],na.rm=TRUE)
+
+# var_dep %>%
+#   mutate(score_perc = rowSums(var_dep[,1:28]), 
+#         na.rm = TRUE)
+```
+
+
+
+# Construcción de modelo
+
+
+
 
 INSERT
 
@@ -102,8 +398,5 @@ Iterativamente haré lo siguiente:
 * Colectar resultados
 * Validacion de hipotesis usando metodos estadisticos
 
-Distill is a publication format for scientific and technical writing, native to the web.
-
-Learn more about using Distill at <https://rstudio.github.io/distill>.
 
 
