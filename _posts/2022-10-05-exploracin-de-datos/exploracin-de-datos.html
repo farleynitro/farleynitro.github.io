@@ -2132,7 +2132,7 @@ analisis en los que supongo conceptualmente que tienen dependencia.</p>
     2000 replicates)
 
 data:  var_ind$Estudiante and var_ind$Trab_Ingr
-X-squared = 173.26, df = NA, p-value = 0.01249</code></pre>
+X-squared = 173.26, df = NA, p-value = 0.008496</code></pre>
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://rdrr.io/r/stats/chisq.test.html'>chisq.test</a></span><span class='op'>(</span><span class='va'>var_ind</span><span class='op'>$</span><span class='va'>Estudiante</span>, <span class='va'>var_ind</span><span class='op'>$</span><span class='va'>Razon_Bici</span>,simulate.p.value <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span></code></pre>
 </div>
@@ -2141,7 +2141,7 @@ X-squared = 173.26, df = NA, p-value = 0.01249</code></pre>
     2000 replicates)
 
 data:  var_ind$Estudiante and var_ind$Razon_Bici
-X-squared = 245.86, df = NA, p-value = 0.002999</code></pre>
+X-squared = 245.86, df = NA, p-value = 0.002499</code></pre>
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://rdrr.io/r/stats/chisq.test.html'>chisq.test</a></span><span class='op'>(</span><span class='va'>var_ind</span><span class='op'>$</span><span class='va'>Razon_Bici</span>, <span class='va'>var_ind</span><span class='op'>$</span><span class='va'>Razon_Cambio_Cl</span>,simulate.p.value <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span></code></pre>
 </div>
@@ -2476,7 +2476,7 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
 <span><span class='va'>var_dep</span> <span class='op'>&lt;-</span> <span class='va'>df_2018_final</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
 <span>          <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>P1_MAmb</span>,<span class='va'>P2_COD</span>,<span class='va'>P3A</span>,<span class='va'>P3B</span>,<span class='va'>P3C</span>,<span class='va'>P3D</span>,<span class='va'>P3E</span>,<span class='va'>P3F</span>,<span class='va'>P4</span>,</span>
 <span>                 <span class='va'>P17_COD</span>,<span class='va'>P19_1</span>,<span class='va'>P19_2</span>,<span class='va'>P19_3</span>,<span class='va'>P19_4</span>,<span class='va'>P19_5</span>,<span class='va'>P19_6</span>,</span>
-<span>                 <span class='va'>P19_7</span>,<span class='va'>P19_8</span>,<span class='va'>P20</span>,<span class='va'>P21A</span>,<span class='va'>P21B</span>,<span class='va'>P21C</span>,</span>
+<span>                 <span class='va'>P19_7</span>,<span class='va'>P19_8</span>, <span class='va'>P19_10</span>, <span class='va'>P20</span>,<span class='va'>P21A</span>,<span class='va'>P21B</span>,<span class='va'>P21C</span>,</span>
 <span>                 <span class='va'>P21D</span>,<span class='va'>P30</span><span class='op'>)</span></span></code></pre>
 </div>
 </div>
@@ -2564,11 +2564,15 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
 </div>
 <pre><code>[1] &quot;0&quot; &quot;.&quot; &quot;1&quot;</code></pre>
 <div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://rdrr.io/r/base/unique.html'>unique</a></span><span class='op'>(</span><span class='va'>var_dep</span><span class='op'>$</span><span class='va'>P19_10</span><span class='op'>)</span></span></code></pre>
+</div>
+<pre><code>[1] &quot;0&quot; &quot;.&quot; &quot;1&quot;</code></pre>
+<div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'>#cleaning NAs by putting the "." as NA</span></span>
 <span><span class='va'>var_dep</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://rdrr.io/pkg/naniar/man/replace_with_na.html'>replace_with_na</a></span><span class='op'>(</span>replace <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>P19_1 <span class='op'>=</span> <span class='st'>"."</span>, P19_2<span class='op'>=</span> <span class='st'>"."</span>,P19_3<span class='op'>=</span><span class='st'>"."</span>,P19_4<span class='op'>=</span><span class='st'>"."</span>,P19_5<span class='op'>=</span><span class='st'>"."</span>,</span>
-<span>                                           P19_6<span class='op'>=</span><span class='st'>"."</span>,P19_7<span class='op'>=</span><span class='st'>"."</span>,P19_8<span class='op'>=</span><span class='st'>"."</span><span class='op'>)</span><span class='op'>)</span></span></code></pre>
+<span>                                           P19_6<span class='op'>=</span><span class='st'>"."</span>,P19_7<span class='op'>=</span><span class='st'>"."</span>,P19_8<span class='op'>=</span><span class='st'>"."</span>,P19_10<span class='op'>=</span><span class='st'>"."</span><span class='op'>)</span><span class='op'>)</span></span></code></pre>
 </div>
-<pre><code># A tibble: 7,601 × 24
+<pre><code># A tibble: 7,601 × 25
    P1_MAmb P2_COD   P3A   P3B   P3C   P3D   P3E   P3F    P4 P17_COD
      &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
  1       2      6     3     2     2     2     3     3     3       5
@@ -2581,10 +2585,10 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
  8       3      6     4     4     3     3     4     3     3       3
  9       5      6     4     4     3     4     4     4     2       3
 10       3      1     3     4     2     4     3     3     3      88
-# … with 7,591 more rows, and 14 more variables: P19_1 &lt;chr&gt;,
+# … with 7,591 more rows, and 15 more variables: P19_1 &lt;chr&gt;,
 #   P19_2 &lt;chr&gt;, P19_3 &lt;chr&gt;, P19_4 &lt;chr&gt;, P19_5 &lt;chr&gt;, P19_6 &lt;chr&gt;,
-#   P19_7 &lt;chr&gt;, P19_8 &lt;chr&gt;, P20 &lt;chr&gt;, P21A &lt;chr&gt;, P21B &lt;chr&gt;,
-#   P21C &lt;chr&gt;, P21D &lt;chr&gt;, P30 &lt;dbl&gt;
+#   P19_7 &lt;chr&gt;, P19_8 &lt;chr&gt;, P19_10 &lt;chr&gt;, P20 &lt;chr&gt;, P21A &lt;chr&gt;,
+#   P21B &lt;chr&gt;, P21C &lt;chr&gt;, P21D &lt;chr&gt;, P30 &lt;dbl&gt;
 # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names</code></pre>
 </div>
 <div class="layout-chunk" data-layout="l-body">
@@ -2614,7 +2618,7 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'>#cleaning NAs by putting the "." as NA</span></span>
 <span><span class='va'>var_dep</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://rdrr.io/pkg/naniar/man/replace_with_na.html'>replace_with_na</a></span><span class='op'>(</span>replace <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>P21A <span class='op'>=</span> <span class='st'>"."</span>, P21B<span class='op'>=</span> <span class='st'>"."</span>,P21C<span class='op'>=</span><span class='st'>"."</span>,P21D<span class='op'>=</span><span class='st'>"."</span><span class='op'>)</span><span class='op'>)</span></span></code></pre>
 </div>
-<pre><code># A tibble: 7,601 × 24
+<pre><code># A tibble: 7,601 × 25
    P1_MAmb P2_COD   P3A   P3B   P3C   P3D   P3E   P3F    P4 P17_COD
      &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
  1       2      6     3     2     2     2     3     3     3       5
@@ -2627,10 +2631,10 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
  8       3      6     4     4     3     3     4     3     3       3
  9       5      6     4     4     3     4     4     4     2       3
 10       3      1     3     4     2     4     3     3     3      88
-# … with 7,591 more rows, and 14 more variables: P19_1 &lt;chr&gt;,
+# … with 7,591 more rows, and 15 more variables: P19_1 &lt;chr&gt;,
 #   P19_2 &lt;chr&gt;, P19_3 &lt;chr&gt;, P19_4 &lt;chr&gt;, P19_5 &lt;chr&gt;, P19_6 &lt;chr&gt;,
-#   P19_7 &lt;chr&gt;, P19_8 &lt;chr&gt;, P20 &lt;chr&gt;, P21A &lt;chr&gt;, P21B &lt;chr&gt;,
-#   P21C &lt;chr&gt;, P21D &lt;chr&gt;, P30 &lt;dbl&gt;
+#   P19_7 &lt;chr&gt;, P19_8 &lt;chr&gt;, P19_10 &lt;chr&gt;, P20 &lt;chr&gt;, P21A &lt;chr&gt;,
+#   P21B &lt;chr&gt;, P21C &lt;chr&gt;, P21D &lt;chr&gt;, P30 &lt;dbl&gt;
 # ℹ Use `print(n = ...)` to see more rows, and `colnames()` to see all variable names</code></pre>
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'>#no NA</span></span>
@@ -2641,7 +2645,6 @@ especies animales o vegetales amenazadas o en peligro de extinción?</li>
 <h3 id="creación-del-score-de-percepción">2.3.2 Creación del score de
 percepción</h3>
 <h4 id="entendiendo-las-escalas">2.3.2.1 Entendiendo las escalas</h4>
-<p>avajvjnkvjnsas</p>
 <p>Ahora que he limpiado todos los datos, en orden para obtener la
 preocupación pública decido sumar las respuestas de los encuestados.
 Para que esto sea posible, voy a sumar las respuestas a lo que llamo el
@@ -2784,18 +2787,7 @@ esto?</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://www.stats.ox.ac.uk/pub/MASS4/'>MASS</a></span><span class='op'>)</span></span></code></pre>
 </div>
 </div>
-<p>INSERT</p>
-<p>Iterativamente haré lo siguiente:</p>
-<ul>
-<li>Formular una pregunta</li>
-<li>Crear un subset de los datos</li>
-<li>Limpiar los datos</li>
-<li>Análisis de indicadores usando plots (ggplots)</li>
-<li>Aplicar metodo multidimensional</li>
-<li>Colectar resultados</li>
-<li>Validacion de hipotesis usando metodos estadisticos</li>
-</ul>
-<div class="sourceCode" id="cb46"><pre
+<div class="sourceCode" id="cb47"><pre
 class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
