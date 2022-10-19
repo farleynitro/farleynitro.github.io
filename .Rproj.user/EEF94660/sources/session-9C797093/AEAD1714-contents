@@ -1,0 +1,27 @@
+---
+title: "Tarea 2"
+author: 
+date:
+output: html_document
+---
+
+Hipótesis:
+
+Modelo simple:
+
+```{r}
+
+```
+
+Modelo lineal multiple:
+
+```{r}
+
+```
+
+Evaluación de supuestos:
+
+```{r}
+
+```
+
