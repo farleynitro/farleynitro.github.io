@@ -1,5 +1,0 @@
-"0",""
-"0","var_ind <- var_ind %>% "
-"0","  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, Sexo, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq"
-"0","         ) %>% "
-"0","    group_by(ZONAS)"

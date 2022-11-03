@@ -1,5 +1,5 @@
 ---
-title: "Exploración de datos"
+title: "Capitulo 2: Exploración de datos"
 description: |
   Explorando
 author:
@@ -525,8 +525,11 @@ unique(var_dep$P21D)
 
 # ####NOT WORKING
 # 
-# var_dep %>% replace_with_na(replace = list(P21A = ".", P21B= ".",P21C=".",P21D="."))
-# 
+var_dep %>% replace_with_na(replace = list(P21A = ".", P21B= ".",P21C=".",P21D="."))
+
+#cleaning NAs by putting the "." as NA
+# var_dep %>% replace_with_na(replace = list(P21A = ".", P19_2= ".",P19_3=".",P19_4=".",P19_5=".",
+#                                            P19_6=".",P19_7=".",P19_8=".",P19_10="."))
 # # var_dep %>% replace_with_na_all(condition = ~.x == ".")
 # 
 # var_dep["P21A"][var_dep["P21A"] == "."] <- "9"
@@ -686,6 +689,10 @@ Vemos que el alfa de Cronbach es confiable, cual significa que hay consistencia 
 
 
 ```{r}
+var_dep %>% mutate(P21D=recode(P21D, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L, .default= NA_character_),
+              P21B=recode(P21B, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),
+              P21C=recode(P21C,`1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),)
+
 var_dep$P21_promedio <- rowMeans(var_dep[22:24], na.rm=TRUE)
 ```
 
@@ -771,16 +778,36 @@ var_dep %>% mutate(P30=recode(P30, `1` = 5L, `2` = 3L,`3` = 1L, `9` = 0L),
               P3F=recode(P3F,`1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L, `9` = 0L, `8` = 0L ),)
 
 ```
+```{r}
+unique(var_dep$P21_promedio)
+
+# var_dep[,26] <- round(ggplot2::rescale(var_dep[,26],to=c(0,5))
+# var_dep <- transform(var_dep$P21_promedio,rescale(P21_promedio,to=c(0,5)))
+
+# var_dep$P21_promedio <- scale(var_dep$P21_promedio, center = FALSE, scale = max(var_dep$P21_promedio, na.rm = TRUE)/5)
+# var_dep$P21_promedio <- round(var_dep$P21_promedio,0)
+# unique(var_dep$P21_promedio)
+```
+```{r}
+unique(var_dep$P21_promedio)
+
+# var_dep[,26] <- round(ggplot2::rescale(var_dep[,26],to=c(0,5))
+# var_dep <- transform(var_dep$P21_promedio,rescale(P21_promedio,to=c(0,5)))
+# 
+# var_dep$P21_promedio <- scale(var_dep$P21_promedio, center = FALSE, scale = max(var_dep$P21_promedio, na.rm = TRUE)/5)
+# var_dep$P21_promedio <- round(var_dep$P21_promedio,0)
+# unique(var_dep$P21_promedio)
+```
 
 
 ### 2.3.2 Creación del score de percepción
 
 Tenemos 4 variables dependientes que cada representa la percepción de algúna forma:
 
-* dd
-* dd
-* dd
-* dd
+* P17_COD
+* P2_COD
+* Importancia: la suma de ()
+* Preocupación: dd
 
 #### 2.3.2.1 Multidimensional scaling o Principal Component Analysis
 

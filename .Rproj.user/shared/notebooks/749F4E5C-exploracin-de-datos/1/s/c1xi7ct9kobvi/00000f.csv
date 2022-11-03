@@ -1,1 +1,0 @@
-"0","var_dep$P21_promedio <- rowMeans(var_dep[22:24], na.rm=TRUE)"

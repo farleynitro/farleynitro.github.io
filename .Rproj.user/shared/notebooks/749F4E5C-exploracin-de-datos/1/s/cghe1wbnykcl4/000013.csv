@@ -1,6 +1,0 @@
-"0","var_ind_s_control %>% "
-"0","  ggplot(aes(x = Edad, na.rm = T)) +"
-"0","  geom_histogram() +"
-"0","  facet_grid(~ZONAS) +"
-"0","  labs(x = ""Edad por Zona"", y = ""Frecuencia"","
-"0","       title = ""Edad"",       caption = ""Fuente: Encuesta Nacional 2018"")"

@@ -1,1 +1,0 @@
-"0","var_ind_s_control <- var_ind %>% select(NSE, Edad, Sexo, Niv_Edu, Razon_Cambio_Cl, ZONAS)"
