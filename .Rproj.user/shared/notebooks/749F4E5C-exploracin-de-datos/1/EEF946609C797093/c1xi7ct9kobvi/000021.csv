@@ -1,0 +1,11 @@
+"0","var_dep %>% mutate(P21D=recode(P21D, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L, .default= NA_character_),"
+"0","              P21B=recode(P21B, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),"
+"0","              P21C=recode(P21C,`1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),)"
+"1","[1m[33mError[39m in [38;5;232m`mutate()`[39m:[22m
+[38;5;232m[33m![38;5;232m Problem while computing `P21D = recode(...)`.[39m
+[1mCaused by error in [38;5;232m`list2()`[39m:[22m
+[38;5;232m[33m![38;5;232m Argument 4 is empty[39m
+Backtrace:
+[90m  1. [39mvar_dep %>% ...
+[90m 10. [39m[1mrlang[22m::abort(message = message)
+"

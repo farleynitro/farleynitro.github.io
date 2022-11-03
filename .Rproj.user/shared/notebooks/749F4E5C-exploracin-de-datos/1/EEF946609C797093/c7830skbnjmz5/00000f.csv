@@ -1,0 +1,5 @@
+"0","# iadm <- df$iedu018[df$year == 2012]"
+"0","# hist(iadm, main = """", xlab = ""log Igreso por impuestos"", ylab = ""Frecuencia"")"
+"0","# "
+"0","# logiadm <- log(iadm)"
+"0","# hist(logiadm, main = """", xlab = ""log Igreso por impuestos"", ylab = ""Frecuencia"")"

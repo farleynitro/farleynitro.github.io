@@ -1,0 +1,7 @@
+"0","data %>% "
+"0","  ggplot(aes(x = as_factor(age), y = pre_pollution)) +"
+"0","  geom_jitter(shape = 16, position = position_jitter(0.2), color = ""#588157"") +"
+"0","  geom_point(aes(size=protocol)) +"
+"0","  geom_point(fill = ""#a3b18a"", color = ""#3a5a40"", alpha = 0.5) +"
+"0","    labs(title = ""Edad de empresa vs Pre-polución"" ,x = ""Edad de empresa"", y =""Cantidad de empleados"") +"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

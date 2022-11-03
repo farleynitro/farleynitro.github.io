@@ -1,0 +1,7 @@
+"0","data %>%"
+"0","  ggplot(aes(x = age)) +"
+"0","  geom_histogram(bins=20) +"
+"0","  geom_bar(color = ""#ffafcc"", fill = ""#ffc8dd"", alpha = 0.5) + # Colores"
+"0","  labs(title = ""Barplot de edad de la empresa con y sin tratado"","
+"0","       x = "" "", y = ""Frecuencia"") + # Títulos"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

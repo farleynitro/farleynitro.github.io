@@ -1,0 +1,7 @@
+"0","var_ind_s_control %>% "
+"0","  ggplot(aes(x = as_factor(Sexo))) +"
+"0","  facet_grid(~ZONAS) +"
+"0","  geom_bar(color = ""#ffafcc"", fill = ""#ffc8dd"", alpha = 0.5) + # Colores"
+"0","  labs(title = ""Distribución Sexo dividido por Zonas"","
+"0","       x = "" "", y = ""Frecuencia"") + # Títulos"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

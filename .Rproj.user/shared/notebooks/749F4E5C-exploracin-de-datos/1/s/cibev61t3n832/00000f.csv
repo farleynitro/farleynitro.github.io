@@ -1,0 +1,6 @@
+"0","#create subset of dependent variables"
+"0","var_dep <- df_2018_final %>%"
+"0","          select(P1_MAmb,P2_COD,P3A,P3B,P3C,P3D,P3E,P3F,P4,"
+"0","                 P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,"
+"0","                 P19_7,P19_8, P19_10, P20,P21A,P21B,P21C,"
+"0","                 P21D,P30)"

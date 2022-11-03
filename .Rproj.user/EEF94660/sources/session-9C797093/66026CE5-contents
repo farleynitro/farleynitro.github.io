@@ -1,0 +1,21 @@
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+
+data <- read_dta('earthfriends.dta')
+
+skimr::skim(data)
+
+var_ind_s_control %>% 
+  ggplot(aes(x = as_factor(ZONAS))) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de respondientes por zonas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")

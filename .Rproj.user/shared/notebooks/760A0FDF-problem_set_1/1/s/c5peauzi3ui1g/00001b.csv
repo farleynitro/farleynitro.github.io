@@ -1,0 +1,7 @@
+"0","#calculate expected value"
+"0","vector_prob <- vector(""list"",60)"
+"0","weighted.mean(data$net_change_pollution)"
+"1","[1]"
+"1"," -172.3329"
+"1","
+"

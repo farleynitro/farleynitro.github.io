@@ -1,0 +1,38 @@
+"0","#packages que necesitamos"
+"0","library(haven)"
+"0","library(sjmisc)"
+"0","library(tidyverse)"
+"0","library(haven)"
+"0","library(skimr)"
+"0","library(sjPlot)"
+"0","library(ggcorrplot)"
+"0","library(naniar)"
+"0","library(moderndive)"
+"0","library(texreg)"
+"0",""
+"0",""
+"0","#load data"
+"0","data <- read_dta('earthfriends.dta')"
+"0",""
+"0","#skim data"
+"0","skimr::skim(data)"
+"1","-- Data Summary ------------------------
+"
+"1","                           Values
+"
+"1","Name                       data  
+"
+"1","Number of rows             60    
+"
+"1","Number of columns          7     
+"
+"1","_______________________          
+"
+"1","Column type frequency:           
+"
+"1","  numeric                  7     
+"
+"1","________________________         
+"
+"1","Group variables            None  
+"

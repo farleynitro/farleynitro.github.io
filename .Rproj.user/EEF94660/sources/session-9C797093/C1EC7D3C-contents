@@ -1,0 +1,77 @@
+---
+title: "Alfa de Cronbach"
+author: "Soledad Araya"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Librerías necesarias:
+
+```{r}
+library(psych)
+library(tidyverse)
+```
+
+Cargamos la base de datos que contiene las variables que revisamos:
+
+```{r}
+df <- readRDS("ENDH 2020 - Base de datos_mod.rds")
+```
+
+Una de las funciones que podemos usar para revisar bases de datos, es `view_df` del paquete `sjPlot`.
+
+```{r}
+sjPlot::view_df(df, show.prc = T, file = "Revisión de base de datos.html")
+```
+
+Nos sale el siguiente mensaje:
+
+`Following 34 variables have only missing values and are not shown`
+
+Seleccionaremos sólo las variables de interés:
+
+```{r}
+df_cronbach <- df %>% select(I_1_p19:I_7_p19)
+```
+
+Y utilizaremos la función `alpha` para revisar la consistencia interna de nuestra parrilla de datos:
+
+```{r}
+psych::alpha(df_cronbach)
+```
+
+Y ponemos atención al estadístico `std.alpha` que es el alpha estandarizado que está basado en las correlaciones, mientras que raw_alpha está basado en las covarianzas.
+
+Como vemos, el resultado nos da 0.53, que según nuestra guía, es bastante pobre.
+
+Aun así, esta parrilla originalmente está compuesta por 11 elementos, no por 7.
+
+Seleccionando estos elementos, correremos nuevamente el Alfa de Cronbach.
+
+```{r}
+df_cronbach <- df %>% select(I_1_p19:I_11_p19)
+
+psych::alpha(df_cronbach)
+```
+
+Podemos observar cómo aumenta el Alfa de Cronbach a 0.64, ¿pero es realmente bueno?
+
+El indicador que estamos midiendo cuenta con un total de 17 preguntas divididas en dos parrillas distintas, ¿y si revisamos la otra tabla de ítems?
+
+Las preguntas realizadas en esta pasada son:
+
+a. La conducta violenta es innata en el hombre, forma parte de su naturaleza.
+b. La mayoría de los y las estudiantes de educación parvularia son mujeres, porque ellas cuidan mejor a los niños que los hombres.
+c. Se podrían evitar violaciones si las mujeres no se vistieran de forma provocativa.
+d. Para avanzar en sus carreras, muchas mujeres permiten el acoso sexual de sus jefes o profesores.
+e. Cualquier mujer que realmente quiera salir de una situación de violencia intrafamiliar, puede hacerlo.
+f. Las mujeres víctimas de maltrato intrafamiliar, a veces, se lo buscan o lo provocan.
+
+```{r}
+df_cronbach_p2 <- df %>% select(I_1_p20:I_6_p20)
+
+psych::alpha(df_cronbach)
+```
+

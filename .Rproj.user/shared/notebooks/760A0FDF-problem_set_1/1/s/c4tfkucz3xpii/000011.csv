@@ -1,0 +1,8 @@
+"0","data %>%"
+"0","  ggplot(aes(x = employees)) +"
+"0","  geom_histogram(bins=10) +"
+"0","  facet_grid(~assignment) +"
+"0","  geom_bar(color = ""#ffafcc"", fill = ""#ffc8dd"", alpha = 0.5) + # Colores"
+"0","  labs(title = ""Barplot de la cantidad de la empresa con y sin tratamiento"","
+"0","       x = "" "", y = ""Frecuencia"") + # Títulos"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

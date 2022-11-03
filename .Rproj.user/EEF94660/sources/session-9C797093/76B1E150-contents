@@ -26,6 +26,8 @@ library(skimr)
 library(sjPlot)
 library(naniar)
 library(ggcorrplot)
+library(naniar)
+
 ```
 
 Y cargaremos la base de datos con variables ya seleccionadas:
@@ -433,6 +435,7 @@ var_ind_s_control <- var_ind_s_control %>% select(NSE, Edad, Sexo, Niv_Edu, ZONA
 ```
 
 
+
 ## 2.3 Variables dependientes
 
 ### 2.3.1 Las latentes
@@ -443,115 +446,6 @@ Las variables dependientes tienen el proposito de capturar la **percepción púb
 
 
 ### 2.3.2 Limpieza de datos
-
-**Magnitud serian:**
-
-* P1_MAmb Ordene los siguientes temas del más importante al menos importante para el país: Medioambiente
-
-1	1er lugar
-2	2do lugar
-3	3er lugar
-4	4to lugar
-5	5to lugar
-
-* P3A-F: ¿Cómo evalúa usted…? La calidad del aire (A), Flora y Fauna (B), Rios y lagos (C), el mar (D), plazas y parques urbanos (E), medio ambiente en general (F) en su región
-
-1	Pésimo
-2	Malo
-3	Regular
-4	Bueno
-5	Excelente
-8	No sabe
-9	No responde
-
-* P4 Comparando el estado del medio ambiente de su región hace 10 años atrás, ¿cómo calificaría usted el estado actual del medio ambiente en su región?
-
-1	Mejor
-2	Igual
-3	Peor
-8	No sabe
-9	No responde
-
-
-* P17_COD ¿Qué entiende usted por cambio climático? (codificado)
-
-1	Aumento o disminución de la humedad
-2	Aumento o disminución de los vientos
-3	Cambios en la duración de las estaciones del año (ej. Veranos o inviernos más largos o más cortos)
-4	Cambios en las lluvias (ej. Lluvias en fechas poco habituales, más/menos lluvias)
-5	Cambios en las temperaturas (ej. Mucho más calor/frio)
-6	Sequías más intensas y/o frecuentes
-7	Otro
-88	No sabe
-99	No responde
-
-* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro?
-
-1	Si, ya está ocurriendo
-2	Ocurrirá en un futuro
-3	Ya ocurrió
-4	No ocurrirá
-8	No sabe
-9	No responde
-
-P21A-D: Según su percepción, ¿cuán importante es el cambio climático para…?: Los chilenos (A), su región (B), familia y amigos (C), usted (D)
-
-1	Nada importante
-2	Poco importante
-3	Bastante importante
-4	Muy importante
-8	No sabe
-9	No responde
-
-* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción?
-
-Sí, por ejemplo
-Sí, pero no recuerdo el nombre
-No sé de ninguna
-No responde
-
-**Preocupación serian:** 
-
-* P2_COD Según su percepción, ¿cuál es el principal problema ambiental que lo afecta a Ud.? (codificado)
-
-1	Basura
-2	Cambio climático
-3	Congestión vehicular
-4	Contaminación acústica
-5	Contaminación de Agua
-6	Contaminación de Aire
-7	Falta de árboles y de áreas verdes
-8	Malos olores
-9	Perros vagos y sus excrementos
-10	Polen de los árboles que causan alergia
-11	Sequía
-12	Falta de agua
-13	Ninguno
-88	No sabe
-99	No responde
-
-* P19_1-8, 10: ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático? Pena/Tristeza/Dolor (1), Preocupación/Angustia (2), Miedo/Susto/Temor (3), Incertidumbre (4), Rabia/enfado (5), Frustración (6), Responsabilidad/culpa (7), Indiferencia (8), NO SABE (10)
-
-0	No
-1	Si
-
-
-* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro?
-
-1	Si, ya está ocurriendo
-2	Ocurrirá en un futuro
-3	Ya ocurrió
-4	No ocurrirá
-8	No sabe
-9	No responde
-
-* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción?
-
-1 Sí, por ejemplo
-2 Sí, pero no recuerdo el nombre
-3 No sé de ninguna
-9 No responde
-
 
 ```{r}
 #create subset of dependent variables
@@ -603,12 +497,23 @@ unique(var_dep$P19_10)
 var_dep %>% replace_with_na(replace = list(P19_1 = ".", P19_2= ".",P19_3=".",P19_4=".",P19_5=".",
                                            P19_6=".",P19_7=".",P19_8=".",P19_10="."))
 
+# var_dep["P19_1"][var_dep["P19_1"] == "."] <- "9"
+# var_dep["P19_2"][var_dep["P19_2"] == "."] <- "9"
+# var_dep["P19_3"][var_dep["P19_3"] == "."] <- "9"
+# var_dep["P19_4"][var_dep["P19_4"] == "."] <- "9"
+# var_dep["P19_5"][var_dep["P19_5"] == "."] <- "9"
+# var_dep["P19_6"][var_dep["P19_6"] == "."] <- "9"
+# var_dep["P19_7"][var_dep["P19_7"] == "."] <- "9"
+# var_dep["P19_8"][var_dep["P19_8"] == "."] <- "9"
+# var_dep["P19_10"][var_dep["P19_10"] == "."] <- "9"
 
 ```
 
 ```{r}
-#no NA
+#has NA
 unique(var_dep$P20)
+
+# var_dep["P20"][var_dep["P20"] == "."] <- "9"
 
 #has NA
 unique(var_dep$P21A)
@@ -617,15 +522,309 @@ unique(var_dep$P21C)
 unique(var_dep$P21D)
 
 #cleaning NAs by putting the "." as NA
+
+# ####NOT WORKING
+# 
 var_dep %>% replace_with_na(replace = list(P21A = ".", P21B= ".",P21C=".",P21D="."))
+
+#cleaning NAs by putting the "." as NA
+# var_dep %>% replace_with_na(replace = list(P21A = ".", P19_2= ".",P19_3=".",P19_4=".",P19_5=".",
+#                                            P19_6=".",P19_7=".",P19_8=".",P19_10="."))
+# # var_dep %>% replace_with_na_all(condition = ~.x == ".")
+# 
+# var_dep["P21A"][var_dep["P21A"] == "."] <- "9"
+# var_dep["P21B"][var_dep["P21B"] == "."] <- "9"
+# var_dep["P21C"][var_dep["P21C"] == "."] <- "9"
+# var_dep["P21D"][var_dep["P21D"] == "."] <- "9"
+
 
 #no NA
 unique(var_dep$P30)
+
+#after cleaning all the data, convert to numeric type
+
+var_dep[] <- lapply(var_dep, function(x) as.numeric(as.character(x)))
+
 ```
+
+### Alfa de Cronbach
+
+Para analizar los resultados hacemos uso del alfa de Cronbach. Este indica el grado de correlación que hay entre todos los ítems pertenecientes a una escala, asumiendo que los mismos miden el constructo que dicen medir. Es decir, se espera que un encuestado tenga respuestas similares en una parilla que intenta capturar un aspecto especifico de la percepción. Mientras mas bajo el alfa de Cronbach, menos correlación hay entre las respuestas, se podria decir que menos relacionadas estan las preguntas, y por si, no capturan la percepcion de un y solo un concepto. 
+
+
+* alfa de Cronbach < 0.5 es practicamente **inaceptable**.
+* alfa de Cronbach  0.5 < 0.59 es **pobre**.
+* alfa de Cronbach 0.6 < 0.69 es **cuestionable**.
+* alfa de Cronbach 0.7 < 0.79 es **aceptable**.
+* alfa de Cronbach 0.8 < 0.89 es **bueno**.
+* alfa de Cronbach > 0.9 es **excelente**.
+
+
+**Magnitud serian:**
+
+* P1_MAmb Ordene los siguientes temas del más importante al menos importante para el país: Medioambiente **Singular**
+
+1	1er lugar
+2	2do lugar
+3	3er lugar
+4	4to lugar
+5	5to lugar
+
+
+
+* P3A-F: ¿Cómo evalúa usted…? La calidad del aire (A), Flora y Fauna (B), Rios y lagos (C), el mar (D), plazas y parques urbanos (E), medio ambiente en general en su región (F) **Escala Likert**
+
+1	Pésimo
+2	Malo
+3	Regular
+4	Bueno
+5	Excelente
+8	No sabe
+9	No responde
+
+Vemos que hay muy poca correlación entre las respuestas de encuestados en esta parilla, de **0.58**. Esto se puede explicar porque el contacto que los encuestados tienen con las diferentes opciones depende de la localización de encuestados. Alguien cerca del mar tiene otra percepción que alguien lejos del mar. Esto tambien se refleja en el hecho que si remueves P3D, la percepción sobre el mar, el alfa de Cronbach mejora un poco. La mejor manera de ver si la percepcion de esta depende de la localización del encuestado, grupamos por zona y vemos si este aun es el caso. Si el alfa incrementa, ya hay una primera indicación que la localización cambia la percepción sobre la calidad del medio ambiente. Por esta razón se deja esta parilla como variable dependiente.
+
+
+```{r}
+#Cronbach analysis
+library(psych)
+library(tidyverse)
+
+df_cronbach_P3 <- var_dep %>% select(P3A:P3F)
+psych::alpha(x = df_cronbach_P3)
+
+```
+```{r}
+library(plyr)
+library(dplyr)
+
+# split the data frame by grouping using "f" argument
+split_data <- split(df_2018_final, f = df_2018_final$ZONAS) 
+split_data_1 <- split_data[[1]]
+split_data_2 <- split_data[[2]]
+split_data_3 <- split_data[[3]]
+split_data_4 <- split_data[[4]]
+
+split_data_p3_1 <- split_data_1 %>% select(P3A:P3F)
+split_data_p3_2 <- split_data_2 %>% select(P3A:P3F)
+split_data_p3_3 <- split_data_3 %>% select(P3A:P3F)
+split_data_p3_4 <- split_data_4 %>% select(P3A:P3F)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_1)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_2)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_3)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_4)
+
+```
+
+Vemos que el alfa de Cronbach sigue siendo muy pobre. Por esta razon decidimos no tomar el promedio de la parilla como conjunto, pero solo analizar la percepción general del medio ambiente, exclusive de factores afuera de la vista de alguien, es decir P3F cual pregunta sobre **la calidad del medio ambiente en general de la región**.
+
+
+* P4 Comparando el estado del medio ambiente de su región hace 10 años atrás, ¿cómo calificaría usted el estado actual del medio ambiente en su región? **Singular**
+
+1	Mejor
+2	Igual
+3	Peor
+8	No sabe
+9	No responde
+
+
+* P17_COD ¿Qué entiende usted por cambio climático? (codificado) **No hay escala, no se puede medir**
+
+1	Aumento o disminución de la humedad
+2	Aumento o disminución de los vientos
+3	Cambios en la duración de las estaciones del año (ej. Veranos o inviernos más largos o más cortos)
+4	Cambios en las lluvias (ej. Lluvias en fechas poco habituales, más/menos lluvias)
+5	Cambios en las temperaturas (ej. Mucho más calor/frio)
+6	Sequías más intensas y/o frecuentes
+7	Otro
+88	No sabe
+99	No responde
+
+* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro? **Singular**
+ 
+
+1	Si, ya está ocurriendo
+2	Ocurrirá en un futuro
+3	Ya ocurrió
+4	No ocurrirá
+8	No sabe
+9	No responde
+
+P21A-D: Según su percepción, ¿cuán importante es el cambio climático para…?: Los chilenos (A), su región (B), familia y amigos (C), usted (D) **Escala Likert**
+
+1	Nada importante
+2	Poco importante
+3	Bastante importante
+4	Muy importante
+8	No sabe
+9	No responde
+
+
+```{r}
+#Cronbach analysis
+library(psych)
+library(tidyverse)
+
+df_cronbach_P21 <- var_dep %>% select(P21A:P21D)
+psych::alpha(x = df_cronbach_P21, na.rm = TRUE)
+
+```
+Vemos que el alfa de Cronbach es confiable, cual significa que hay consistencia semantica entre la respuestas de los encuestados a esta parilla. Es lógico ya que la pregunta no tiene una perfecta distinción ya que se pregunta secuencialmente sobre la percepción de chilenos, habitantes de la región en Chile, familia y amigos, y personalmente. Sin embargo, vemos que si se remueve la pregunta hacia chilenos, la consistencia mejora significantemente. Esto debe ser porque al contestar sobre los chilenos los encuestados tienen otra imagen del chileno promedio cual puede, o no puede ser, alineada con percepciones sobre los chilenos que tiene a su alrededor de la región, familia, o amigos. Lo mismo se puede decir con la pregunta de la región.
+
+
+```{r}
+var_dep %>% mutate(P21D=recode(P21D, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L, .default= NA_character_),
+              P21B=recode(P21B, `1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),
+              P21C=recode(P21C,`1` = 1L, `2` = 2L,`3` = 4L, ,`4` = 5L, `9` = 0L, `8` = 0L),)
+
+var_dep$P21_promedio <- rowMeans(var_dep[22:24], na.rm=TRUE)
+```
+
+
+
+* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción? **Singular**
+
+1 Sí, por ejemplo
+2 Sí, pero no recuerdo el nombre
+3 No sé de ninguna
+9 No responde
+
+
+
+**Preocupación serian:** 
+
+* P2_COD Según su percepción, ¿cuál es el principal problema ambiental que lo afecta a Ud.? (codificado) **No hay escala, no se puede medir**
+
+1	Basura
+2	Cambio climático
+3	Congestión vehicular
+4	Contaminación acústica
+5	Contaminación de Agua
+6	Contaminación de Aire
+7	Falta de árboles y de áreas verdes
+8	Malos olores
+9	Perros vagos y sus excrementos
+10	Polen de los árboles que causan alergia
+11	Sequía
+12	Falta de agua
+13	Ninguno
+88	No sabe
+99	No responde
+
+* P19_1-8, 10: ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático? Pena/Tristeza/Dolor (1), Preocupación/Angustia (2), Miedo/Susto/Temor (3), Incertidumbre (4), Rabia/enfado (5), Frustración (6), Responsabilidad/culpa (7), Indiferencia (8), NO SABE (10) **Escala de Guttman**
+
+0	No
+1	Si
+
+```{r}
+#Cronbach analysis
+library(psych)
+library(tidyverse)
+
+df_cronbach_P19 <- var_dep %>% select(P19_1:P19_8,P19_10)
+psych::alpha(x = df_cronbach_P19, na.rm = TRUE)
+```
+Vemos que hay una consistencia interna muy baja, aunque las preguntas sean muy similares. Es mejor no considerar esta parilla como un promedio. Sin embargo como tiene una escala de Guttman, vamos a sumar los resultados asociados a sentimientos negativos sobre el cambio climatico. NO consideramos P19_10 porque no mide el nivel de identificación con el cambio climatico de la misma manera que las otras preguntas. Las otras preguntas tienen orden jerarquico.
+
+```{r}
+# sum several columns in R
+
+var_dep$P19_suma <- rowSums(var_dep[11:18], na.rm=TRUE)
+```
+
+* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro? **Singular** 
+
+1	Si, ya está ocurriendo
+2	Ocurrirá en un futuro
+3	Ya ocurrió
+4	No ocurrirá
+8	No sabe
+9	No responde
+
+* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción? **Singular**
+
+1 Sí, por ejemplo
+2 Sí, pero no recuerdo el nombre
+3 No sé de ninguna
+9 No responde
+
+```{r}
+#convert all No responde to 0.
+
+# recode(var_dep$P30, "9" = "0")
+
+# var_dep$P17_COD  <- recode(var_dep$P17_COD, 88 = 0)
+
+
+var_dep %>% mutate(P30=recode(P30, `1` = 5L, `2` = 3L,`3` = 1L, `9` = 0L),
+              P20=recode(P20, `4` = 1L, `3` = 5L, `2` = 3L, `1` = 4L, `9` = 0L, `8` = 0L),
+              P4=recode(P4, `1` = 1L, `2` = 3L,`3` = 5L, `9` = 0L, `8` = 0L),
+              P3F=recode(P3F,`1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L, `9` = 0L, `8` = 0L ),)
+
+```
+```{r}
+unique(var_dep$P21_promedio)
+
+# var_dep[,26] <- round(ggplot2::rescale(var_dep[,26],to=c(0,5))
+# var_dep <- transform(var_dep$P21_promedio,rescale(P21_promedio,to=c(0,5)))
+
+# var_dep$P21_promedio <- scale(var_dep$P21_promedio, center = FALSE, scale = max(var_dep$P21_promedio, na.rm = TRUE)/5)
+# var_dep$P21_promedio <- round(var_dep$P21_promedio,0)
+# unique(var_dep$P21_promedio)
+```
+```{r}
+unique(var_dep$P21_promedio)
+
+# var_dep[,26] <- round(ggplot2::rescale(var_dep[,26],to=c(0,5))
+# var_dep <- transform(var_dep$P21_promedio,rescale(P21_promedio,to=c(0,5)))
+# 
+# var_dep$P21_promedio <- scale(var_dep$P21_promedio, center = FALSE, scale = max(var_dep$P21_promedio, na.rm = TRUE)/5)
+# var_dep$P21_promedio <- round(var_dep$P21_promedio,0)
+# unique(var_dep$P21_promedio)
+```
+
 
 ### 2.3.2 Creación del score de percepción
 
-#### 2.3.2.1 Entendiendo las escalas
+Tenemos 4 variables dependientes que cada representa la percepción de algúna forma:
+
+* P17_COD
+* P2_COD
+* Importancia: la suma de ()
+* Preocupación: dd
+
+#### 2.3.2.1 Multidimensional scaling o Principal Component Analysis
+
+Ahora que sabemos el tipo de escala hay que combinarlas a una escala. Esta se puede desarollar o por el Multidemsional scaling o el Principal Component Analysis **COMING SOON AFTER LECTURE**
+
+Primero que combinarlas en cualquier caso es importante saber como se relacionan con las variables independientes y como se relacionan entre si. Lo primero lo hacemos por visualizar algunas de estas relaciones. La segunda cuestión la hacemos por usar el **Alfa de Cronbach**.
+
+```{r}
+#Visualization of results
+
+
+
+```
+
+
+
+#### 2.3.2.2 Entendiendo las escalas
 
 
 Ahora que he limpiado todos los datos, en orden para obtener la preocupación pública decido sumar las respuestas de los encuestados. Para que esto sea posible, voy a sumar las respuestas a lo que llamo el **perception score**. Mientras mas alto sea este perception score, mas alto sera la preocupación y seriedad percibida. Para realizar esto hay que normalizar todos los valores de todas las preguntas en la siguiente forma:
@@ -657,7 +856,7 @@ Excepciones:
 Como trataremos a estas excepciones se vera luego.
 
 
-```{r}
+```{r echo=FALSE}
 #Normalizing input values
 
 
@@ -680,7 +879,6 @@ Como trataremos a estas excepciones se vera luego.
 # 3 Construcción de modelo
 
 
-https://www.scribbr.com/statistics/anova-in-r/ 
 
 ```{r, results='hide', echo=FALSE}
 #To control on Zonas USE LATER
@@ -749,6 +947,22 @@ Grafico ROC: Lo más importante de la figura es el área debajo de la curva diag
 Sensibilidad: relación entre los verdaderos positivos y la suma de los verdaderos positivos más los falsos negativos.
 Especificidad: relación entre los verdaderos negativos y la suma de los falsos positivos a los verdaderos negativos.
 Tener en consideración el cálculo del AUC (Área bajo la Curva): cuanto mayor sea, mejor será el ajuste.
+
+### 3.1.2 Metodos de evaluación
+
+ANOVA is a statistical test for estimating how a quantitative dependent variable changes according to the levels of one or more categorical independent variables. ANOVA tests whether there is a difference in means of the groups at each level of the independent variable.
+
+Esto lo usamos como recurso final para ver si hay variables que no contienen variacion en relación a otras variables independientes. Por ejemplo, si la 
+[https://www.scribbr.com/statistics/anova-in-r/]
+
+```{r}
+
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(broom)
+library(AICcmodavg)
+```
 
 ```{r}
 # ¿Cuál es el efecto medio?

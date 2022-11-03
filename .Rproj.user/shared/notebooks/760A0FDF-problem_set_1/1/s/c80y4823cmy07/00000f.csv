@@ -1,0 +1,7 @@
+"0","estimadores <- get_regression_table(modelo_1)"
+"0","estimadores_obs <- get_regression_points(modelo_1)"
+"0",""
+"0","ggplot(mapping = aes(x = modelo_1$fitted.values, y = modelo_1$residuals)) +"
+"0","  labs(x = ""Valores predichos"", y = ""Residuos"") +"
+"0","  geom_point() +"
+"0","  geom_hline(mapping = aes(yintercept = 0), color = ""red"")"

@@ -92,6 +92,8 @@ Modelo lineal multiple:
 
 ```{r}
 modelo_2 <- lm(v2pepwrses_ord ~  1 + v2elembaut + v2x_partipdem, data = vdem_subset)
+
+
 ```
 
 Evaluación de supuestos:

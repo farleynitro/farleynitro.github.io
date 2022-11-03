@@ -1,0 +1,386 @@
+---
+title: "problem_set_1"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+date: "2022-10-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data exploration
+
+```{r}
+#packages que necesitamos
+library(haven)
+library(sjmisc)
+library(tidyverse)
+library(haven)
+library(skimr)
+library(sjPlot)
+library(ggcorrplot)
+library(naniar)
+library(moderndive)
+library(texreg)
+
+
+#load data
+data <- read_dta('earthfriends.dta')
+
+#skim data
+skimr::skim(data)
+```
+
+
+Vemos que hay una desviación mas alta primero que el tratamentio para el total de las companias. Para investigar si el tratamiento fue efectivo vamos a explorar nuestros datos.
+
+
+```{r message=FALSE, warning=FALSE}
+colnames(data)
+```
+# Pregunta 1: Tratados vs Grupo de Control
+
+
+#### Age
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(bins=20) +
+  facet_grid(~assignment) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de edad de la empresa con y sin tratado",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+Vemos que hay mas empresas de una edad mas alta (arriba de 7.5 anos) asignadas a ser tratadas en comparación a las empresas no tratadas. Las empresas no tratadas (**assignment=0**) son mayormente companias jovenes (abajo de 5). Las empresas tratadas (**assignment=1**) tambien incluye companias menores a 7.5 anos pero con menor frecuencia. Para entender si la distribución aun puede ser explicada por asignación a tratamiento en forma aleatoria, hay que ver la distribución de la edad de empresas sin distinción de tratamiento. Si en verdad hay una asignación aleatoria, se espera que la **expectativa de una empresa ser tratada se incline al sesgo que se vea**. Es decir, la aleatoridad en una distribución sesgada a empresas de edad mas alta, lleva a que hayan mas empresas de edad alta a ser tratadas solamente porque la fracción del total es mas alta, en este caso 2/3 del total de empresas.
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(bins=20) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de edad de la empresa con y sin tratado",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+Interesantemente, vemos que hay mas companias jovenes (abajo de 5) relativo a empresas viejas (arriba de 7.5) y es por eso que no se explica por la aleatoridad el sesgo que vemos en las empresas tratadas. Se concluye que no fue de manera aleatoria a la cual se escogieron las empresas de edades arriba de 7.5 porque se esperaria una cantidad igual de esta. Esto se puede deber a que las empresas mas viejas poluten mas. Es por esta misma razon que hay preferencia a asignarles un tratamiento para que reduzcan sus emisiones. Para confirmar este argumento vemos el scatterplot entre edad y pre-polución. Como se ve en scatterplot, en verdad, mientras **mas vieja la empresa, mas altos los niveles de prepolución**. Podemos asumir que una empresa vieja polute mas porque la empresa tiene procesos de operación mas anticuados. Mientras mas viejos los procesos, mas emitiran.
+
+
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(age), y = pre_pollution)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Edad de empresa vs Pre-polución" ,x = "Edad de empresa", y ="Pre-polución de empresa") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+#### Pre-pollution
+
+Vemos una distribución relativemente uniforme para empresas con pre-polución. Las empresas tienen un 2/3 + 1/9 = 5/9 de la probabilidad total (=1) a ser tratadas por la que se puede explicar que hay mas empresas en el grupo de tratados.
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = pre_pollution)) +
+  geom_histogram(bins=20) +
+  facet_grid(~assignment) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de edad de la empresa con y sin tratado",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+#### Number of employees
+
+Vemos que las empresas con mas empleados tienen una mayor frecuencia (y por eso probabilidad) a ser tratadas. En la distribución total de la cantidad de empleados vemos una distribución relativamente uniforme. Sin embargo, hay un sesgo minimo hacia la derecha, empresas con mas empleados. Esto puede ser una explicación para porque hay mas empresas con mas empleados que son tratadas. 
+
+Para ver si en verdad es aleatoria la asignación de tratamiento, visualizamos la relación entre cantidad de empleados y niveles de pre-polución. Esto sirve para ver si se debe al mismo sesgo de escogo que vimos para edad de la empresa vemos si hay una relación entre la cantidad de empleados y la edad de la empresa. 
+
+```{r warning=FALSE}
+data %>%
+  ggplot(aes(x = employees)) +
+  geom_histogram(bins=10) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de la cantidad de la empresa con y sin tratamiento",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+```{r warning=FALSE}
+data %>%
+  ggplot(aes(x = employees)) +
+  geom_histogram(bins=10) +
+  facet_grid(~assignment) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de la cantidad de la empresa con y sin tratamiento",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+Parece no haber relación entre la cantidad de empleados y la edad de la empresa, o la cantidad de pre-polución. Concluyendo, no hay una diferencia en las companias tratadas que no se puedan explicar por la aleotoridad.  
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(age), y = employees)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(aes(size=assignment)) +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Edad de empresa vs Cantidad de empleados" ,x = "Edad de empresa", y ="Cantidad de empleados") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(employees), y = pre_pollution)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Cantidad de empleados vs Pre-polución" ,x = "Empleados", y ="Pre-polución de empresa") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+# Pregunta 2: Diferencia entre empresas tratadas por protocol 
+
+2. Similarmente, si la asignación a los nuevos dos protocolos fue efectivamente aleatoria,
+entonces no debiéramos esperar ver diferencias sistemáticas entre las plantas asignadas al
+protocolo de implementación a nivel de planta y plantas asignadas al protocolo de
+implementación corporativa. Prueba si ese es el caso. Si existen diferencias explique qué
+podría explicar esta situación.
+
+
+Para ver si hay aleteoridad entre empresas con diferentes protocolos deberiamos reconocer que tienen una probabilidad de 1/3 a ser asignadas. Cumulitativamente tienen una probabilidad de 1 a tener un protocolo. Es decir, se espera una distribución uniforme de las variables sobre la selección de tratados.
+
+#### Age
+
+Para la edad vemos que el protocolo 0 tiene mayormente empresas de 5 anos o menos. El protocolo 2, tiene una distribución uniforme para empresas arriba de 5 anos. El protocolo 3 tiene una distribución relativamente uniforme, aunque vemos que hay conteo significantemente alto para empresas menor que 2.5 anos. Algo que podria explicar este fenomeno es el hecho que empresas jovenes no tienen su propia manera de operar aún, por la cual la establización de estanderes corporativos estrictos es mas facil de implementar y mantener. 
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(bins=20) +
+  facet_grid(~protocol) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de edad de la empresas tratadas por protocolo",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(bins=20) +
+  facet_grid(~protocol) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de edad de la empresas tratadas por protocolo",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+
+#### Pre-pollution
+
+Vemos que la pre-polución no tuvo efecto en el escogo (aleatorio) de empresas ya que no hay sesgo en la distribución.
+
+Sin embargo, si analizamos el barplot donde se ve la distribución entre protocolos mejor, vemos que mas empresas con polución baja se le asignaron el status quo. Debe ser por el hecho que una compania con emisiones baja requiere menos regulación externa. Concluyendo, el protocolo 0 probablemente **se escogió a base de la cantidad de emisiones**. Protocolo 2 tiene una distribución similar, aunque tiene una distribución uniforme para otros niveles de pre-polución. Es en el protocolo 2 que de nuevo vemos un sesgo, esta vez hacia la derecha. Esto se puede deber al hecho que empresas mayores ya tienen su manera de operar. Por establecer un guia, se crea incentivo a que mejoren sus metodos de operaciones, sin perder la efectividad que ya existe en la empresa. Concluimos que el protocolo 3 se de haber **escogido a base de la cantidad de emisiones**. Para sumarizar, no parece haber aleoteridad si se considera la distibución inicial de empresas.
+
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = pre_pollution)) +
+  geom_histogram(bins=10) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de pre-polución de la empresas tratadas por protocolo",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = pre_pollution)) +
+  geom_histogram(bins=10) +
+  facet_grid(~protocol) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de pre-polución de la empresas tratadas por protocolo",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(age), y = pre_pollution)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(aes(size=protocol)) +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Edad de empresa vs Pre-polución" ,x = "Edad de empresa", y ="Cantidad de empleados") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+
+
+
+#### Number of employees
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = employees)) +
+  geom_histogram(bins=10) +
+  facet_grid(~protocol) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de cantidad de empleados de la empresas tratadas por protocolo",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+# Pregunta 3: Resultados (Y)
+
+Si definimos 𝑌 como la variable de resultado (outcome) y 𝑇 como la variable de
+tratamiento (treatment), calculamos:
+𝐸(𝑌),𝐸(𝑌|𝑇 = 1),𝐸(𝑌|𝑇 = 0)
+
+**Intervalo de confianza:** Primero que todo para entender que es un intervalo de confianza, recurrimos a nuestra hipótesis: **El SMA ha tenido un efecto positivo en las empresas de Earthfriends por haber reducido su cantidad neto de poluciones.** En contrario a esta hipótesis, tenemos la hipótesis nula, cual asume que el efecto positivo no se puede explicar por el SMA. Esto claramente no es deseable. Para validar que nuestra hipótesis es cierta, usamos intervalos de confianza. Con su porcentaje indica la probabilidad que el efecto visto no sea efecto de aleotoridad. El intervalo de confianza de 95% significa que podemos confirmar que la hipotesis nula tiene una probabilidad de 0.95 de no ser cierta. En ese sentido los valores de la polución neto (nuestro Y) no son por coincidencia. 
+
+**Nuestro Y:** En este caso la pregunta depende de como definimos Y. Esta podria ser la post-polución. Sin embargo, es mejor definir Y como el la **diferencia en nuestra variable de observación en el momento que se introduce los tratamientos**, en otras palabras, nuestra Y es la **diferencia entre la post-polución y la pre-polución**. Por este metodo, vemos la diferencia en diferencia, y asi reducimos ruidos causados por diferencias en estado inicial (de polución). Para esto creamos la variable *net_change_pollution* (=post_pollution-pre_pollution).
+
+```{r}
+data$net_change_pollution <- data$post_pollution-data$pre_pollution
+```
+
+```{r warning=FALSE}
+data %>%
+  ggplot(aes(x = net_change_pollution)) +
+  geom_histogram(bins=10) +
+  facet_grid(~assignment) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Net change pollution dividida por la asignación de tratamiento a empresas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+𝐸(𝑌):
+```{r}
+#calculate expected value
+vector_prob <- vector("list",60)
+weighted.mean(data$net_change_pollution)
+```
+𝐸(𝑌|𝑇 = 1):
+```{r}
+treated <- subset(data, assignment == 1)
+E_y_1 <- weighted.mean(treated$net_change_pollution)
+sd(data$net_change_pollution)
+E_y_1
+```
+
+𝐸(𝑌|𝑇 = 0):
+```{r}
+untreated <- subset(data, assignment == 0)
+E_y_0 <- weighted.mean(untreated$net_change_pollution)
+sd(data$net_change_pollution)
+E_y_0
+```
+
+```{r}
+ATE <- E_y_1 - E_y_0
+ATE
+```
+
+Sin considerar la distribución de las caracteristicas de las empresas, la diferencia en emisiones ha sido positiva para el medio ambiente. En grandes lineas, la politica en cambio con el contexto ha podido tener algún efecto en el hecho que el net_chage_pollution sea negativo. Es mas, el standard deviation es tan alto que no se podria decir que todas las empresas han sido efectivas en bajar, mantener, o subir sus emisiones. Depende mucho por empresa. Para confirmar si el tratamiento tuvo efecto se puede ver el Average Treatment Effect como 𝐸(𝑌|𝑇 = 1) - 𝐸(𝑌|𝑇 = 0). Esto solo es valido si E[Y1/D=1,S]=E[Y1,D=0,S] y E[Y0/D=1,S]=E[Y0,D=0,S]. S siendo la variable confundidora. En nuestro caso, la edad de la empresa.
+
+
+El valor esperado de las emisiones neto de los tratados es 10 veces mas negativo que el valor esperado de todas las empresas. Sin embargo, la desviación estandar es tan alta, que en algúnos casos significativos la empresa produjo mas emisiones post que pre. El valor esperado de los no tratados ha sido muy positiva. La desviación estandar para este grupo es pequena por la cual en todos los casos las emisiones post son mas alta que las pre. Esto afirma mas que el tratamiento posiblemente tuvo efecto cuando consideramos el sesgo en escogo de empresas para tratamiento y no-tratamiento. Las empresas que tenian pre_polucion mas baja parecian pertencer al grupo de no-tratamiento. **Sin embargo, no hay manera de confirmar si las empresas que no fueran tratadas hubieran tenido un valor esperado negativo si hubieran sido parte del tratamiento. Este contrafactual no se puede validar o rechazar empiricamente**.
+
+
+El ATE parece ser significativo. Considerando los sesgos en el escogo de empresas para tratamientos, es cuestionable si esta es efectiva. Si aun se puede hablar de un impacto positivo, un modelo de regresión lineal deberia de indicar que tan significativo es la variable independiente, la "assignment", con y sin variables de control.
+
+## Modelo regresión lineal: protocolos como variable independiente, assignment como variable de asocación
+
+Efectivamente vemos que el intercepto y el assignment del tratamiento son **estadisticamente significativo con un p<0.01 al cambio neto en emisiones**. Es decir, la probabilidad de que el efecto neto de emisiones sea producido por aleatoridad es menos de 0.01. 
+
+Los residuos del modelo son altamente aleatorios. Los residuos parecen moverse alrededor de tres valores. Esto se debe a que el modelo predice para cada protocolo (en total tres) cuales serian sus emisiones. Es tan estatico este valor predicho que cualquier cambio en el cambio neto de emisiones no lo mide.  
+
+```{r}
+modelo_1 <- lm(net_change_pollution ~ 1 + assignment, data = data)
+screenreg(modelo_1)
+```
+
+```{r}
+estimadores <- get_regression_table(modelo_1)
+estimadores_obs <- get_regression_points(modelo_1)
+
+ggplot(mapping = aes(x = modelo_1$fitted.values, y = modelo_1$residuals)) +
+  labs(x = "Valores predichos", y = "Residuos") +
+  geom_point() +
+  geom_hline(mapping = aes(yintercept = 0), color = "red")
+```
+
+
+## Pregunta 5: ATE Modelo regresión lineal: protocolos como variable independiente, assignment como variable de asocación, caracteristicas de empresa como variables de control
+
+
+El intercepto y la edad tiene una significancia estadistica con un valor-p bajo el 0.001. Tambien vemos que por controlar en edad y numero de empleados, el modelo de regresión mejoro en su nivel de predicción ya que explica alrededor del 60% de la varianza del cambio neto de emisiones. Cuando se controlan variables confundidoras vemos que el intervalo de confianza se reduce. Previamente el valor-p era menor a 0.01, y ahora tiene un valor menor 0.05. Es decir nuestra hipotesis nula tiene una probabilidad mas alta de ser cierta. Sin embargo, un valor-p menos de 0.05, es significativo por la que aun se rechaza la hipotesis nula. 
+
+```{r}
+modelo_2 <- lm(net_change_pollution ~ 1 + assignment + age + employees, data = data)
+screenreg(modelo_2)
+```
+# Conclusión
+
+En esta investigacion queriamos ver si tuvo efecto a las emisiones neto a las empresas de Earthfriends cuando se les introduce protocolos ambientales (el Sistema de Manejo Ambiental). Cuando se mide el efecto por medio del Average Treatment Effect, por medio de el valor esperado, se mide que el tratamiento tuvo un efecto positivo. Sin embargo, los valores esperados tienen una varianza tan alta, que en varios casos el cambio neto de emisiones es positiva para empresas en los tratados. Para controlar esto mejor corrimos un modelo de regresión lineal. La variable "assignment", cual decide si una empresa es tratada, parece tener un efecto estadisticamente significativo sobre el cambio neto de emisiones ya que tiene una significancia de 95% cuando se controla sobre factores confundidores, un intervalo de confianza 99% cuando no se controla.  Cuando si se controla este valor, la situación cambia, y tambien el assignment de tratado no parece tener influencia
+
+En este experimento nos podemos dar cuenta de la influencia de factores confundidores. El experimento no fue aleatorio, por lo que originalmente el tratamiento parece ser efectivo. Es importar siempre controlar estos factores para no confundir la efectividad. Esperemos asi que **Earthfriends en verdad pueda tener un impacto positivo por medio de la evaluación correcta de sus politicas**.
+
+
+# EXTRA analisis de efecto de protocolo en empresas tratadas
+
+```{r message=FALSE, warning=FALSE}
+data %>%
+  ggplot(aes(x = net_change_pollution)) +
+  geom_histogram(bins=10) +
+  facet_grid(~protocol) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Net change pollution dividida por el protocolo de empresas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+Queriamos ver si un tipo de protocolo tiene significancia al cambio neto de emisiones. Del resultado podemos concluir que no es asi ya que no alcanza ni un nivel de confianza del 95%, cual es un minimo para establecer significancia estadistica. El modelo mismo es muy inpreciso ya que el R-cuadrado ajustado solo puede explicar 11% de la varianza en los resultados. Aunque el assignment sea significativo, el modelo no lo es. Concluyendo, el **impacto del protocolo no se puede asociar a la implementación de uno de los protocolos**. 
+
+```{r}
+modelo_6 <- lm(net_change_pollution ~ 1 + protocol, data = data)
+screenreg(modelo_6)
+```
+
+```{r warning=F, echo=F, message=F, out.height="60%"}
+
+data %>%
+  ggplot(aes(x =protocol , y = net_change_pollution)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = T, color = "black") +
+  labs(x = "protocol", y = "net change pollution") +
+  theme_minimal(base_family = "Roboto Condensed") +
+  theme(axis.text = element_text(size = 16),
+        axis.title = element_text(size = 18))
+```
+
+## ATT: Modelo regresión lineal: protocolos como variable independiente, assignment como variable de asocación, caracteristicas de empresa como variables de control
+
+Tampoco cuando vemos el impacto entre protocolos, parece el protocolo tener significancia estadistica.
+
+```{r}
+modelo_4 <- lm(net_change_pollution ~ 1 + protocol, data = treated)
+modelo_5 <- lm(net_change_pollution ~ 1 + protocol + age + employees, data = treated)
+screenreg(modelo_4)
+screenreg(modelo_5)
+```
+

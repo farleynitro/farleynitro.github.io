@@ -1,0 +1,8 @@
+"0","data %>%"
+"0","  ggplot(aes(x = employees)) +"
+"0","  geom_histogram(bins=10) +"
+"0","  facet_grid(~protocol) +"
+"0","  geom_bar(color = ""#ffafcc"", fill = ""#ffc8dd"", alpha = 0.5) + # Colores"
+"0","  labs(title = ""Barplot de cantidad de empleados de la empresas tratadas por protocolo"","
+"0","       x = "" "", y = ""Frecuencia"") + # Títulos"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

@@ -1,0 +1,218 @@
+---
+title: "PCA"
+author: "Soledad Araya"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Cargamos los paquetes:
+
+```{r, message=F}
+pacman::p_load(tidyverse, haven, GGally, factoextra, FactoMineR)
+```
+
+Para hacer análisis factorial también se puede usar la función `fa` del paquete `psych`.
+
+Cargamos los datos:
+
+```{r}
+datos_umsd <- read_stata("umsd.dta")
+```
+
+```{r}
+datos_umsd
+glimpse(datos_umsd)
+```
+
+En el caso de querer ver las etiquetas de las variables para saber su significado, se puede usar la función `get_label()` de `sjlabelled`.
+
+```{r}
+sjlabelled::get_label(datos_umsd)
+```
+
+# Transformación de las variables
+
+La ayuda económica desde EEUU y la ayuda militar desde EEUU están en valores absolutos por país. En el caso de quererlas per cápita, podemos dividirlas por la población de cada país en la base de datos.
+
+```{r}
+datos_umsd <- datos_umsd %>%
+  mutate(ecoaid_pc = ecoaid / population,
+         milaid_pc = milaid / population)
+```
+
+En este caso, utilizaremos 7 variables distintas para crear nuestra matriz para la construcción del índice. Como habíamos hablado, es posible graficar en 1, 2 y 3 dimensiones. Veremos un ejemplo de cómo crear un gráfico de 3 dimensiones utilizando `inflation`, `milaid_pc` y `ofdi`:
+
+```{r}
+library(plotly)
+
+plot_ly(data = datos_umsd, 
+        x = ~milaid_pc, 
+        y = ~inflation, 
+        z = ~unga_imp, 
+        type = "scatter3d", 
+        mode = "markers",
+        color = ~corru)
+```
+
+Ahora procedamos a crear una nueva base, **solo con las variables que nos interesan**:
+
+```{r}
+datos_umsd_vars <- datos_umsd %>%
+  select(unga_imp, milaid_pc, ecoaid_pc, ofdi, xxtot, fta, xshare) #Matriz de construcción de índice
+```
+
+Como PCA y Factor Analysis usan *correlación* y *covarianza*, es bueno si nuestras variables estan altamente correlacionadas (>70%). En la práctica, no siempre es así, sin embargo.
+
+```{r}
+cor(na.omit(datos_umsd_vars)) #Correlaciones: es necesario omitir los NA. 
+
+ggcorr(datos_umsd_vars, label = T) #NA se omiten automáticamente
+```
+
+>A nivel teórico este resultado no estaría bueno porque las correlaciones están muy bajas. Están bajas porque no hay correlación entre una y otra variable, o están bajas porque no tienen mucha relación entre ellas.
+
+# PCA
+
+Realicemos el PCA.
+
+```{r}
+pca_1 <- PCA(datos_umsd_vars, graph = T) #Sin gráfico = F
+```
+
+El mensaje que nos sale:
+
+>Missing values are imputed by the mean of the variable.
+
+### Pesos relativos
+
+```{r}
+get_eig(pca_1)
+```
+
+### Scree plot:
+```{r}
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+```
+
+### Contribuciones de las variables a cada componente principal:
+
+**Si es que las contribuciones fuesen uniformes, todas estarían en la línea de referencia.**
+
+Cómo contribuye cada variable para cada dimensión:
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 1)
+```
+
+2. Esto nos puede decir que `milaid` es un *poco único*, ya que no pega con las demás variables puestas.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 2)
+```
+
+3. Dimensión económica. 
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 3)
+```
+
+>Importante: incluir aquellas variables que son importantes teóricamente para tu modelo.
+
+### Biplots (combinaciones posibles)
+
+```{r}
+fviz_pca(pca_1, axes = c(1, 2), label = "var")
+```
+
+```{r}
+fviz_pca(pca_1, axes = c(1, 3), label = "var")
+```
+
+```{r}
+fviz_pca(pca_1, axes = c(2, 3), label = "var")
+```
+
+### Generar el índice:
+
+Los scores que asignan las dimensiones a cada observación:
+
+```{r}
+head(pca_1$ind$coord) #para cada observación, tendremos un score por dimensión. 
+head(pca_1$var$coord) #para cada observación, tendremos un score por dimensión. 
+
+```
+
+Recordemos los pesos relativos:
+
+```{r}
+get_eig(pca_1)
+```
+
+Podemos generar el índice ponderando los scores por los *pesos relativos* de cada dimensión:
+
+```{r}
+indice_base <- pca_1$ind$coord %>% 
+  as_tibble() %>% #base de lo que queremos
+  mutate(indice_pca_1 = (Dim.1 * 23.769109 + Dim.2 * 21.575147 + Dim.3 * 15.623107) / 60.96736) 
+```
+
+Insertemos el indice en nuestra base completa:
+
+```{r}
+datos_umsd <- datos_umsd %>%
+  bind_cols(indice_base %>% select(indice_pca_1))
+```
+
+Hagamos un rescale a 0-1
+
+```{r}
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+```
+
+```{r}
+datos_umsd <- datos_umsd %>%
+  mutate(indice_pca_1_rs = rescale01(indice_pca_1))
+```
+
+```{r}
+datos_umsd
+```
+
+```{r}
+tabla_1 <- datos_umsd %>% 
+  select(country, indice_pca_1_rs) %>% 
+  group_by(country) %>% 
+  summarise(promedio = mean(indice_pca_1_rs)) %>% 
+  arrange(-promedio)
+```
+
+#Análisis factorial:
+
+```{r}
+fa <-  factanal(x        = na.omit(datos_umsd_vars),  
+                factors  = 1, # un solo factor
+                rotation = "varimax", 
+                scores   = "regression")
+
+rescale01(as.vector(fa$scores))
+```
+
+```{r}
+datos_umsd_fa <- datos_umsd %>%
+  select(country, year, unga_imp, milaid_pc, ecoaid_pc, ofdi, xxtot, fta, xshare, indice_pca_1_rs) %>%
+  # hay un tema con los NA
+  filter_all(~!is.na(.)) %>%
+  bind_cols(tibble(indice_fa_rs = as.vector(rescale01(fa$scores))))
+```
+
+# Correlación PCA con FA
+
+```{r}
+cor(datos_umsd_fa$indice_pca_1_rs, datos_umsd_fa$indice_fa_rs)
+```
+

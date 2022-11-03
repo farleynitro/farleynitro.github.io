@@ -1,0 +1,21 @@
+"0","modelo_2 <- lm(net_change_pollution ~ 1 + assignment + age + employees, data = data)"
+"0","screenreg(modelo_2)"
+"1","
+=========================
+             Model 1     
+-------------------------
+(Intercept)   5737.01 ***
+             (1108.01)   
+assignment   -1894.01 *  
+              (739.88)   
+age           -767.26 ***
+               (98.08)   
+employees       -0.20    
+                (4.96)   
+-------------------------
+R^2              0.58    
+Adj. R^2         0.56    
+Num. obs.       60       
+=========================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"
