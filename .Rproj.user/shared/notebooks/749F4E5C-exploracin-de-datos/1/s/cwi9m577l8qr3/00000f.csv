@@ -1,2 +1,2 @@
 "0",""
-"0","var_ind_s_control <- var_ind_s_control %>% select(NSE, Edad, Sexo, Niv_Edu, ZONAS)"
+"0","var_ind_s_control <- var_ind %>% select(ZONAS, NSE, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici, Automovil_Combustible, Transporte_mas_freq) "

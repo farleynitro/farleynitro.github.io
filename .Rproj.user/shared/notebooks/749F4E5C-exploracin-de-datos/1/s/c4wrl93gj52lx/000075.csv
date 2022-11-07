@@ -1,0 +1,9 @@
+"0","var_dep %>% "
+"0","  select(P4) %>% "
+"0","  rec(rec= ""1=1;2=3;3=5;9=0;8=0;else=copy"")"
+"1","[31mOne or more of the old values are recoded into identical new values.
+Please check if you correctly specified the recode-pattern,
+else separate multiple values with comma, e.g.[39m"
+"1","[32m rec=""a,b,c=1; d,e,f=2""[39m"
+"1","[31m.
+[39m"
