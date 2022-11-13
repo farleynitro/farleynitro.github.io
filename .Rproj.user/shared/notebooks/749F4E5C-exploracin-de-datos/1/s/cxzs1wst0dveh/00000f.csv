@@ -1,3 +1,0 @@
-"0","# sum several columns in R"
-"0",""
-"0","var_dep$P19_suma <- rowSums(var_dep[11:18], na.rm=TRUE)"

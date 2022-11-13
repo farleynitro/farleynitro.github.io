@@ -1,0 +1,5 @@
+"0","# OUTCOME: SELF REPORTED FOREST COVER (2013)"
+"0",""
+"0","# Outcome: change in forest plantation cover (2013-1998)"
+"0","Y_PLAN <- d$Dforest"
+"0",""

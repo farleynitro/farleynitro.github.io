@@ -1,0 +1,226 @@
+---
+title: "Untitled"
+author: "Soledad Araya"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Análisis factorial exploratorio (CFA)
+
+```{r}
+library(tidyverse)
+library(sjmisc)
+library(ggcorrplot) # Matriz de correlación
+library(psych) # Análisis factorial
+library(mice) # Imputación de datos
+library(VIM) # Ver los datos perdidos de nuestra base de datos
+library(factoextra)
+library(FactoMineR)
+```
+
+# Previo...
+
+```{r setup, include=FALSE}
+df <- readRDS("data/ENDH 2020 - Base de datos.rds")
+```
+
+Dejaremos sólo las columnas de interés que son aquellas que pertenecen al conjunto de preguntas:
+
+```{r}
+df_ddhh <- df %>% select(I_1_p20:I_6_p20)
+```
+
+Como PCA y análisis factorial usan la *correlación* y *covarianza*, es bueno si nuestras variables estan altamente correlacionadas (>70%). En la práctica, no siempre es así, sin embargo siempre es beuno entender cómo nuestras variables se relacionan entre sí.
+
+¿Cómo se relacionan nuestras variables?
+
+```{r}
+ggcorrplot(cor(df_ddhh))
+```
+
+Realicemos el PCA:
+
+```{r}
+pca_1 <- PCA(df_ddhh, graph = F) #Sin gráfico = F
+
+pca_1
+```
+
+Vemos los pesos relativos:
+
+```{r}
+get_eig(pca_1)
+```
+
+### Biplots (combinaciones posibles)
+
+```{r}
+#Buscamos que las variables estén lo más cerca de 1:
+
+fviz_pca_var(pca_1, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE 
+             )
+
+fviz_pca_var(pca_1, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE 
+             )
+```
+
+Realizar el índice:
+
+```{r}
+data_pca <- pca_1$ind$coord%>%
+ as_tibble() %>%
+  mutate(primera_dimension = 
+           (Dim.1 * 0.62 + Dim.1 * 0.6 + Dim.1 * 0.7 + Dim.1 * 0.5 + Dim.1 * 0.53 + Dim.1 * 0.68) / 37.624549,
+         segunda_dimension = 
+           (Dim.2 * (-0.1) + Dim.2 * 0.01 + Dim.2 * (-0.32) + Dim.2 * 0.77 + Dim.2 * 0.2 + Dim.2 * (-0.3) ) /14.250996) %>% 
+ mutate(pca_01 = (primera_dimension * 37.624549 + segunda_dimension * 14.250996) / 51.87554,
+        pca_02 = (Dim.1 * 37.624549 + Dim.2 * 14.250996) / 51.87554) %>% 
+  mutate(indice_pd = GGally::rescale01(primera_dimension)*100,
+         indice_sd = GGally::rescale01(segunda_dimension)*100) %>% 
+  mutate(indice_01 = GGally::rescale01(pca_01)*100,
+         indice_02 = GGally::rescale01(pca_01)*100)
+```
+
+Ahora... 
+
+Cargaremos nuestra base de datos que contiene información sobre la Encuesta Nacional de Derechos Humanos hecha en el año 2020.
+
+```{r}
+df_endh <- read_rds("data/ENDH 2020 - Base de datos.rds")
+```
+
+Primero, veremos cuáles son las variables que nos interesa ver en el análisis. En este caso, se puede usar `sjPlot::view_df` para ver no sólo las variables y sus etiquetas, sino también cómo se distribuyeron las respuestas de los encuestados a través de ella.
+
+```{r}
+sjPlot::view_df(df_endh, show.prc = T)
+```
+
+Viendo la encuesta, utilizaremos la parrilla de preguntas que más nos interese. En este caso, utilizaremos preguntas sobre la percepción de los encuestados sobre el *Estallido Social*.
+
+```{r}
+df_estallido <- df_endh %>% 
+  select(p34, p35, p36_O1, I_1_p37:I_5_p37, I_1_p38:I_6_p38) %>% 
+  mutate_all(~as.integer(.))
+```
+
+Son muchas variables. Lo interesante sería reducir su dimensionalidad, para eso utilizaremos análisis factorial. En este caso, no nos interesa sólo la reducción de dimensiones, sino encontrar la covarianza y la varianza dentro de nuestros datos, buscar las *relaciones entre nuestros datos*.
+
+Primero, observaremos una matriz de correlación entre las variables:
+
+```{r}
+ggcorrplot(cor(df_estallido)) 
+```
+
+En este caso, podemos observar que existe una correlación relativamente fuerte, en algunos casos positiva y en otros casos negativa, entre algunas de las variables de interés.
+
+Análisis factorial requiere de algunos supuestos:
+
+* Factores están centralizados.
+* La *covarianza* de los factores es independiente.
+* Los factores y el error son independientes.
+* Los factores están distribuidos de manera aleatoria.
+
+Algunos de los conceptos que veremos durante el análisis de nuestros datos son los siguientes:
+
+* Comunalidad (h^2): su interpretación es similar al R^2.
+* Patrones: estimador de los pesos en un AF. Se puede pensar como los coeficientes en una regresión. 
+* Cargas (*loadings*): muestra la correlación entre el factor y la característica (variable). Muestra la varianza explicada por la variable en ese factor particular. La mayoría de las cargas debería ser pequeña, y otros serán más grandes: **podemos decir que una carga grande es una que es mayor a 0.7**, pero es más que nada subjetivo. Los factores deberían tener patrones distintos de información.
+* Puntaje (*scores*): puede ser interpretada desde la carga cuando utilizamos algún tipo de optimización para obtener algún valor. Algunos métodos son *regresiones, el método de Barlett, y el método Anderson-Rubin*.
+
+La rotación suele ser un tema importante dentro del análisis factorial: cambia la distribución de los datos, con el objetivo de tener una visión diferente de los datos manteniendo la varianza.
+
+Empezamos con el análisis factorial:
+
+Primero, debemos ver la cantidad de NA que tienen nuestros datos. En el caso de que hayan NA presentes, debemos imputarlos. Para eso está la librería `mice` que nos ayuda a identificar y a imputar los datos. En este caso, la base de datos no contiene NA por lo que no es necesario ejecutar.
+
+```{r}
+md.pattern(df_estallido)
+
+aggr_plot <- aggr(df_estallido)
+```
+
+Hay dos tipos de datos perdidos que debemos tener en consideración, los datos perdidos aleatoriamente y los datos perdidos que no lo son. El primero sería el caso ideal, pero si es el segundo debemos mirar la forma en que se recolectaron los datos. Si fuera una encuesta, por ejemplo, nos podríamos preguntar ¿por qué la gente no respondió esta pregunta? ¿*quiénes* no respondieron?
+
+Como siempre, hay ciertas convenciones: en este caso, un 5% de datos perdidos es el límite. Al hacer un análisis factorial, debemos mirar nuestras variables para saber *cuáles dejamos afuera del análisis por datos perdidos*, o ver qué podemos hacer con ellos. Ya teniendo esto en consideración, podemos imputar los datos.
+
+Realizamos el análisis factorial:
+
+```{r}
+pa <- fa(r = df_estallido, # Puede ser una base de datos o una matriz de datos.
+         nfactors = 3,
+         rotate = "varimax", # Suele ser la más utilizada
+         fm = "pa", 
+         residuals = T)
+
+pa
+```
+
+```{r}
+ml <- fa(r = df_estallido, # Puede ser una base de datos o una matriz de datos.
+         nfactors = 3,
+         rotate = "varimax", # Suele ser la más utilizada
+         fm = "ml", 
+         residuals = T)
+
+ml
+
+# Muestra cómo se distribuyen las variables en cada uno de los factores:
+
+fa <-  factanal(x        = na.omit(df_estallido),  
+                factors  = 3,
+                rotation = "varimax", 
+                scores   = "regression")
+fa
+```
+
+Observamos la **varianza cumulativa** de ambos, utilizaremos el que tenga el valor más grande. En este caso, ambos métodos, el *eje principal* y *máxima verosimilitud*, funcionan de la misma manera, capturando el 52% de la varianza. Seguiremos utilizando el método de *máxima verosimilitud*.
+
+Ahora, debemos encontrarle "sentido" a cada factor. Esta es la parte creativa:
+
+1. Factor de violencia: Vemos que el factor ML3 está compuesto por la pregunta I_4_p38 a la I_6_p38 (superior a 0.7):  se podría decir que este factor está relacionado con situaciones de violencia directa sin caracterizar al manifestante.
+2. Factor de justificación: ML2 está compuesto mayoritariamente por las preguntas I_3_p37 y I_4_p37 (superior a 0.7), pero podríamos incluir a las preguntas I_2_p37 y I_5_p37. Si lo hacemos de esa manera, este factor toma en consideración la parrilla completa de preguntas sobre la justificación de acciones durante una protesta.
+3. Factor manifestante violento: ML1 está compuesto por las preguntas I_2_p38 y I_3_p38 que tienen relación con el uso de la fuerza a *manifestantes violentos*.
+
+Otra forma de hacerlo es ver pregunta a pregunta cómo estaría compuesto cada factor. Importante: cada factor debe explicar situaciones diferentes, y no pueden ser el contraste de cada una. **Aquí entra también el conocimiento del tema que estamos tratando**.
+
+Tenemos 3 columnas que acompañan las cargas:
+
+* h2: cuánta varianza es explicada por ese factor. Si queremos saber cuál características es la mejor explicada por el análisis factorial, debemos mirar este parámetro.
+* u2: la varianza que no está siento explicada. Vemos el más grande: en este caso, son los primeros 3 que no calzaban en ninguno de las cargas.
+* com: cuántos factores contribuyen a la variable específica. Lo deseable es que sea lo más cercano a 1.
+
+Si tomamos ml como nuestro análisis, podríamos decir que:
+
+- Estos 3 factores explican el 52% de la varianza.
+- El factor 1 explica el 20% de la varianza, el segundo el 19% y el tercero un 13%.
+- El factor 1 tiene un valor propio de 2.81, el segundo de 1.69 y el tercero de 1.81 (>1).
+
+Podemos crear un plot que nos sirva para observar esto:
+
+```{r}
+fa.diagram(ml)
+```
+
+Podemos modificar nuestra matriz:
+
+```{r}
+df_estallido <- df_endh %>% 
+  select(I_1_p37:I_5_p37, I_1_p38:I_6_p38) %>% 
+  mutate_all(~as.integer(.))
+
+ml <- fa(r = df_estallido, # Puede ser una base de datos o una matriz de datos.
+         nfactors = 3,
+         rotate = "varimax", # Suele ser la más utilizada
+         fm = "ml", 
+         residuals = T)
+
+fa.diagram(ml)
+```
+
+

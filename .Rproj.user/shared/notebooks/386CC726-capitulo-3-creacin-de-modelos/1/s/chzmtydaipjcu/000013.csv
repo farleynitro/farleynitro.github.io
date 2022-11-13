@@ -1,0 +1,5 @@
+"0","ind_con_control <- read_sav(""data/var_independientes_y_control.sav"")"
+"0","dep_pca_total <- read_sav(""data/var_dependientes_total_pca.sav"")"
+"0","dep_pca_importancia <- read_sav(""data/var_dependientes_importancia_pca.sav"")"
+"0","dep_pca_preocupacion <- read_sav(""data/var_dependientes_preocupacion_pca.sav"")"
+"0","dep_total_clean <- read_sav(""data/var_dependientes_total_clean_unreduced_final.sav"")"

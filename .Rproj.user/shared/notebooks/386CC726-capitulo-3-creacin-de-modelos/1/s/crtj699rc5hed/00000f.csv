@@ -1,0 +1,30 @@
+"0","modelo_pca_imp_1_4 <- lm(indice_01 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_imp_1_5 <- lm(indice_01 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelo_pca_imp_2_4 <- lm(indice_02 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_imp_2_5 <- lm(indice_02 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0",""
+"0","modelos_pca_imp_4_5 <- list(modelo_pca_imp_1_4,modelo_pca_imp_1_5,modelo_pca_imp_2_4, modelo_pca_imp_2_5) "
+"0","screenreg(modelos_pca_imp_4_5) "
+"1","
+=========================================================================
+                       Model 1      Model 2      Model 3      Model 4    
+-------------------------------------------------------------------------
+(Intercept)              29.33 ***    29.66 ***    21.60 ***    21.61 ***
+                         (0.24)       (0.93)       (0.18)       (0.71)   
+Automovil_Combustible    -0.39 *      -0.38 *      -0.31 *      -0.31 *  
+                         (0.17)       (0.17)       (0.13)       (0.13)   
+Edad                                  -0.01                     -0.01    
+                                      (0.01)                    (0.01)   
+NSE                                    0.07                      0.06    
+                                      (0.14)                    (0.11)   
+Niv_Edu                               -0.00                      0.02    
+                                      (0.07)                    (0.06)   
+-------------------------------------------------------------------------
+R^2                       0.00         0.00         0.00         0.00    
+Adj. R^2                  0.00         0.00         0.00         0.00    
+Num. obs.              3636         3636         3636         3636       
+=========================================================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

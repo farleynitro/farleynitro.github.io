@@ -1,0 +1,40 @@
+"0","modelo_pca_imp_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelo_pca_imp_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelos_pca_imp_3 <- list(modelo_pca_imp_1_3, modelo_pca_imp_2_3)"
+"0",""
+"0","screenreg(modelos_pca_imp_3) "
+"1","
+===============================================
+                       Model 1      Model 2    
+-----------------------------------------------
+(Intercept)              29.50 ***    21.43 ***
+                         (1.18)       (0.90)   
+ZONAS                     0.01         0.04    
+                         (0.10)       (0.07)   
+NSE                       0.06         0.05    
+                         (0.15)       (0.11)   
+Edad                     -0.01        -0.00    
+                         (0.01)       (0.01)   
+Estudiante               -0.21        -0.14    
+                         (0.34)       (0.26)   
+Niv_Edu                  -0.02         0.01    
+                         (0.08)       (0.06)   
+Razon_Bici                0.05         0.05    
+                         (0.04)       (0.03)   
+Trab_Ingr                 0.01         0.01    
+                         (0.06)       (0.05)   
+Religion                  0.05         0.03    
+                         (0.06)       (0.04)   
+Automovil_Combustible    -0.40 *      -0.32 *  
+                         (0.17)       (0.13)   
+Transporte_mas_freq       0.04        -0.00    
+                         (0.07)       (0.05)   
+-----------------------------------------------
+R^2                       0.00         0.00    
+Adj. R^2                 -0.00        -0.00    
+Num. obs.              3602         3602       
+===============================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

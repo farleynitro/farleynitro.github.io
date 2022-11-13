@@ -1,0 +1,2 @@
+"0","pca_1 <- PCA(dep_preocupacion, graph = T) #Sin gráfico = F"
+"2","Warning: Missing values are imputed by the mean of the variable: you should use the imputePCA function of the missMDA package"

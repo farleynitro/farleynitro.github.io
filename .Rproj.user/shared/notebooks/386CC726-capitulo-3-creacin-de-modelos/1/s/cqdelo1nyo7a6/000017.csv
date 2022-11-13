@@ -1,0 +1,42 @@
+"0","modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)"
+"0",""
+"0","modelo_P21_promedio_zonas_normal_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)"
+"0",""
+"0","modelos_P21_promedio_enfoque4 <- list(modelo_P21_promedio_zonas_recoded_enfoque4,modelo_P21_promedio_zonas_normal_enfoque4)"
+"0",""
+"0","screenreg(modelos_P21_promedio_enfoque4)"
+"1","
+===============================================
+                       Model 1      Model 2    
+-----------------------------------------------
+(Intercept)               4.20 ***     4.19 ***
+                         (0.18)       (0.18)   
+Zonas_recoded             0.02                 
+                         (0.04)                
+NSE                       0.02         0.02    
+                         (0.02)       (0.02)   
+Edad                      0.00         0.00    
+                         (0.00)       (0.00)   
+Estudiante               -0.07        -0.07    
+                         (0.05)       (0.05)   
+Niv_Edu                   0.01         0.01    
+                         (0.01)       (0.01)   
+Razon_Bici                0.01         0.01    
+                         (0.01)       (0.01)   
+Trab_Ingr                 0.01         0.01    
+                         (0.01)       (0.01)   
+Religion                  0.01         0.01    
+                         (0.01)       (0.01)   
+Automovil_Combustible    -0.06 *      -0.06 *  
+                         (0.03)       (0.03)   
+Transporte_mas_freq       0.00         0.00    
+                         (0.01)       (0.01)   
+ZONAS.x                                0.01    
+                                      (0.01)   
+-----------------------------------------------
+R^2                       0.00         0.00    
+Adj. R^2                  0.00         0.00    
+Num. obs.              2690         2690       
+===============================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

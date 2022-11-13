@@ -1,0 +1,2 @@
+"0",""
+"0","var_dep_total_P2_P20_P30_clean <- var_dep_total_P2_P20_clean[var_dep_total_P2_P20_clean$P2_COD  <8, ]"

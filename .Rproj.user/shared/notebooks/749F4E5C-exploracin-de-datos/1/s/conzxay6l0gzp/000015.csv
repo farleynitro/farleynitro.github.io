@@ -1,0 +1,2 @@
+"0",""
+"0","var_dep_total_P2_P20_P30_P21promedio_clean <- var_dep_total_P2_P20_P30_clean[var_dep_total_P2_P20_P30_clean$P21_promedio>0, ]"

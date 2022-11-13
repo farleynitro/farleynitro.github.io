@@ -1,0 +1,21 @@
+"0","modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)"
+"0","modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)"
+"0",""
+"0","modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)"
+"0",""
+"0","screenreg(modelos_pca_tot) "
+"1","
+=====================================
+             Model 1      Model 2    
+-------------------------------------
+(Intercept)    61.60 ***    66.78 ***
+               (0.33)       (0.22)   
+ZONAS           0.04         0.07    
+               (0.12)       (0.08)   
+-------------------------------------
+R^2             0.00         0.00    
+Adj. R^2       -0.00        -0.00    
+Num. obs.    6130         6130       
+=====================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

@@ -1,2 +1,2 @@
 "0","# Rename columns of independent variables"
-"0","df_2018_final <-  df_2018_final %>% rename('Razon_Bici'= 'P8','Razon_Cambio_Cl'= 'P18','Automovil_Combustible'= 'P43', 'Sexo'='P32' ,'Edad'='P33' ,'Niv_Edu'='P34','Estudiante'='P36','Edu_Ingr'='P37','Trab_Ingr'= 'P38','Religion'='P39', 'Transporte_mas_freq' = 'P7')"
+"0","df_2018_final <-  df_2018_final %>% dplyr::rename('Razon_Bici'= 'P8','Razon_Cambio_Cl'= 'P18','Automovil_Combustible'= 'P43', 'Sexo'='P32' ,'Edad'='P33' ,'Niv_Edu'='P34','Estudiante'='P36','Edu_Ingr'='P37','Trab_Ingr'= 'P38','Religion'='P39', 'Transporte_mas_freq' = 'P7')"

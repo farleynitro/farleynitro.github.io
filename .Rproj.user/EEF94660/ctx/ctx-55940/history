@@ -1,0 +1,512 @@
+stat_summary(fun = mean) +
+labs(title = "Boxplot de P19_4" ,x = "Zonas de Chile", y = "P19_4") +
+theme_minimal(base_family = "Roboto Condensed")
+length(which(var_dep_total_P2_P20_P30_P21promedio_P19_3_clean$P19_4==5))
+var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>%
+ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_4))) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+stat_summary(fun = mean) +
+labs(title = "Boxplot de P19_4" ,x = "Zonas de Chile", y = "P19_4") +
+theme_minimal(base_family = "Roboto Condensed")
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>% select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21_promedio, P30)
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>%
+ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_5))) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+stat_summary(fun = mean) +
+labs(title = "Boxplot de P19_5" ,x = "Zonas de Chile", y = "P19_5") +
+theme_minimal(base_family = "Roboto Condensed")
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>%
+ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_6))) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+stat_summary(fun = mean) +
+labs(title = "Boxplot de P19_6" ,x = "Zonas de Chile", y = "P19_6") +
+theme_minimal(base_family = "Roboto Condensed")
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+pacman::p_load(tidyverse, haven, GGally, factoextra, FactoMineR)
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+View(var_dep_total_clean)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x)))
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x)), na.omit=TRUE)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x) na.omit=TRUE))
+# var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x) na.omit=TRUE))
+var_dep_total_clean[] <- lapply(var_dep_total_clean, as.numeric)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x), na.rm=TRUE))
+var_dep_total_clean[] <- lapply(var_dep_total_clean, as.numeric)
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+# var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x), na.rm=TRUE))
+var_dep_total_clean <- mutate_all(var_dep_total_clean, function(x) as.numeric(as.character(x)))
+# var_dep_total_clean[] <- lapply(var_dep_total_clean, as.numeric)
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+# var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x), na.rm=TRUE))
+# var_dep_total_clean <- mutate_all(var_dep_total_clean, function(x) as.numeric(as.character(x)))
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+sapply(var_dep_total_clean, class)
+# var_dep_total_clean[] <- lapply(var_dep_total_clean, as.numeric)
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+lapply(var_dep_total_clean,class)
+lapply(var_dep_total_clean$P1_MAmb,class)
+lapply(var_dep_total_clean$P3F,class)
+lapply(var_dep_total_clean,class)
+# lapply(var_dep_total_clean,class)
+str(var_dep_total_clean)
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+transform(var_dep_total_clean, P1_MAmb = as.numeric(P1_MAmb),
+P3F = as.numeric(P3F),P4 = as.numeric(P4),P19_1 = as.numeric(P19_1),P19_2 = as.numeric(P19_2))
+transform(var_dep_total_clean, P1_MAmb = as.numeric(P1_MAmb),
+P3F = as.numeric(P3F),P4 = as.numeric(P4),P19_1 = as.numeric(P19_1),P19_2 = as.numeric(P19_2))
+var_dep_total_clean <- transform(var_dep_total_clean, P1_MAmb = as.numeric(P1_MAmb),
+P3F = as.numeric(P3F),P4 = as.numeric(P4),P19_1 = as.numeric(P19_1),P19_2 = as.numeric(P19_2))
+var_dep_total_clean <- var_dep_total_clean %>% transform(var_dep_total_clean, P1_MAmb = as.numeric(P1_MAmb),
+P3F = as.numeric(P3F),P4 = as.numeric(P4),P19_1 = as.numeric(P19_1),P19_2 = as.numeric(P19_2))
+var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)
+str(var_dep_total_clean)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+var_dep_high_corr <- var_dep_total %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+pca_1 <- PCA(var_dep_high_corr, graph = T) #Sin gráfico = F
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb$P1_MAmb, P2_COD,P3F$P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F$P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+str(var_dep_total_clean)
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_clean <- preProcess(as.data.frame(var_dep_total_clean),
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>%
+ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_4))) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+stat_summary(fun = mean) +
+labs(title = "Boxplot de P19_4" ,x = "Zonas de Chile", y = "P19_4") +
+theme_minimal(base_family = "Roboto Condensed")
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>% select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21_promedio, P30)
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+# var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)
+str(var_dep_total_clean)
+var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)
+str(var_dep_total_clean)
+var_dep_total_clean_remove <- names(var_dep_total_clean) %in% c("P30", "P19_suma", "P21_promedio", "P4")
+var_dep_high_corr  <- var_dep_total_clean[!var_dep_total_clean_remove]
+var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+pca_1 <- PCA(var_dep_high_corr, graph = T) #Sin gráfico = F
+View(var_dep_high_corr)
+get_eig(pca_1)
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+fviz_contrib(pca_1, choice = "var", axes = 1)
+fviz_contrib(pca_1, choice = "var", axes = 2)
+fviz_contrib(pca_1, choice = "var", axes = 3)
+var_dep_total_clean_remove <- names(var_dep_total_clean) %in% c("ZONAS","P30", "P19_suma", "P21_promedio", "P4")
+var_dep_high_corr  <- var_dep_total_clean[!var_dep_total_clean_remove]
+# var_dep_high_corr <- var_dep_total_clean %>% select(ZONAS,P1_MAmb, P2_COD,P3F,P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8,P4)
+pca_1 <- PCA(var_dep_high_corr, graph = T) #Sin gráfico = F
+get_eig(pca_1)
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+fviz_contrib(pca_1, choice = "var", axes = 1)
+fviz_contrib(pca_1, choice = "var", axes = 2)
+fviz_contrib(pca_1, choice = "var", axes = 3)
+fviz_contrib(pca_1, choice = "var", axes = 4)
+fviz_contrib(pca_1, choice = "var", axes = 5)
+fviz_contrib(pca_1, choice = "var", axes = 6)
+fviz_contrib(pca_1, choice = "var", axes = 6)
+fviz_contrib(pca_1, choice = "var", axes = 7)
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+fviz_contrib(pca_1, choice = "var", axes = 5)
+fviz_contrib(pca_1, choice = "var", axes = 6)
+fviz_pca(pca_1, axes = c(1, 2), label = "var")
+head(pca_1$ind$coord) #para cada observación, tendremos un score por dimensión.
+head(pca_1$var$coord) #para cada observación, tendremos un score por dimensión.
+head(pca_1$ind$coord,10) #para cada observación, tendremos un score por dimensión.
+head(pca_1$var$coord,10) #para cada observación, tendremos un score por dimensión.
+head(pca_1$ind$coord,12) #para cada observación, tendremos un score por dimensión.
+head(pca_1$var$coord,12) #para cada observación, tendremos un score por dimensión.
+get_eig(pca_1)
+indice_base <- pca_1$ind$coord %>%
+as_tibble() %>% #base de lo que queremos
+mutate(indice_pca_1 = (Dim.1 * 12.55606 + Dim.2 * 12.050347 + Dim.3 * 10.714678 + Dim.4 * 9.965088 + Dim.5 * 9.453926 + Dim.6 * 9.262639) / 64.00274)
+indice_base <- pca_1$ind$coord %>%
+as_tibble() %>% #base de lo que queremos
+mutate(indice_pca_1 = (Dim.1 * 12.55606 + Dim.2 * 12.050347 + Dim.3 * 10.714678 + Dim.4 * 9.965088 + Dim.5 * 9.453926) / 54.74010)
+var_dep_high_corr <- var_dep_high_corr %>%
+bind_cols(indice_base %>% select(indice_pca_1))
+rescale01 <- function(x) {
+rng <- range(x, na.rm = TRUE)
+(x - rng[1]) / (rng[2] - rng[1])
+}
+var_dep_high_corr <- var_dep_high_corr %>%
+mutate(indice_pca_1_rs = rescale01(indice_pca_1))
+fa <-  factanal(x        = na.omit(var_dep_high_corr),
+factors  = 1, # un solo factor
+rotation = "varimax",
+scores   = "regression")
+fa <-  factanal(x        = na.omit(var_dep_high_corr),
+factors  = 3, # un solo factor
+rotation = "varimax",
+scores   = "regression")
+fa <-  factanal(x        = na.omit(var_dep_high_corr),
+factors  = 2, # un solo factor
+rotation = "varimax",
+scores   = "regression")
+View(var_dep_high_corr)
+fa <-  factanal(x        = na.omit(var_dep_high_corr),
+factors  = 2,
+rotation = "varimax",
+scores   = "regression")
+var_dep_high_corr_reduce <- names(var_dep_high_corr) %in% c("P20", "P4")
+var_dep_high_corr_reduced  <- var_dep_high_corr[!var_dep_high_corr_reduce]
+fa <-  factanal(x        = na.omit(var_dep_high_corr_reduced),
+factors  = 2,
+rotation = "varimax",
+scores   = "regression")
+fa <-  factanal(x        = na.omit(var_dep_high_corr_reduced),
+factors  = 3,
+rotation = "varimax",
+scores   = "regression")
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+save(var_dep_total_clean,file="var_dependientes_total_clean.Rda")
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+save(var_dep_total__pca,file="var_dependientes_pca.Rda")
+save(var_dep_high_corr,file="var_dependientes_pca.Rda")
+write_sav(data, "data.sav")
+#saving dataframes to .sav format
+write_sav(var_dep_P17_COD, "var_dependientes_P17_unclean.sav")
+write_sav(var_dep_P2_COD, "var_dependientes_P2_unclean.sav")
+write_sav(var_dep_importancia, "var_dependientes_importancia_unclean.sav")
+#saving dataframes to .sav format
+write_sav(var_dep_P17_COD, "var_dependientes_P17_unclean.sav")
+write_sav(var_dep_P2_COD, "var_dependientes_P2_unclean.sav")
+var_dep_importancia <- do.call(data.frame, var_dep_importancia)
+write_sav(var_dep_importancia, "var_dependientes_importancia_unclean.sav")
+write_sav(var_dep_preocupacion, "var_dependientes_preocupacion_unclean.sav")
+#saving dataframes to .sav format
+write_sav(var_dep_P17_COD, "var_dependientes_P17_unclean.sav")
+write_sav(var_dep_P2_COD, "var_dependientes_P2_unclean.sav")
+var_dep_importancia <- do.call(data.frame, var_dep_importancia)
+var_dep_preocupacion <- do.call(data.frame, var_dep_preocupacion)
+var_dep_total <- do.call(data.frame, var_dep_total)
+write_sav(var_dep_importancia, "var_dependientes_importancia_unclean.sav")
+write_sav(var_dep_preocupacion, "var_dependientes_preocupacion_unclean.sav")
+write_sav(var_dep_total, "var_dependientes_total_unclean.sav")
+write_sav(var_dep_high_corr, "var_dependientes_pca.sav")
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+write_sav(var_dep_total_clean, "var_dependientes_total_clean.sav")
+cor(na.omit(var_dep_total_clean)) #Correlaciones: es necesario omitir los NA.
+ggcorr(var_dep_total_clean, label = T) #NA se omiten automáticamente
+write_sav(var_ind_s_control, "var_independientes_y_control.sav")
+var_ind_s_control <- var_ind %>% select(ZONAS, NSE, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici, Automovil_Combustible, Transporte_mas_freq)
+write_sav(var_ind_s_control, "var_independientes_y_control.sav")
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca <- read_sav("data/var_dependientes_pca.sav")
+dep_p17_unclean <- read_sav("data/var_dependientes_P17_unclean.sav")
+dep_p2_unclean <- read_sav("data/var_dependientes_P2_unclean.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean.sav")
+dep_total_unclean <- read_sav("data/var_dependientes_total_unclean.sav")
+dep_importancia_unclean <- read_sav("data/var_dependientes_importancia_unclean.sav")
+dep_preocupacion_unclean <- read_sav("data/var_dependientes_preocupacion_unclean.sav")
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = TRUE)
+View(reg_pca)
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = FALSE)
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = FALSE)
+reg_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = FALSE)
+View(reg_pca)
+reg_pca %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_pca_1_rs) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Participation per GDP per capita of country" ,x = "GDP per capita", y ="Participacion activa") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_pca_1_rs)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Edad de empresa vs Pre-polución" ,x = "Edad de empresa", y ="Pre-polución de empresa") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_pca_1_rs)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca <- lm(indica_pca_1_rs ~ 1 + ZONAS, data = reg_pca)
+modelo_pca <- lm(indica_pca_1_rs ~ 1 + ZONAS, data = reg_pca)
+modelo_pca <- lm(indice_pca_1_rs ~ 1 + ZONAS, data = reg_pca)
+screenreg(modelo_pca)
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+library(plyr)
+library(dplyr)
+library(texreg)
+modelo_pca <- lm(indice_pca_1_rs ~ 1 + ZONAS, data = reg_pca)
+screenreg(modelo_pca)
+modelo_pca_control_1 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad, data = reg_pca)
+screenreg(modelo_pca_control_1)
+modelo_pca_control_2 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq, data = reg_pca)
+screenreg(modelo_pca_control_2)
+modelo_pca_control_3 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu Razon_Bici, data = reg_pca)
+modelo_pca_control_3 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca)
+screenreg(modelo_pca_control_3)
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = TRUE)
+reg_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = TRUE)
+View(var_dep_high_corr)
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = FALSE)
+reg_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = FALSE)
+modelo_log_pca_control_1 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_pca_sin_control <- indice_pca_1_rs ~ 1 + ZONAS
+modelo_log_pca_control_2 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad
+modelo_log_pca_control_3 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq
+mod_log_pca_control_1 <- glm(modelo_log_pca_control_1, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_sin_control <- glm(modelo_log_pca_sin_control, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_2 <- glm(modelo_log_pca_control_2, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_3 <- glm(modelo_log_pca_control_3, family = binomial(link = "logit"), data = reg_pca)
+modelos_pca <- list(mod_log_pca_control_1, mod_log_pca_control_2, mod_log_pca_control_3, mod_log_pca_control_sin_control)
+modelo_log_pca_control_1 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_pca_sin_control <- indice_pca_1_rs ~ 1 + ZONAS
+modelo_log_pca_control_2 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad
+modelo_log_pca_control_3 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq
+mod_log_pca_control_1 <- glm(modelo_log_pca_control_1, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_sin_control <- glm(modelo_log_pca_sin_control, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_2 <- glm(modelo_log_pca_control_2, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_3 <- glm(modelo_log_pca_control_3, family = binomial(link = "logit"), data = reg_pca)
+modelos_pca <- list(mod_log_pca_control_1, mod_log_pca_control_2, mod_log_pca_control_3, mod_log_pca_control_sin_control)
+modelo_log_pca_control_1 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_pca_sin_control <- indice_pca_1_rs ~ 1 + ZONAS
+modelo_log_pca_control_2 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad
+modelo_log_pca_control_3 <- indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq
+mod_log_pca_control_1 <- glm(modelo_log_pca_control_1, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_sin_control <- glm(modelo_log_pca_sin_control, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_2 <- glm(modelo_log_pca_control_2, family = binomial(link = "logit"), data = reg_pca)
+mod_log_pca_control_3 <- glm(modelo_log_pca_control_3, family = binomial(link = "logit"), data = reg_pca)
+modelos_pca <- list(mod_log_pca_control_1, mod_log_pca_control_2, mod_log_pca_control_3, mod_log_pca_sin_control)
+screenreg(modelos_pca)
+unique(reg_total_clean$NSE)
+unique(ind_con_control$NSE)
+unique(ind_con_control$Transporte_mas_freq)
+#remove all NA from independent variables
+unique(ind_con_control$Razon_Bici)
+#remove all NA from independent variables
+unique(ind_con_control$Razon_Bici)
+unique(ind_con_control$Transporte_mas_freq)
+#remove all NA from independent variables
+unique(ind_con_control$Razon_Bici)
+unique(ind_con_control$Transporte_mas_freq)
+unique(ind_con_control$Religion)
+#remove all NA from independent variables
+unique(ind_con_control$Razon_Bici)
+unique(ind_con_control$Transporte_mas_freq)
+unique(ind_con_control$Religion)
+unique(ind_con_control$Automovil_Combustible)
+#remove all NA from independent variables
+var_ind["Automovil_Combustible"][var_ind["Automovil_Combustible"] == "99"] <- NA
+var_ind["Razon_bici"][var_ind["Razon_bici"] == "99"] <- NA
+#remove all NA from independent variables
+var_ind["Automovil_Combustible"][var_ind["Automovil_Combustible"] == "99"] <- NA
+var_ind["Razon_Bici"][var_ind["Razon_Bici"] == "99"] <- NA
+var_ind["Razon_Bici"][var_ind["Razon_Bici"] == "88"] <- NA
+var_ind["Religion"][var_ind["Religion"] == "9"] <- NA
+var_ind["Automovil_Combustible"][var_ind["Automovil_Combustible"] == "8"] <- NA
+var_ind_s_control <- var_ind %>% select(ZONAS, NSE, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici, Automovil_Combustible, Transporte_mas_freq)
+write_sav(var_ind_s_control, "var_independientes_y_control.sav")
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+library(plyr)
+library(dplyr)
+library(texreg)
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca <- read_sav("data/var_dependientes_pca.sav")
+dep_p17_unclean <- read_sav("data/var_dependientes_P17_unclean.sav")
+dep_p2_unclean <- read_sav("data/var_dependientes_P2_unclean.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean.sav")
+dep_total_unclean <- read_sav("data/var_dependientes_total_unclean.sav")
+dep_importancia_unclean <- read_sav("data/var_dependientes_importancia_unclean.sav")
+dep_preocupacion_unclean <- read_sav("data/var_dependientes_preocupacion_unclean.sav")
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = FALSE)
+reg_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = FALSE)
+reg_pca %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_pca_1_rs)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca <- lm(indice_pca_1_rs ~ 1 + ZONAS, data = reg_pca)
+screenreg(modelo_pca)
+modelo_pca_control_1 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad, data = reg_pca)
+screenreg(modelo_pca_control_1)
+modelo_pca_control_2 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq, data = reg_pca)
+screenreg(modelo_pca_control_2)
+modelo_pca_control_2 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Trab_Ingr + Religion + Razon_Bici + Transporte_mas_freq, data = reg_pca)
+screenreg(modelo_pca_control_2)
+modelo_pca_control_3 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca)
+screenreg(modelo_pca_control_3)
+modelo_pca <- lm(indice_pca_1_rs ~ 1 + ZONAS, data = reg_pca, na.action = na.exclude)
+screenreg(modelo_pca)
+modelo_pca_control_1 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad, data = reg_pca, na.action = na.exclude)
+screenreg(modelo_pca_control_1)
+modelo_pca_control_2 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Trab_Ingr + Religion + Razon_Bici + Transporte_mas_freq, data = reg_pca, na.action = na.exclude)
+screenreg(modelo_pca_control_2)
+modelo_pca_control_3 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca, na.action = na.exclude)
+screenreg(modelo_pca_control_3)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_pca_control_1, family = binomial(link = "logit"), data = reg_total_clean, na.action = na.exclude)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_p1_control_1, family = binomial(link = "logit"), data = reg_total_clean, na.action = na.exclude)
+reg_pca <- merge(ind_con_control, dep_pca,
+by = 'row.names', all = FALSE)
+reg_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = FALSE)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_p1_control_1, family = binomial(link = "logit"), data = reg_total_clean, na.action = na.exclude)
+View(reg_total_clean)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS.x
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_p1_control_1, family = binomial(link = "logit"), data = reg_total_clean, na.action = na.exclude)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS.x
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_p1_control_1, family = binomial(link = "binomial"), data = reg_total_clean, na.action = na.exclude)
+modelo_log_p1_control_1 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+modelo_log_p1_sin_control <- P1_MAmb ~ 1 + ZONAS.x
+modelo_log_p1_control_2 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad
+modelo_log_p1_control_3 <- P1_MAmb ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+mod_log_p1_control_1 <- glm(modelo_log_p1_control_1, family = binomial(link = "binomial"), data = reg_total_clean, na.action = na.exclude)
+install.packages("rbounds")
+install.packages("Matching")
+install.packages("rgenoud")
+install.packages("gridExtra")
+install.packages("grid")
+install.packages("grid")
+install.packages("nortest")
+install.packages("ri")
+install.packages("ri2")
+install.packages("abind")
+install.packages("xtable")
+install.packages("rstudioapi")
+install.packages("rstudioapi")
+install.packages("rstudioapi")
+install.packages("rstudioapi")
+install.packages("rstudioapi")
+install.packages("rstudioapi")
+setwd("~/EPA/Pontificia Universidad Catolica de Chile/AGE3802_Evaluacion_de_Impacto_de_Politicas_Ambientales/Matching_Workshop")
+install.packages("abind")
+install.packages("xtable")
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(rbounds)
+library(Matching)
+library(readr)
+library(dplyr)
+library(nortest)
+library(ri2)
+library(abind)
+library(xtable)
+library(rstudioapi)
+library(texreg)
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "ES_ES.UTF-8") # para compilar en R los acentos
+# Actividades preliminares
+rm(list = ls()) # Borrar la base de datos.
+# Libreria para realizar matching
+install.packages("rbounds") #package performs Rosenbaum’s method of sensitivity analyses for matched data
+install.packages("Matching")
+install.packages("rgenoud")
+install.packages("readr")
+## Manipulacion de los datos.
+install.packages("tidyverse")
+# Varias graficos en 1
+install.packages("gridExtra")
+install.packages("grid")
+install.packages("dplyr")
+# Analisis
+install.packages("nortest")
+install.packages("ri")

@@ -1,0 +1,2 @@
+"0","pca_1 <- PCA(var_dep_high_corr, graph = T) #Sin gráfico = F"
+"2","Warning: Missing values are imputed by the mean of the variable: you should use the imputePCA function of the missMDA package"

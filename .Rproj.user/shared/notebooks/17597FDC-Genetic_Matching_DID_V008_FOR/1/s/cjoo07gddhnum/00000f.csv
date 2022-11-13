@@ -1,0 +1,4 @@
+"0",""
+"0","matched.baseDL701_R <- rbind(baseDL701_R[ATT_PLAN$index.treated,],baseDL701_R[ATT_PLAN$index.control,])"
+"0","write.csv(matched.baseDL701_R,file=""plantation_gm8_FOR.csv"")"
+"0",""

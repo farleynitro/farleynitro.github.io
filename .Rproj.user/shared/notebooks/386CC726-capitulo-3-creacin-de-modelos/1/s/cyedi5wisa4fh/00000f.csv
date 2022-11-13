@@ -1,0 +1,21 @@
+"0","modelo_pca_imp_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_imp_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelos_pca_imp <- list(modelo_pca_imp_1, modelo_pca_imp_2)"
+"0",""
+"0","screenreg(modelos_pca_imp)"
+"1","
+=====================================
+             Model 1      Model 2    
+-------------------------------------
+(Intercept)    28.77 ***    21.13 ***
+               (0.21)       (0.16)   
+ZONAS          -0.02        -0.00    
+               (0.07)       (0.06)   
+-------------------------------------
+R^2             0.00         0.00    
+Adj. R^2       -0.00        -0.00    
+Num. obs.    6130         6130       
+=====================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

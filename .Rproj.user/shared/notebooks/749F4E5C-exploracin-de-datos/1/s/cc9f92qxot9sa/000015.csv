@@ -1,0 +1,2 @@
+"0",""
+"0","var_dep_total_P2_clean <- var_dep_total[var_dep_total$P2_COD  != 99, ]"

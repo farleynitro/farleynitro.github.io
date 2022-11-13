@@ -1,0 +1,4 @@
+"0","#frq(df_lapop_chile, eff1)"
+"0",""
+"0","var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean[var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean$P21C  > 0, ]"
+"0",""

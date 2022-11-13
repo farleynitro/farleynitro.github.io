@@ -1,8 +1,0 @@
-"0","var_dep_P17_COD <- var_dep %>% select(P17_COD)"
-"0","var_dep_P2_COD <- var_dep %>% select(P2_COD)"
-"0",""
-"0",""
-"0","var_dep_importancia <- var_dep %>% select(P1_MAmb, P3F, P4, P20, P21_promedio, P30)"
-"0","var_dep_preocupacion <- var_dep %>% select(P30, P19_suma, P20)"
-"0",""
-"0","var_dep_total <- var_dep %>% select(P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_suma, P20, P21_promedio, P30)"

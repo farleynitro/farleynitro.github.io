@@ -1,0 +1,5 @@
+"0",""
+"0","ggplot(mapping = aes(x = modelo_pca_tot_2_3$fitted.values, y = modelo_pca_tot_2_3$residuals)) +"
+"0","  labs(x = ""Valores predichos"", y = ""Residuos"") +"
+"0","  geom_point() +"
+"0","  geom_hline(mapping = aes(yintercept = 0), color = ""red"")"

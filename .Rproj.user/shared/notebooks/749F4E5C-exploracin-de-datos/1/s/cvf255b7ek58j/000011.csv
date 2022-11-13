@@ -1,0 +1,1 @@
+"0","var_dep_total_P2_P20_P30_P21promedio_P19_3_clean <- var_dep_total_P2_P20_P30_P21promedio_clean %>% dplyr::select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_4,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21B, P21C, P21D, P21_promedio, P30)"

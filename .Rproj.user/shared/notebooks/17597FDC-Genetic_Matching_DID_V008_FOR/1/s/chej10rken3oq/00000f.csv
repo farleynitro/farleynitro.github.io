@@ -1,0 +1,3 @@
+"0","# QQ Plot. Link: https://www.jstatsoft.org/article/view/v042i07"
+"0",""
+"0","qqplot(d$PLAN[ATT_PLAN$index.control], d$PLAN[ATT_PLAN$index.treated])"

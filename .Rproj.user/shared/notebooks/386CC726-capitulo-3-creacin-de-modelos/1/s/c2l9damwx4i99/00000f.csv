@@ -1,0 +1,6 @@
+"0","reg_pca_total %>% "
+"0","  ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +"
+"0","  geom_jitter(shape = 16, position = position_jitter(0.2), color = ""#588157"") +"
+"0","  geom_point(fill = ""#a3b18a"", color = ""#3a5a40"", alpha = 0.5) +"
+"0","    labs(title = ""Zonas vs Indica PCA"" ,x = ""Zonas"", y =""Indica PCA"") +"
+"0","  theme_minimal(base_family = ""Roboto Condensed"")"

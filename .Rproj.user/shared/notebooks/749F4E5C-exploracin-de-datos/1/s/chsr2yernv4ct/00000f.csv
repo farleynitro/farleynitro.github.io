@@ -1,0 +1,1 @@
+"0","dep_preocupacion <- var_dep_total_clean %>% dplyr::select(P2_COD, P19_1,P19_2,P19_5,P19_6,P19_7, P19_8)"

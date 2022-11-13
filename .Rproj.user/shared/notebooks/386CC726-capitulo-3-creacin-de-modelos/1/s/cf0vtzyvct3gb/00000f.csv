@@ -1,0 +1,27 @@
+"0","modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)"
+"0","modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)"
+"0",""
+"0","modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)"
+"0",""
+"0","screenreg(modelos_pca_tot_2) "
+"1","
+=====================================
+             Model 1      Model 2    
+-------------------------------------
+(Intercept)    34.57 ***    34.54 ***
+               (1.72)       (1.64)   
+ZONAS           0.16         0.15    
+               (0.18)       (0.18)   
+NSE             0.34         0.43    
+               (0.26)       (0.25)   
+Edad           -0.01        -0.00    
+               (0.01)       (0.01)   
+Niv_Edu        -0.01         0.07    
+               (0.14)       (0.13)   
+-------------------------------------
+R^2             0.00         0.00    
+Adj. R^2        0.00         0.00    
+Num. obs.    6130         6130       
+=====================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

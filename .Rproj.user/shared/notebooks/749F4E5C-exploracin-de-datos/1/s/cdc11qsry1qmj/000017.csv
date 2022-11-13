@@ -1,0 +1,3 @@
+"0",""
+"0","var_dep_total_P2_P20_P30_clean <- var_dep_total_P2_P20_P30_clean[var_dep_total_P2_P20_P30_clean$P4  >0, ]"
+"0",""

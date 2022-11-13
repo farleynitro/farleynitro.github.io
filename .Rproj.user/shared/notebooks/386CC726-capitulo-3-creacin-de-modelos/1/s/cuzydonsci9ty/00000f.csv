@@ -1,0 +1,43 @@
+"0","modelo_pca_preo_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)"
+"0",""
+"0","modelo_pca_imp_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelo_pca_tot_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)"
+"0",""
+"0",""
+"0","modelos_pca_enfoque3 <- list(modelo_pca_preo_enfoque3, modelo_pca_imp_enfoque3, modelo_pca_tot_enfoque3)"
+"0",""
+"0","screenreg(modelos_pca_enfoque3) "
+"1","
+============================================================
+                       Model 1      Model 2      Model 3    
+------------------------------------------------------------
+(Intercept)              34.37 ***    29.50 ***    63.51 ***
+                         (2.96)       (1.18)       (1.91)   
+ZONAS                     0.17         0.01         0.01    
+                         (0.24)       (0.10)       (0.16)   
+NSE                       0.14         0.06        -0.27    
+                         (0.37)       (0.15)       (0.24)   
+Edad                     -0.02        -0.01        -0.01    
+                         (0.02)       (0.01)       (0.01)   
+Estudiante                0.01        -0.21         0.03    
+                         (0.86)       (0.34)       (0.56)   
+Niv_Edu                   0.07        -0.02        -0.08    
+                         (0.19)       (0.08)       (0.12)   
+Razon_Bici                0.14         0.05        -0.10    
+                         (0.11)       (0.04)       (0.07)   
+Trab_Ingr                 0.13         0.01         0.09    
+                         (0.15)       (0.06)       (0.10)   
+Religion                  0.08         0.05         0.04    
+                         (0.15)       (0.06)       (0.10)   
+Automovil_Combustible    -0.33        -0.40 *       0.04    
+                         (0.43)       (0.17)       (0.28)   
+Transporte_mas_freq      -0.16         0.04        -0.04    
+                         (0.18)       (0.07)       (0.12)   
+------------------------------------------------------------
+R^2                       0.00         0.00         0.00    
+Adj. R^2                 -0.00        -0.00        -0.00    
+Num. obs.              3602         3602         3602       
+============================================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"
