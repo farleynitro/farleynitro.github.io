@@ -1,0 +1,512 @@
+(Dim.3 * 0.336080856
++ Dim.3 * 0.004084886
++ Dim.3 * 0.070417536
++ Dim.3 * 0.103946373
++ Dim.3 * 0.162107985
++ Dim.3 * 0.394812783
++ Dim.3 * 0.394812783
++ Dim.3 * 0.092663477
++ Dim.3 * 0.04537039
++ Dim.3 * (-0.288109942)
++ Dim.3 * 0.831843635)
+/10.965028,
+cuarta_dimension =
+(Dim.4 * (-0.176993637)
++ Dim.4 * (-0.176993637)
++ Dim.4 * (0.561048251)
++ Dim.4 * (0.556245195)
++ Dim.4 * (0.005953102)
++ Dim.4 * (0.211164719)
++ Dim.4 * (-0.025369939)
++ Dim.4 * (-0.129355932)
++ Dim.4 * (-0.086586216)
++ Dim.4 * (-0.536537479)
++ Dim.4 * (-0.174885917))
+/10.434679,
+quinta_dimension =
+(Dim.5 * (-0.363789833)
++ Dim.5 * (0.077273589)
++ Dim.5 * (0.482089883)
++ Dim.5 * (-0.453667881)
++ Dim.5 * (-0.030729207)
++ Dim.5 * (-0.003999931)
++ Dim.5 * (0.070126668)
++ Dim.5 * (-0.067209014)
++ Dim.5 * (0.56018772)
++ Dim.5 * (0.360240945))
+/10.305184) %>%
+mutate(pca_01 = (primera_dimension * 13.361415 + segunda_dimension * 11.781601 + tercera_dimension * 10.965028 + cuarta_dimension * 10.434679 + quinta_dimension * 10.305184) / 56.84791,
+pca_02 = (Dim.1 * 13.361415 + Dim.2 * 11.781601 + Dim.3 * 10.965028 + Dim.4 * 10.434679 + Dim.5 * 10.305184) / 56.84791) %>%
+mutate(indice_pd = GGally::rescale01(primera_dimension)*100,
+indice_sd = GGally::rescale01(segunda_dimension)*100,
+indice_td = GGally::rescale01(tercera_dimension)*100,
+indice_cd = GGally::rescale01(cuarta_dimension)*100,
+indice_qd = GGally::rescale01(quinta_dimension)*100) %>%
+mutate(indice_01 = GGally::rescale01(pca_01)*100,
+indice_02 = GGally::rescale01(pca_02)*100)
+dependiente_total_pca <- bind_cols(var_dep_high_corr, data_pca)
+write_sav(dependiente_total_pca, "var_dependientes_total_pca.sav")
+kruskal.test(P4~ P21B, data = dep_importancia)
+kruskal.test(P4~ P21C, data = dep_importancia)
+kruskal.test(P4~ P21D, data = dep_importancia)
+kruskal.test(P4~ P1_MAmb, data = dep_importancia)
+kruskal.test(P4~ P17_COD, data = dep_importancia)
+kruskal.test(P17_COD~ P21B, data = dep_importancia)
+kruskal.test(P17_COD~ P21C, data = dep_importancia)
+kruskal.test(P17_COD~ P21D, data = dep_importancia)
+kruskal.test(P17_COD~ P1_MAmb, data = dep_importancia)
+pca_1 <- PCA(dep_importancia, graph = T) #Sin gráfico = F
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+reg_pca_total <- merge(ind_con_control, dep_pca_total,
+by = 'row.names', all = FALSE)
+reg_pca_importancia <- merge(ind_con_control, dep_pca_importancia,
+by = 'row.names', all = FALSE)
+reg_pca_preocupacion <- merge(ind_con_control, dep_pca_preocupacion,
+by = 'row.names', all = FALSE)
+View(reg_pca_total)
+reg_pca_total %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 01" ,x = "Zonas", y ="Indice PCA 01") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_total %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca_tot_1 <- lm(indice_pca_01 ~ 1 + ZONAS, data = reg_pca, na.action = na.exclude)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca, na.action = na.exclude)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot <- (modelo_pca_tot_1,modelo_pca_tot_2)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelo_pca_tot)
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+library(plyr)
+library(dplyr)
+library(texreg)
+library(MASS)
+library(nnet)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelo_pca_tot)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelos_pca_tot)
+modelo_pca_control_1 <- lm(indice_pca_1_rs ~ 1 + ZONAS + NSE + Edad, data = reg_pca, na.action = na.exclude)
+screenreg(modelo_pca_control_1)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot)
+reg_pca_total %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 01" ,x = "Zonas", y ="Indice PCA 01") +
+theme_minimal(base_family = "Roboto Condensed")
+length(which(reg_pca_total$indice_01<25))
+length(which(reg_pca_total$indice_01<25))
+length(which(reg_pca_total$indice_02<25))
+reg_pca_total_filter_indice1 <- reg_pca_total[reg_pca_total$indice_01  >25, ]
+reg_pca_total_filter_indice2 <- reg_pca_total[reg_pca_total$indice_02  >25, ]
+length(which(reg_pca_total$indice_01<25))
+length(which(reg_pca_total$indice_02<25))
+reg_pca_total_filter_indice1 <- reg_pca_total[reg_pca_total$indice_01  >25, ]
+reg_pca_total_filter_indice2 <- reg_pca_total[reg_pca_total$indice_02  >25, ]
+modelo_pca_tot_1_filtered <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total_filter_indice1, na.action = na.exclude)
+modelo_pca_tot_2_filtered <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total_filter_indice2, na.action = na.exclude)
+modelos_pca_tot_filtered <- list(modelo_pca_tot_1_filtered, modelo_pca_tot_2_filtered)
+screenreg(modelos_pca_tot_filtered)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot_2)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot_2)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+colnames(ind_con_control)
+modelo_pca_tot_1_4 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_fre, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_1_4 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_4 <- list(modelo_pca_tot_1_4, modelo_pca_tot_2_4)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_1_4 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_4 <- list(modelo_pca_tot_1_4, modelo_pca_tot_2_4)
+screenreg(modelos_pca_tot_4)
+modelo_pca_tot_1_4 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_4 <- list(modelo_pca_tot_1_4, modelo_pca_tot_2_4)
+screenreg(modelos_pca_tot_4)
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_pca_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_preocupacion, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelos_pca_tot)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot_2)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+reg_pca_importancia %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_importancia %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelos_pca_tot)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot_2)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelos_pca_tot)
+summary(modelos_pca_tot)
+ind_con_control.isna()
+isna(ind_con_control)
+modelo_pca_imp_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_imp <- list(modelo_pca_imp_1, modelo_pca_imp_2)
+screenreg(modelos_pca_imp)
+modelo_pca_imp_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_imp_2 <- list(modelo_pca_imp_1_2, modelo_pca_imp_2_2)
+screenreg(modelos_pca_imp_2)
+modelo_pca_imp_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_imp_3 <- list(modelo_pca_imp_1_3, modelo_pca_imp_2_3)
+screenreg(modelos_pca_imp_3)
+pca_1 <- PCA(dep_importancia, graph = T) #Sin gráfico = F
+pca_1 <- PCA(dep_importancia, graph = T, na.action=na.exclude) #Sin gráfico = F
+warnings()
+warnings()
+warnings()
+reg_pca_total %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 01" ,x = "Zonas", y ="Indice PCA 01") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_total %>%
+ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+screenreg(modelos_pca_tot)
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+screenreg(modelos_pca_tot_2)
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+screenreg(modelos_pca_tot_3)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+screenreg(modelos_pca_tot_2_4)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+screenreg(modelo_pca_tot_2_4)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_5 <- lm(indice_02 ~ 1 + Transporte_mas_freq + Edad + NSE + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+screenreg(modelo_pca_tot_2_4, modelo_pca_tot_2_5)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_5 <- lm(indice_02 ~ 1 + Transporte_mas_freq + Edad + NSE + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2_4_5 <- list(modelos_pca_tot_2_4, modelo_pca_tot_2_5)
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_5 <- lm(indice_02 ~ 1 + Transporte_mas_freq + Edad + NSE + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_tot_2_4_5 <- list(modelo_pca_tot_2_4, modelo_pca_tot_2_5)
+screenreg(modelos_pca_tot_2_4_5)
+modelo_pca_imp_1_4 <- lm(indice_01 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_1_5 <- lm(indice_01 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_4 <- lm(indice_02 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_5 <- lm(indice_02 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelos_pca_imp_4_5 <- list(modelo_pca_imp_1_4,modelo_pca_imp_1_5,modelo_pca_imp_2_4, modelo_pca_imp_2_5)
+screenreg(modelos_pca_imp_4_5)
+estimadores <- get_regression_table(modelo_pca_imp_1_5)
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+library(plyr)
+library(dplyr) # df manipulation
+library(texreg) # model evaluation
+library(MASS) # ordinal regression
+library(nnet) # multinomial regression
+library(moderndive) # get_regression_table
+estimadores <- get_regression_table(modelo_pca_imp_1_5)
+estimadores_obs <- get_regression_points(modelo_pca_imp_1_5)
+estimadores <- get_regression_table(modelo_pca_imp_1_5)
+estimadores_obs <- get_regression_points(modelo_pca_imp_1_5)
+estimadores <- get_regression_table(modelo_pca_imp_1_5)
+# estimadores_obs <- get_regression_points(modelo_pca_imp_1_5)
+ggplot(mapping = aes(x = modelo_pca_imp_1_5$fitted.values, y = modelo_pca_imp_1_5$residuals)) +
+labs(x = "Valores predichos", y = "Residuos") +
+geom_point() +
+geom_hline(mapping = aes(yintercept = 0), color = "red")
+ggplot(mapping = aes(x = modelo_pca_tot_2_3$fitted.values, y = modelo_pca_tot_2_3$residuals)) +
+labs(x = "Valores predichos", y = "Residuos") +
+geom_point() +
+geom_hline(mapping = aes(yintercept = 0), color = "red")
+# #RECODING the values
+zonas_rec <- reg_pca_total %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+zonas_rec <- reg_pca_importancia %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+zonas_rec <- reg_pca_preocupacion %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+reg_pca_total$Zonas_recoded <- zonas_rec
+reg_pca_importancia$Zonas_recoded <- zonas_rec
+reg_pca_preocupacion$Zonas_recoded <- zonas_rec
+reg_pca_total[] <- lapply(reg_pca_total, function(x) as.numeric(as.character(x)))
+reg_pca_total <- do.call(data.frame, reg_pca_total)
+reg_pca_importancia[] <- lapply(reg_pca_importancia, function(x) as.numeric(as.character(x)))
+reg_pca_importancia <- do.call(data.frame, reg_pca_importancia)
+reg_pca_preocupacion[] <- lapply(reg_pca_preocupacion, function(x) as.numeric(as.character(x)))
+reg_pca_preocupacion <- do.call(data.frame, reg_pca_preocupacion)
+reg_pca_importancia %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_importancia %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 1" ,x = "Zonas", y ="Indica PCA 1") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+theme_minimal(base_family = "Roboto Condensed")
+reg_pca_preocupacion %>%
+ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+labs(title = "Zonas vs Indice PCA 1" ,x = "Zonas", y ="Indice PCA 1") +
+theme_minimal(base_family = "Roboto Condensed")
+modelo_pca_preo_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_imp_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_tot_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+modelos_pca_enfoque3 <- list(modelo_pca_preo_enfoque3, modelo_pca_imp_enfoque3, modelo_pca_tot_enfoque3)
+screenreg(modelos_pca_enfoque3)
+modelo_pca_preo_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+View(reg_pca_preocupacion)
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean_undereduced.sav")
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean_undereduced_final.sav")
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean_unreduced_final.sav")
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+dep_total_clean$Zonas_recoded <- zonas_rec
+dep_total_clean[] <- lapply(dep_total_clean, function(x) as.numeric(as.character(x)))
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+View(dep_total_clean)
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean_unreduced_final.sav")
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+dep_total_clean$Zonas_recoded <- zonas_rec
+dep_total_clean[] <- lapply(dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+dep_total_clean$Zonas_recoded <- zonas_rec
+dep_total_clean[] <- lapply(dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+dep_total_clean$Zonas_recoded <- zonas_rec
+dep_total_clean[] <- lapply(dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+reg_pca_total <- merge(ind_con_control, dep_pca_total,
+by = 'row.names', all = FALSE)
+reg_pca_importancia <- merge(ind_con_control, dep_pca_importancia,
+by = 'row.names', all = FALSE)
+reg_pca_preocupacion <- merge(ind_con_control, dep_pca_preocupacion,
+by = 'row.names', all = FALSE)
+dep_total_clean <- merge(ind_con_control, dep_total_clean,
+by = 'row.names', all = FALSE)
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+modelo_P21_promedio_zonas_normal_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+View(dep_total_clean)
+zonas_rec <- dep_total_clean %>%
+dplyr::select(ZONAS.x) %>%
+rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+dep_total_clean$Zonas_recoded <- zonas_rec
+dep_total_clean[] <- lapply(dep_total_clean, function(x) {
+if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+modelo_P21_promedio_zonas_normal_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+modelo_P21_promedio_zonas_normal_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+modelos_P21_promedio_enfoque4 <- list(modelo_P21_promedio_zonas_recoded_enfoque4,modelo_P21_promedio_zonas_normal_enfoque4)
+screenreg(modelos_P21_promedio_enfoque4)
+kruskal.test(P4~ P21B, data = dep_importancia)
+kruskal.test(P4~ P21C, data = dep_importancia)
+kruskal.test(P4~ P21D, data = dep_importancia)
+kruskal.test(P4~ P1_MAmb, data = dep_importancia)
+kruskal.test(P4~ P17_COD, data = dep_importancia)
+pca_1 <- PCA(dep_importancia, graph = T) #Sin gráfico = F
+pca_1 <- PCA(dep_importancia, graph = T) #Sin gráfico = F
+distill::create_post("Exploracion de variable dependiente")
+View(baseDL701_R)
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "ES_ES.UTF-8") # para compilar en R los acentos
+# Actividades preliminares
+rm(list = ls()) # Borrar la base de datos.
+# Libreria para realizar matching
+install.packages("rbounds") #package performs Rosenbaum’s method of sensitivity analyses for matched data
+install.packages("Matching")
+install.packages("rgenoud")
+install.packages("readr")
+## Manipulacion de los datos.
+install.packages("tidyverse")
+# Varias graficos en 1
+install.packages("gridExtra")
+install.packages("grid")
+install.packages("dplyr")
+# Analisis
+install.packages("nortest")
+install.packages("ri")
+install.packages("abind")
+install.packages("xtable")
+install.packages("rstudioapi")
+install.packages("texreg")
+install.packages("ggplot2")
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "ES_ES.UTF-8") # para compilar en R los acentos

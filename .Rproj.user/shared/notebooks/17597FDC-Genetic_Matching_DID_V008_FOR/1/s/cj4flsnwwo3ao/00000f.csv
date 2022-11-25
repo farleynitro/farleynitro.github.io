@@ -1,0 +1,4 @@
+"0","# Vectores para análisis"
+"0","covarsname_sa <- colnames(d_sa)"
+"2","Error in is.data.frame(x) : object 'd_sa' not found
+"

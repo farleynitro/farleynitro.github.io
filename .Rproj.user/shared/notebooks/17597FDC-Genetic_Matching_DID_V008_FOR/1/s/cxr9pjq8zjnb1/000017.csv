@@ -1,0 +1,7 @@
+"0",""
+"0",""
+"0","plot_DID <- ggplot(df2, aes(x=Year, y=Grupo, group=supp)) +"
+"0","  geom_line(aes(color=supp))+"
+"0","  geom_point(aes(color=supp,shape=supp ))"
+"0",""
+"0","plot_DID"

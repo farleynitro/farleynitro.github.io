@@ -1,0 +1,108 @@
+---
+title: "Tarea"
+author: "Soledad Araya"
+date: "2022-09-01"
+output: html_document
+---
+
+## Tarea
+
+Una de las formas de aprender a usar R, es simplemente aprender a buscar lo que necesitamos usar. Algunos de las funciones las hemos visto en clases, pero siempre pueden buscar otras formas de lograr los mismos resultados.
+
+Con los materiales que hemos visto, vamos a realizar gráficos exploratorios:
+
+Carga de bases de datos:
+
+```{r}
+library(tidyverse)
+library(sjmisc)
+library(kableExtra)
+
+vdem <- readRDS("data/vdem_subset.rds")
+
+```
+
+
+```{r}
+##create subset
+vdem_subset <- vdem %>% 
+select(country_name, v2x_partipdem, 
+       v2x_cspart, v2elmulpar, v2psprlnks, e_peedgini, 
+       e_regionpol, e_gdppc, e_pop) %>% 
+group_by(country_name) %>% 
+summarise_all(function(x)  mean(x, na.rm = T)) %>%
+na.omit() 
+#filter(country_name %in% c('Chile','Peru','Venezuela','Netherlands','South Africa','China'))
+
+
+```
+
+### Histograma
+
+```{r}
+vdem_subset %>% 
+  ggplot(aes(x = e_gdppc, na.rm = T)) +
+  geom_histogram() +
+  labs(x = "GDP per Capita ", y = "Frecuencia",
+       title = "Distribución del GDP per Capita",
+       caption = "Fuente: Varieties of Democracy")
+
+```
+```{r}
+vdem_subset %>% 
+  ggplot(aes(x = e_pop, na.rm = T)) +
+  geom_histogram() +
+  labs(x = "Personas", y = "Frecuencia",
+       title = "Populacion mundial por mundo",
+       caption = "Fuente: Varieties of Democracy")
+
+```
+
+```{r}
+vdem_subset %>% 
+  ggplot(aes(x = e_peedgini, na.rm = T)) +
+  geom_histogram() +
+  labs(x = "Ginny coefficient", y = "Frecuencia",
+       title = "Ginny coefficient",
+       caption = "Fuente: Varieties of Democracy")
+
+```
+
+### Gráfico de barras
+
+```{r message=FALSE}
+vdem_subset %>% 
+  ggplot(aes(x = as_factor(e_regionpol))) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de region",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+### Boxplot
+
+```{r warning = FALSE, message = FALSE}
+vdem_subset %>% 
+  ggplot(aes(x = as_factor(e_regionpol), y = v2x_cspart)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Participation per geographical region" ,x = "region of country", y = "	La esfera de la sociedad civil se posiciona entre el espacio público y privado. ") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+```
+
+### Scatterplot
+
+```{r warning = FALSE, message = FALSE}
+vdem_subset %>% 
+  ggplot(aes(x = as_factor(e_gdppc), y = v2x_cspart)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Participation per GDP per capita of country" ,x = "GDP per capita", y ="Participacion activa") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+```
+```
+

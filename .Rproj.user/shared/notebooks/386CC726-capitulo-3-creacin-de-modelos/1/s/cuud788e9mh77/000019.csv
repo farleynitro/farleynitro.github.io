@@ -1,0 +1,5 @@
+"0","region_3 <- region_3 %>% dplyr::select(REGION, P3F, P1_MAmb)"
+"0","zonas_3 <- zonas_3 %>% dplyr::select(ZONAS, P3F, P1_MAmb)"
+"0","edad_3 <- edad_3 %>% dplyr::select(P33, P3F, P1_MAmb)"
+"0","edu_3 <- edu_3 %>% dplyr::select(P34, P3F, P1_MAmb)"
+"0","nse_3 <- nse_3 %>% dplyr::select(NSE, P3F, P1_MAmb)"

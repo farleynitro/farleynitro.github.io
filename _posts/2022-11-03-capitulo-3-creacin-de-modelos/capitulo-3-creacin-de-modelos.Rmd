@@ -17,6 +17,7 @@ Cargamos los datos y paquetes que necesitamos
 library(tidyverse)
 library(sjmisc)
 library(haven)
+library(VIM)
 library(kableExtra)
 library(skimr)
 library(sjPlot)
@@ -29,6 +30,7 @@ library(texreg) # model evaluation
 library(MASS) # ordinal regression
 library(nnet) # multinomial regression
 library(moderndive) # get_regression_table
+library(broom)
 ```
 
 
@@ -48,14 +50,25 @@ Juntamos los dataframes:
 
 ```{r}
 reg_pca_total <- merge(ind_con_control, dep_pca_total,
-                          by = 'row.names', all = FALSE)
+                          by = 'row.names', all = TRUE)
 reg_pca_importancia <- merge(ind_con_control, dep_pca_importancia,
-                          by = 'row.names', all = FALSE)
+                          by = 'row.names', all = TRUE)
 reg_pca_preocupacion <- merge(ind_con_control, dep_pca_preocupacion,
-                          by = 'row.names', all = FALSE)
+                          by = 'row.names', all = TRUE)
 dep_total_clean <- merge(ind_con_control, dep_total_clean,
-                          by = 'row.names', all = FALSE)
+                          by = 'row.names', all = TRUE)
 ```
+## Conceptos basicos para modelos de regresion
+
+Nuestra variable dependiente es continua ya que se toma el promedio.
+
+Requisitos para regresión múltiple:
+
+* Tamano muestral elevado de minimo 500 observaciones. Tenemos 6466 observaciones asi que satisfacemos eso.
+* Variable dependiente tiene que ser continua o dicotómica
+* Mejor es ver relacion individual entre VD y VI y despues anadir al set de componentes
+* No anadir variables innecesarias!
+* Para tener variables significativas , el p < 0.05
 
 ## 1.1 Modelo regresión lineal PCA
 
@@ -342,20 +355,25 @@ Como hemos visto los modelos que creamos no parecen tener una significancia esta
 
 
 
-+ * **1** crear un PCA nuevo con otras variables dependientes.
++ * **1** crear un PCA nuevo con otras variables dependientes.**No lo consideramos por una limitación al tiempo disponible**
 
 
-+ * **2** crear una columna que indice si la zona es afuera o adentro de la región metropolitana. Despues corremos nuevamente los modelos a ver si la predicción mejora.
++ * **2** crear una columna que indice si la zona es afuera o adentro de la región metropolitana. Despues corremos nuevamente los modelos a ver si la predicción mejora. **Lo consideramos por una limitación al tiempo disponible**
 
 
 * 4. Nuestras latentes podrian no estar bien formuladas porque el concepto sigue siendo muy amplio.
 
-+ * Para esto podriamos enfocarnos en latentes que conceptualmente sean menos ambiguas. Esto podria enfocarse en una latente que tenga una parilla hecha con un alfa de Cronbach alto.
++ * Para esto podriamos enfocarnos en latentes que conceptualmente sean menos ambiguas. Esto podria enfocarse en una latente que tenga una parilla hecha con un alfa de Cronbach alto. **No lo consideramos por una limitación al tiempo disponible**
 
-* 5. El uso de combustible para el vehiculo tiene una significancia estadistica al predecir el indice de importancia. Sin embargo, tengo la idea que hay otra razon por la que muestra significancia. Una variable que domina ambas variables. Esto podria ser la posesion de tener un auto. Requiere mas investigación.
+* 5. El uso de combustible para el vehiculo tiene una significancia estadistica al predecir el indice de importancia. Sin embargo, tengo la idea que hay otra razon por la que muestra significancia. Una variable que domina ambas variables. Esto podria ser la posesion de tener un auto. Requiere mas investigación. **No lo consideramos porque cae afuera del marco teórico de esta investigación**
 
-* 6. Puede ser que el modelo funcione para modelo no-lineales. Sin embargo, esto requiere tener un muy buen conocimiento de los conceptos para asi entender lo que el modelo predice.
+* 6. Puede ser que el modelo funcione para modelo no-lineales. Sin embargo, esto requiere tener un muy buen conocimiento de los conceptos para asi entender lo que el modelo predice.**No lo consideramos porque cae afuera del contenido de esta clase**
 
+* 7. Corremos Analisis Factorial donde determinamos si se pueden clusterizar algúnos conceptos. Esto nos inspira a crear un PCA del conjunto que crea. Si es asi, bien deberiamos de conseguir un modelo con significancia estadistica, y por esto una posible causalidad.
+
+* 8. Usar Analisis Factorial para determinar si se forman dos latentes del P19 y P21. Incluimos las variables que excluimos anteriormente por el alfa de Cronbach.
+
+* 9. 
 
 
 
@@ -503,7 +521,424 @@ Parilla 14 participacion protestas contra cambio climatico
 Parilla 6 Acciones personales contra cambio climatico
 
 
-### Enfoque punto 5 (would mean changing your hypothesis to something irrelevant..!)
+```{r, results='hide', echo=FALSE}
+#Para ver Average Marginal Effect (sort of sensitivity analysis)
+
+# ¿Cuál es el efecto medio?
+
+# marginal_ef <- margins(mod1a)
+# 
+# plot(marginal_ef)
+```
+
+
+
+# 2 Evaluando los mejores modelos
+
+El AIC mide la “distancia” que existe entre los parámetros verdaderos y los estimadores del modelo mediante una distancia matemática llamada divergencia Kullback-Leibler. Cuanto más pequeña sea la distancia, mejor será el modelo.
+
+El BIC, a diferencia del AIC, penaliza la complejidad del modelo más rigurosamente ya que además toma en consideración el número de observaciones de la muestra.
+
+```{r}
+# broom::glance(modelo.lm)
+```
+
+
+Grafico ROC: Lo más importante de la figura es el área debajo de la curva diagonal que la cruza.
+Sensibilidad: relación entre los verdaderos positivos y la suma de los verdaderos positivos más los falsos negativos.
+Especificidad: relación entre los verdaderos negativos y la suma de los falsos positivos a los verdaderos negativos.
+Tener en consideración el cálculo del AUC (Área bajo la Curva): cuanto mayor sea, mejor será el ajuste.
+
+### Metodos de evaluación
+
+ANOVA is a statistical test for estimating how a quantitative dependent variable changes according to the levels of one or more categorical independent variables. ANOVA tests whether there is a difference in means of the groups at each level of the independent variable.
+
+Esto lo usamos como recurso final para ver si hay variables que no contienen variacion en relación a otras variables independientes. Por ejemplo, si la 
+[https://www.scribbr.com/statistics/anova-in-r/]
+
+
+```{r}
+# ¿Cuál es el efecto medio?
+# 
+# marginal_ef <- margins(mod1a)
+# plot(marginal_ef)
+# 
+# library(pscl)
+# 
+# # Pseudo R-cuadrado
+# 
+# pR2(mod1b)[["McFadden"]]
+# 
+# # Pseudo R cuadrado ajustado
+# 
+# library(DescTools)
+# 
+# PseudoR2(mod1b, c("McFadden"))
+```
+
+
+```{r, echo=FALSE}
+# ROC
+
+# library(plotROC)
+# 
+# pred_models <- bind_rows(augment(mod1b, response.type = "pred") %>%
+#                            mutate(model = "Modelo 1"),
+#                          augment(mod2, response.type = "pred") %>%
+#                            mutate(model = "Modelo 2"),
+#                          augment(mod3, response.type = "pred") %>%
+#                            mutate(model = "Modelo 3"))
+# 
+# roc <- ggplot(pred_models, aes(d = election, m = .fitted, color = model)) +
+#   geom_roc(n.cuts = 0) + 
+#   geom_abline(slope = 1) +
+#   labs(x = "1 - especificidad", y = "Sensibilidad") +
+#   hrbrthemes::theme_ipsum_rc()
+# 
+# roc
+# 
+# calc_auc(roc)
+```
+
+### Testeando los modelos
+
+Los gráficos de diagnóstico muestran los residuos de cuatro maneras diferentes:
+
+Para la relación **residuos vs real** Residuos vs. Ajuste: se utiliza para comprobar los supuestos de linealidad. Si los residuos se distribuyen por igual en torno a una línea horizontal sin patrones distintos (la línea roja es aproximadamente horizontal en cero), es una buena indicación de que existe una relación lineal.
+
+Lo ideal es una línea horizontal alrededor de cero:
+
+Para la **distribución de residuos** Q-Q normal: se utiliza para comprobar el supuesto de normalidad de los residuos. Si la mayoría de los residuos siguen la línea recta discontinua, se cumple el supuesto.
+
+El gráfico QQ de los residuos puede utilizarse para comprobar visualmente el supuesto de normalidad. El gráfico de probabilidad normal de los residuos debe seguir aproximadamente una línea recta". Un patrón de desviaciones en forma de arco con respecto a la diagonal indica que los residuos tienen una asimetría excesiva (es decir, no están distribuidos simétricamente, con demasiados errores grandes en la misma dirección). Un patrón de desviaciones en forma de S indica que los residuos tienen una curtosis excesiva, es decir, que hay demasiados o muy pocos errores grandes en ambas direcciones.
+
+Para la **Homoesticidad** Escala-Localización: se utiliza para comprobar la homocedasticidad de los residuos (igual varianza de los residuos). Si los residuos se reparten de forma aleatoria y se ve una línea horizontal con puntos repartidos de forma igual (aleatoria), entonces se cumple la hipótesis.
+
+Gráfico de escala-ubicación / gráfico de dispersión-ubicación (igual que el anterior, sólo que utilizando residuos estandarizados) "Queremos una línea más o menos horizontal con puntos más o menos equitativos alrededor".
+
+**No lo evaluamos** Residuales vs. Apalancamiento: se utiliza para identificar cualquier valor influyente en nuestro conjunto de datos. Los valores influyentes son valores extremos que podrían influir en los resultados de la regresión cuando se incluyen o excluyen del análisis. Busque los casos fuera de la línea discontinua.
+
+Ayuda recibida de: https://bookdown.org/jimr1603/Intermediate_R_-_R_for_Survey_Analysis/testing-regression-assumptions.html 
+
+```{r}
+# # Change the panel layout to 2 x 2 (to look at all 4 plots at once)
+# par(mfrow = c(2, 2))
+# 
+# # Use plot() function to create diagnostic plots
+# plot(simple_model)
+```
+
+
+### Multicolinealidad en la regresión
+
+Mientras que la colinealidad puede detectarse con una matriz de correlación, la multicolinealidad no es tan fácil de detectar. El Factor de Inflación de la Varianza (VIF) puede utilizarse para determinar en qué medida la varianza de un coeficiente de regresión está inflada debido a la multicolinealidad en el modelo. El menor valor posible es uno, lo que indica que no hay multicolinealidad. Un valor superior a 5 o 10 indica una cantidad problemática de multicolinealidad en los datos. En R utilizamos la función vif() del paquete auto para detectar la multicolinealidad en un modelo de regresión múltiple (donde la variable de respuesta es el ozono y se añaden todas las variables explicativas):
+
+
+Idealmente esta cerca de 1. Si no removemos esta variable de nuestra regresión.
+
+```{r}
+# car::vif(modelo)
+```
+
+
+# 3 Creación de clusters
+
+```{r}
+library(factoextra) # Visualización y cálculos
+library(cluster)
+library(NbClust) # Cálculo de índices
+library(fpc) # Clusters con iteraciones
+library(dendextend)
+library(tidyverse)
+```
+Vemos para multicolinealidad primero que correr el algoritmo de cluster, porque el K-means es sensitivo a producir clusters incorrectos si se construye a base de dos o mas varianzas similares.
+
+El clustering es un metodo que agrupa nuestro indice a base de la distancia entre el valor.
+
+1. Vamos a formar clusters a base de las preguntas mas importantes de cada latente que analizamos. Es mejor no considerar demasiadas variables 
+
+2. Estandardizamos las variables. En este caso no estandarizamos las variables porque ya tienen una escala de Likert similar.
+
+3. Corremos un analisis de multicolinealidad.
+
+4. Analizamos usando cluster
+
+5. Evaluamos los cluster
+
+
+Vamos a ver esto por región ya que hay mas regiones que zonas, haciendo la caracterización por clusters mas significativo. Luego a base de los clusters, y por saber a cual zona pertenece una región, decidimos si en verdad la percepción se puede categorizar a base de las zonas. En su forma, es una forma indirecta de ver si podemos categorizar a base de zona usando la región como variable instrumental.
+
+```{r}
+df_var <- read_sav("data/var_dependientes_total.sav")
+```
+
+#### 1 
+
+Recordamos las columnas que tenemos:
+
+```{r}
+colnames(df_var)
+```
+Para disminuir la influencia que tiene la caracterización a base de variables que no son significativas, formamos varios conceptos de las variables que podrian estar asociadas para la formación de un concepto. Formamos estos clusters a base de una mezcla de analisis cualitativo y cuantitativo. Vemos los conceptos que van juntos con las variables (1), y vemos las dimensiones que conseguimos anteriormente (2). Analizamos 1 y 2 separadamente y vemos si hay alguna consistencia en los resuktados que nos da la clusterización.
+
+* Indice de PCA formado
+* P1_MAmb (importancia relativa), P21D (importancia absoluta)
+* P19_2 (preocupación), P3F (calidad medio ambiente), P19_1 (Tristeza)
+* Todo: P1_MAmb, P3F, P19_2, P21D, P19_1
+* Dimension 1 ("**Sentimientos de preocupación hacia el cambio climatico**")
+* Dimension 4 ("**Percepcion hacia problemas ambientales del medio ambiente de la región**")
+
+```{r}
+#clusters
+region_1 <- df_var %>% dplyr::select(REGION,P1_MAmb, P21D)
+region_2 <- df_var %>% dplyr::select(REGION,P19_2, P3F, P19_1)
+region_3 <- df_var %>% dplyr::select(REGION,P19_2, P3F, P19_1,P1_MAmb, P21D)
+
+zonas_1 <- df_var %>% dplyr::select(ZONAS,P1_MAmb, P21D)
+zonas_2 <- df_var %>% dplyr::select(ZONAS,P19_2, P3F, P19_1)
+zonas_3 <- df_var %>% dplyr::select(ZONAS,P19_2, P3F, P19_1,P1_MAmb, P21D)
+
+
+edad_3 <- df_var %>% dplyr::select(P33,P19_2, P3F, P19_1,P1_MAmb, P21D)
+nse_3 <- df_var %>% dplyr::select(NSE,P19_2, P3F, P19_1,P1_MAmb, P21D)
+edu_3 <- df_var %>% dplyr::select(P34,P19_2, P3F, P19_1,P1_MAmb, P21D)
+```
+
+#### 2
+
+```{r}
+region_1[c(2, 3)] <- scale(region_1[c(2, 3)])
+region_2[c(2, 3,4)] <- scale(region_2[c(2, 3,4)])
+region_3[c(2, 3,4,5,6)] <- scale(region_3[c(2, 3,4,5,6)])
+```
+
+```{r}
+edad_3[c(2, 3,4,5,6)] <- scale(edad_3[c(2, 3,4,5,6)])
+nse_3[c(2, 3,4,5,6)] <- scale(nse_3[c(2, 3,4,5,6)])
+edu_3[c(2, 3,4,5,6)] <- scale(edu_3[c(2, 3,4,5,6)])
+zonas_3[c(2, 3,4,5,6)] <- scale(zonas_3[c(2, 3,4,5,6)])
+```
+
+#### 3
+
+Hay mucho NA (>5%)
+
+```{r}
+library(mice)
+
+md.pattern(region_3)
+
+aggr_plot <- aggr(region_3)
+```
+
+Removemos las columnas con NA ya que no hay manera correcta de imputar sin tener un analisis profundo.
+
+```{r}
+region_3 <- region_3 %>% dplyr::select(REGION, P3F, P1_MAmb)
+zonas_3 <- zonas_3 %>% dplyr::select(ZONAS, P3F, P1_MAmb)
+edad_3 <- edad_3 %>% dplyr::select(P33, P3F, P1_MAmb)
+edu_3 <- edu_3 %>% dplyr::select(P34, P3F, P1_MAmb)
+nse_3 <- nse_3 %>% dplyr::select(NSE, P3F, P1_MAmb)
+```
+
+
+
+Nada de que preocuparnos. No hay multicolinealidad.
+
+```{r}
+library(GGally)
+cor(na.omit(region_3)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(region_3, label = T) #NA se omiten automáticamente
+```
+
+```{r}
+library(GGally)
+cor(na.omit(zonas_3)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(zonas_3, label = T) #NA se omiten automáticamente
+```
+
+
+
+#### 4
+
+### Región
+
+Interesantemente, para la regiones parece no formar un cluster optimo. El sum of squares inter-clusters es muy bajo, por lo que hay mucho superposición entre los diferentes clusters. Tampoco forma un cluster optimo en cuatro clusters, el número ideal si se podria caracterizar a base de zonas.
+
+```{r}
+k1 <- kmeansruns(region_3, krange = 3, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k1, data = region_3)
+```
+
+```{r}
+d <- dist(region_3, method = "euclidean")
+```
+
+
+**Método de codos**
+
+```{r}
+fviz_nbclust(region_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+**Método de brecha estadística**
+
+No lo corremos porque no converge.
+
+
+**Método de silueta promedio**
+
+```{r}
+fviz_nbclust(region_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+**Metodo completo**
+
+No converge.
+
+
+### Zonas
+
+Hay demasiada diferencia intra-cluster, y muy poca diferencia inter-cluster. Hay aún alguna superposición. Es decir no se puede caracterizar a base de zonas.
+
+```{r}
+k2 <- kmeansruns(zonas_3, krange = 4, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k2, data = zonas_3)
+```
+
+**Método de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(zonas_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 10.
+
+
+```{r}
+fviz_nbclust(zonas_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+# IMAGINEMOS....
+
+Imaginiemos que nada es correcto en nuestra hipótesis y que tenemos que ir a zero. Que no caracterizamos a base de indicadores espaciales. Caracterizamos a base de nuestras variables de control que conceptualmente eran las que eran ciertas. Es decir, caracterizamos a base de la Edad, el Nivel socio-económico, el Nivel de educación. Vamos a ver que tal!
+
+
+### Edad
+
+Tampoco se pueden dividir clusters a base de la edad. No hay caracterización que hacer entre personas de diferentes edades.
+
+Entre cluster 1, y 2 si hay alguna diferencia interesante.
+
+```{r}
+k3 <- kmeansruns(edad_3, krange = 3, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k3, data = edad_3)
+```
+
+**Método de codos**
+
+Indica k optimo es 3.
+
+```{r}
+fviz_nbclust(edad_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 2.
+
+
+```{r}
+fviz_nbclust(edad_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+### Nivel socio-económico
+
+Partimos el k clusters en 5, a pesar del algoritmo, ya que hay solo 5 maneras de caracterizar el NSE. Aún asi vemos que hay mucha superposición entre algúnos clusters.
+
+Entre 1,2,5 si hay una diferencia que se podria investigar.
+
+```{r}
+k4 <- kmeansruns(nse_3, krange = 5, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k4, data = nse_3)
+```
+
+**Metodo de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(nse_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(nse_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+### Nivel de educacion
+
+Demasiada superposición. El sum of squares intra-cluster y inter-cluster tampoco es muy buena. Especialmente inter-cluster no esta muy bueno.
+
+```{r}
+k5 <- kmeansruns(edu_3, krange = 10, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k5, data = edu_3)
+```
+
+**Metodo de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(edu_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 2.
+
+```{r}
+fviz_nbclust(edu_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+
+#### 5
+
+Bueno, podemos decir que hay unos clusters de baja calidad, pero de algúna calidad sin embargo para **Nivel socio-económico**. Parece haber una diferencia significativa entre grupos 1,2,5. 
+
+COMO INVESTIGAMOS ESTO AHORA?
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -514,36 +949,6 @@ Parilla 6 Acciones personales contra cambio climatico
 ### Modelo regresión ordinal/nominal P21D
 
 * Según su percepción, ¿cuán importante es el cambio climático para usted?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Modelo regresión logistica ordinal P1_MAmb 
 
@@ -646,117 +1051,4 @@ Parilla 6 Acciones personales contra cambio climatico
 #        x = "Tamaño de la coalición ganadora", y = "Prob. predicha") +
 #   hrbrthemes::theme_ipsum_rc()
 ```
-
-
-
-```{r, results='hide', echo=FALSE}
-#Para ver Average Marginal Effect (sort of sensitivity analysis)
-
-# ¿Cuál es el efecto medio?
-
-# marginal_ef <- margins(mod1a)
-# 
-# plot(marginal_ef)
-```
-
-
-
-## 1.1 Modelo regresión múltiple
-
-Nuestra variable dependiente es continua ya que se toma el promedio.
-
-Requisitos para regresión múltiple:
-
-* Tamano muestral elevado de minimo 500 observaciones. Tenemos 6466 observaciones asi que satisfacemos eso.
-* Variable dependiente tiene que ser continua o dicotómica
-* Mejor es ver relacion individual entre VD y VI y despues anadir al set de componentes
-* No anadir variables innecesarias!
-* Para tener variables significativas , el p < 0.05
-
-Pasos en esta parte ya que escogimos nuestras variables y cumplimos requerimientos tecnicos:
-
-* 3. Estimacion y ajuste del modelo
-* 4. Interpretar los resultados
-
-		a. Para interpretar el coeficiente hay que convertir los resultados a odds. Mientras mas lejos de 1, no importa la dirección, mayor sera el impacto de la variable!
-		
-		b. Ver si hay alguna endogeonidad
-		
-* 5. Validar los resultados
-
-### 1.1.1 Resultados preliminares
-
-El AIC mide la “distancia” que existe entre los parámetros verdaderos y los estimadores del modelo mediante una distancia matemática llamada divergencia Kullback-Leibler. Cuanto más pequeña sea la distancia, mejor será el modelo.
-
-El BIC, a diferencia del AIC, penaliza la complejidad del modelo más rigurosamente ya que además toma en consideración el número de observaciones de la muestra.
-
-Grafico ROC: Lo más importante de la figura es el área debajo de la curva diagonal que la cruza.
-Sensibilidad: relación entre los verdaderos positivos y la suma de los verdaderos positivos más los falsos negativos.
-Especificidad: relación entre los verdaderos negativos y la suma de los falsos positivos a los verdaderos negativos.
-Tener en consideración el cálculo del AUC (Área bajo la Curva): cuanto mayor sea, mejor será el ajuste.
-
-### 1.1.2 Metodos de evaluación
-
-ANOVA is a statistical test for estimating how a quantitative dependent variable changes according to the levels of one or more categorical independent variables. ANOVA tests whether there is a difference in means of the groups at each level of the independent variable.
-
-Esto lo usamos como recurso final para ver si hay variables que no contienen variacion en relación a otras variables independientes. Por ejemplo, si la 
-[https://www.scribbr.com/statistics/anova-in-r/]
-
-
-```{r}
-# ¿Cuál es el efecto medio?
-# 
-# marginal_ef <- margins(mod1a)
-# plot(marginal_ef)
-# 
-# library(pscl)
-# 
-# # Pseudo R-cuadrado
-# 
-# pR2(mod1b)[["McFadden"]]
-# 
-# # Pseudo R cuadrado ajustado
-# 
-# library(DescTools)
-# 
-# PseudoR2(mod1b, c("McFadden"))
-# 
-
-```
-
-
-```{r, echo=FALSE}
-# ROC
-
-# library(plotROC)
-# 
-# pred_models <- bind_rows(augment(mod1b, response.type = "pred") %>%
-#                            mutate(model = "Modelo 1"),
-#                          augment(mod2, response.type = "pred") %>%
-#                            mutate(model = "Modelo 2"),
-#                          augment(mod3, response.type = "pred") %>%
-#                            mutate(model = "Modelo 3"))
-# 
-# roc <- ggplot(pred_models, aes(d = election, m = .fitted, color = model)) +
-#   geom_roc(n.cuts = 0) + 
-#   geom_abline(slope = 1) +
-#   labs(x = "1 - especificidad", y = "Sensibilidad") +
-#   hrbrthemes::theme_ipsum_rc()
-# 
-# roc
-# 
-# calc_auc(roc)
-
-```
-
-## 3.2 Regresión logistica ordinal
-
-Ya que nuestra variable fue formada a base de una escala, se puede tomar su promedio y redondear hacia un valor redondadeo (ej., 1). Esto hace que la variable dependiente sea ordinal. Cuales efectos tendra esto?
-
-Para poder analizar esto cargamos el package multinom.
-
-
-
-
-
 

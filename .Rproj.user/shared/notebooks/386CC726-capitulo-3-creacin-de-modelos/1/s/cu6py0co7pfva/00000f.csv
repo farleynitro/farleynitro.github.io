@@ -1,0 +1,2 @@
+"0","fviz_nbclust(nse_3, kmeans, method = ""wss"") +"
+"0","  labs(subtitle = ""Método codos"")"

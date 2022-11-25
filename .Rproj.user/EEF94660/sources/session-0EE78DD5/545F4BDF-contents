@@ -1,0 +1,1582 @@
+---
+title: "Capitulo 2.3: Exploracion de variable dependiente"
+description: |
+  A short description of the post.
+author:
+  - name: Farley Rimon
+    url: {}
+date: 2022-11-15
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+# 1 Limpiando el database
+
+Primero, cargaremos los paquetes que utilizaremos en esta sesión:
+
+```{r paquetes, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(mice) # Imputación de datos
+library(VIM) # Ver los datos perdidos de nuestra base de datos
+library(naniar)
+library(plyr)
+library(dplyr)
+
+#Cronbach analysis
+library(psych)
+```
+
+Y cargaremos la base de datos con variables ya seleccionadas:
+
+```{r}
+df_2018 <- read_excel("data/Base-en-excel-Encuesta-Nacional-de-Medio-Ambiente-2018.xlsx")
+```
+
+Es importante mencionar que algunas preguntas están doble. Como pregunta abierta, y luego fueron codificadas a base de respuestas similares.
+
+```{r, results='hide'}
+skimr::skim(df_2018)
+
+#re-ordering dataframe to have indicators in front
+
+df_2018_final <- df_2018 %>%
+  dplyr::select("ZONAS", "ID", "COMUNA", "NSE","TNSE","NEDAD","TEDAD","REGION","CUOTA","POND", P32,P33,P34,P35,P36,P37,P38,P39, everything())
+sjPlot::view_df(df_2018_final)
+```
+
+
+## 2.3 Variables dependientes
+
+### 2.3.1 Las latentes
+
+Las variables dependientes tienen el proposito de capturar la **percepción pública**. Como esto no es algo que se puede medir, se requiere el uso de variables latentes, cuales son subvariables las que se puede preguntar con mas precisión la opinion de alguien para una subcategoria. Es decir, la percepción pública la vamos a medir a traves de dos latentes, **seriedad de cambio climatico percibido** y **preocupación hacia el cambio climatico**. La manera de capturar la percepción pública sobre el cambio climatica es visible en la imagen abajo. Nos enfocamos en los cuadrantes naranjas (las dos latentes de interes). Estas dos latentes constituyen de diferentes preguntas en la Encuesta Nacional del 2018. 
+
+![La división de la variable ](images/variables latentes.jpg)
+
+
+### 2.3.2 Limpieza de datos
+
+```{r}
+#create subset of dependent variables
+var_dep <- df_2018_final %>%
+          dplyr::select(ZONAS, REGION, P1_MAmb,P2_COD,P3A,P3B,P3C,P3D,P3E,P3F,P4,
+                 P17_COD,P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,
+                 P19_7,P19_8, P19_10, P20,P21A,P21B,P21C,
+                 P21D,P30)
+```
+
+
+```{r}
+#1 to 7
+
+#no NA values
+
+unique(var_dep$P1_MAmb)
+unique(var_dep$P2_COD)
+unique(var_dep$P3A)
+unique(var_dep$P3B)
+
+unique(var_dep$P3C)
+unique(var_dep$P3D)
+unique(var_dep$P3E)
+unique(var_dep$P3F)
+unique(var_dep$P4)
+```
+
+
+```{r}
+#17 to 19
+
+#no NA
+unique(var_dep$P17_COD)
+
+#has NA
+unique(var_dep$P19_1)
+unique(var_dep$P19_2)
+unique(var_dep$P19_3)
+unique(var_dep$P19_4)
+unique(var_dep$P19_5)
+unique(var_dep$P19_6)
+unique(var_dep$P19_7)
+unique(var_dep$P19_8)
+unique(var_dep$P19_10)
+
+
+#cleaning NAs by putting the "." as NA
+var_dep %>% replace_with_na(replace = list(P19_1 = ".", P19_2= ".",P19_3=".",P19_4=".",P19_5=".",
+                                           P19_6=".",P19_7=".",P19_8=".",P19_10="."))
+
+#has NA
+unique(var_dep$P20)
+
+#has NA
+unique(var_dep$P21A)
+unique(var_dep$P21B)
+unique(var_dep$P21C)
+unique(var_dep$P21D)
+
+#cleaning NAs by putting the "." as NA
+
+var_dep %>% replace_with_na(replace = list(P21A = ".", P21B= ".",P21C=".",P21D="."))
+
+#no NA
+unique(var_dep$P30)
+
+#after cleaning all the data, convert to numeric type
+
+var_dep[] <- lapply(var_dep, function(x) as.numeric(as.character(x)))
+```
+
+
+
+### Alfa de Cronbach
+
+Para analizar los resultados hacemos uso del alfa de Cronbach. Este indica el grado de correlación que hay entre todos los ítems pertenecientes a una escala, asumiendo que los mismos miden el constructo que dicen medir. Es decir, se espera que un encuestado tenga respuestas similares en una parilla que intenta capturar un aspecto especifico de la percepción. Mientras mas bajo el alfa de Cronbach, menos correlación hay entre las respuestas, se podria decir que menos relacionadas estan las preguntas, y por si, no capturan la percepcion de un y solo un concepto. 
+
+
+* alfa de Cronbach < 0.5 es practicamente **inaceptable**.
+* alfa de Cronbach  0.5 < 0.59 es **pobre**.
+* alfa de Cronbach 0.6 < 0.69 es **cuestionable**.
+* alfa de Cronbach 0.7 < 0.79 es **aceptable**.
+* alfa de Cronbach 0.8 < 0.89 es **bueno**.
+* alfa de Cronbach > 0.9 es **excelente**.
+
+
+**Magnitud serian:**
+
+* P1_MAmb Ordene los siguientes temas del más importante al menos importante para el país: Medioambiente **Singular**
+
+1	1er lugar
+2	2do lugar
+3	3er lugar
+4	4to lugar
+5	5to lugar
+
+
+
+* P3A-F: ¿Cómo evalúa usted…? La calidad del aire (A), Flora y Fauna (B), Rios y lagos (C), el mar (D), plazas y parques urbanos (E), medio ambiente en general en su región (F) **Escala Likert**
+
+1	Pésimo
+2	Malo
+3	Regular
+4	Bueno
+5	Excelente
+8	No sabe
+9	No responde
+
+Vemos que hay muy poca correlación entre las respuestas de encuestados en esta parilla, de **0.58**. Esto se puede explicar porque el contacto que los encuestados tienen con las diferentes opciones depende de la localización de encuestados. Alguien cerca del mar tiene otra percepción que alguien lejos del mar. Esto tambien se refleja en el hecho que si remueves P3D, la percepción sobre el mar, el alfa de Cronbach mejora un poco. La mejor manera de ver si la percepción de esta depende de la localización del encuestado, grupamos por zona y vemos si este aun es el caso. Si el alfa incrementa, ya hay una primera indicación que la localización cambia la percepción sobre la calidad del medio ambiente. Por esta razón se deja esta parilla como variable dependiente.
+
+
+```{r}
+df_cronbach_P3 <- var_dep %>% select(P3A:P3F)
+psych::alpha(x = df_cronbach_P3)
+```
+
+```{r}
+# split the data frame by grouping using "f" argument
+split_data <- split(df_2018_final, f = df_2018_final$ZONAS) 
+split_data_1 <- split_data[[1]]
+split_data_2 <- split_data[[2]]
+split_data_3 <- split_data[[3]]
+split_data_4 <- split_data[[4]]
+
+split_data_p3_1 <- split_data_1 %>% select(P3A:P3F)
+split_data_p3_2 <- split_data_2 %>% select(P3A:P3F)
+split_data_p3_3 <- split_data_3 %>% select(P3A:P3F)
+split_data_p3_4 <- split_data_4 %>% select(P3A:P3F)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_1)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_2)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_3)
+```
+
+
+```{r}
+psych::alpha(x = split_data_p3_4)
+```
+Vemos que el alfa de Cronbach sigue siendo muy pobre. Por esta razon decidimos no tomar el promedio de la parilla como conjunto, pero solo analizar la percepción general del medio ambiente, exclusive de factores afuera de la vista de alguien, es decir P3F cual pregunta sobre **la calidad del medio ambiente en general de la región**.
+
+
+* P4 Comparando el estado del medio ambiente de su región hace 10 años atrás, ¿cómo calificaría usted el estado actual del medio ambiente en su región? **Singular**
+
+1	Mejor
+2	Igual
+3	Peor
+8	No sabe
+9	No responde
+
+
+* P17_COD ¿Qué entiende usted por cambio climático? (codificado) **No hay escala, no se puede medir**
+
+1	Aumento o disminución de la humedad
+2	Aumento o disminución de los vientos
+3	Cambios en la duración de las estaciones del año (ej. Veranos o inviernos más largos o más cortos)
+4	Cambios en las lluvias (ej. Lluvias en fechas poco habituales, más/menos lluvias)
+5	Cambios en las temperaturas (ej. Mucho más calor/frio)
+6	Sequías más intensas y/o frecuentes
+7	Otro
+88	No sabe
+99	No responde
+
+* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro? **Singular**
+ 
+
+1	Si, ya está ocurriendo
+2	Ocurrirá en un futuro
+3	Ya ocurrió
+4	No ocurrirá
+8	No sabe
+9	No responde
+
+* P21A-D: Según su percepción, ¿cuán importante es el cambio climático para…?: Los chilenos (A), su región (B), familia y amigos (C), usted (D) **Escala Likert**
+
+1	Nada importante
+2	Poco importante
+3	Bastante importante
+4	Muy importante
+8	No sabe
+9	No responde
+
+
+```{r}
+#Cronbach analysis
+library(psych)
+library(tidyverse)
+
+df_cronbach_P21 <- var_dep %>% select(P21A:P21D)
+psych::alpha(x = df_cronbach_P21, na.rm = TRUE)
+```
+Vemos que el alfa de Cronbach es confiable, cual significa que hay consistencia semantica entre la respuestas de los encuestados a esta parilla. Es lógico ya que la pregunta no tiene una perfecta distinción ya que se pregunta secuencialmente sobre la percepción de chilenos, habitantes de la región en Chile, familia y amigos, y percepción personal. Sin embargo, vemos que si se remueve la pregunta hacia chilenos, la consistencia mejora significantemente. Esto debe ser porque al contestar sobre los chilenos los encuestados tienen otra imagen del chileno promedio cual puede, o no puede ser, alineada con percepciones sobre los chilenos que tiene a su alrededor de la región, familia, o amigos. Lo mismo se puede decir con la pregunta de la región.
+
+
+```{r}
+P21A_clean <- var_dep %>% 
+  dplyr::select(P21A) %>% 
+  rec(rec= "1=1;2=2;3=4;4=5;8,9=0;else=copy", suffix="")
+
+P21B_clean <- var_dep %>% 
+  dplyr::select(P21B) %>% 
+  rec(rec= "1=1;2=2;3=4;4=5;8,9=0;else=copy",suffix="")
+
+P21C_clean <- var_dep %>% 
+  dplyr::select(P21C) %>% 
+  rec(rec= "1=1;2=2;3=4;4=5;8,9=0;else=copy",suffix="")
+
+P21D_clean <- var_dep %>% 
+  dplyr::select(P21D) %>% 
+  rec(rec= "1=1;2=2;3=4;4=5;8,9=0;else=copy",suffix="")
+
+var_dep$P21A <- P21A_clean
+var_dep$P21B <- P21B_clean
+var_dep$P21C <- P21C_clean
+var_dep$P21D <- P21D_clean
+
+var_dep$P21_promedio <- rowMeans(var_dep[23:25], na.rm=TRUE)
+
+var_dep$P21_promedio <- scale(var_dep$P21_promedio, center = FALSE, scale = max(var_dep$P21_promedio, na.rm = TRUE)/5)
+var_dep$P21_promedio <- round(var_dep$P21_promedio,0)
+```
+
+
+* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción? **Singular**
+
+1 Sí, por ejemplo
+2 Sí, pero no recuerdo el nombre
+3 No sé de ninguna
+9 No responde
+
+
+
+**Preocupación serian:** 
+
+* P2_COD Según su percepción, ¿cuál es el principal problema ambiental que lo afecta a Ud.? (codificado) **No hay escala, no se puede medir**
+
+1	Basura
+2	Cambio climático
+3	Congestión vehicular
+4	Contaminación acústica
+5	Contaminación de Agua
+6	Contaminación de Aire
+7	Falta de árboles y de áreas verdes
+8	Malos olores
+9	Perros vagos y sus excrementos
+10	Polen de los árboles que causan alergia
+11	Sequía
+12	Falta de agua
+13	Ninguno
+88	No sabe
+99	No responde
+
+* P19_1-8, 10: ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático? Pena/Tristeza/Dolor (1), Preocupación/Angustia (2), Miedo/Susto/Temor (3), Incertidumbre (4), Rabia/enfado (5), Frustración (6), Responsabilidad/culpa (7), Indiferencia (8), NO SABE (10) **Escala de Guttman**
+
+0	No
+1	Si
+
+```{r}
+#Cronbach analysis
+library(psych)
+library(tidyverse)
+
+df_cronbach_P19 <- var_dep %>% select(P19_1:P19_8,P19_10)
+psych::alpha(x = df_cronbach_P19, na.rm = TRUE)
+```
+
+Vemos que hay una consistencia interna muy baja, aunque las preguntas sean muy similares. Es mejor no considerar esta parilla como un promedio. Sin embargo como tiene una escala de Guttman, vamos a sumar los resultados asociados a sentimientos negativos sobre el cambio climatico. NO consideramos P19_10 porque no mide el nivel de identificación con el cambio climatico de la misma manera que las otras preguntas. Las otras preguntas tienen orden jerarquico.
+
+
+### 2.3.3 Cambiando las escalas
+
+```{r}
+P19_8 <- var_dep %>% 
+  dplyr::select(P19_8) %>% 
+  rec(rec= "1=1;0=5;else=copy",suffix="")
+
+P19_1 <- var_dep %>% 
+  dplyr::select(P19_1) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_2 <- var_dep %>% 
+  dplyr::select(P19_2) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_3 <- var_dep %>% 
+  dplyr::select(P19_3) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_4 <- var_dep %>% 
+  dplyr::select(P19_4) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_5 <- var_dep %>% 
+  dplyr::select(P19_5) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_6 <- var_dep %>% 
+  dplyr::select(P19_6) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+P19_7 <- var_dep %>% 
+  dplyr::select(P19_7) %>% 
+  rec(rec= "1=5;0=1;else=copy",suffix="")
+
+var_dep$P19_1 <- P19_1
+var_dep$P19_2 <- P19_2
+var_dep$P19_3 <- P19_4
+var_dep$P19_4 <- P19_4
+var_dep$P19_5 <- P19_5
+var_dep$P19_6 <- P19_6
+var_dep$P19_7 <- P19_7
+var_dep$P19_8 <- P19_8
+
+# sum several columns in R
+var_dep$P19_suma <- rowSums(var_dep[12:19], na.rm=TRUE)
+unique(var_dep$P19_suma)
+```
+Para ver como se distribuye esta suma de la parilla de P19. Viendo esto bien, pienso que es mejor no sumar esta parilla, porque cubre la importancia de algunas de las preguntas. En vez, lo vamos a considerar separado, aunque tenga consistencia baja.
+
+```{r warning=FALSE}
+var_dep %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = P19_suma)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_suma" ,x = "Zonas de Chile", y = "La suma de sentimiento hacia el medio ambiente") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+
+* P20 ¿Cree usted que el cambio climático está sucediendo o sucederá en algún momento en el futuro? **Singular** 
+
+1	Si, ya está ocurriendo
+2	Ocurrirá en un futuro
+3	Ya ocurrió
+4	No ocurrirá
+8	No sabe
+9	No responde
+
+* P30 De acuerdo a lo que indican algunos científicos, en el planeta estamos viviendo la sexta extinción masiva de especies. ¿Sabe de especies animales o vegetales amenazadas o en peligro de extinción? **Singular**
+
+1 Sí, por ejemplo
+2 Sí, pero no recuerdo el nombre
+3 No sé de ninguna
+9 No responde
+
+
+Ahora que he limpiado todos los datos, en orden para obtener la preocupación pública decido sumar las respuestas de los encuestados. Para que esto sea posible, voy a sumar las respuestas a lo que llamo el **puntaje de percepción**. Mientras mas alto sea este perception score, mas alto sera la preocupación y seriedad percibida. Para realizar esto hay que normalizar todos los valores de todas las preguntas en la siguiente forma:
+
+* 0 - No responde, No disponible
+* 1 - No importante
+* 2 - No tan importante
+* 3 - Neutral
+* 4 - Importante
+* 5 - Muy importante
+
+
+**Es importante entender que todas las preguntas tienen otro formato y no todos indican relevancia hacia el medio ambiente directa. Esto es claramente una limitación. Sin embargo, asumimos que es la asumción es valida ya que indirectamente un número mas bajo en las preguntas codificadas se relaciona con acciones, y percepciones menos enfocadas hacia el medio ambiente.** Donde este no sea el caso, me ocupo manualmente de cambiar el formato en algo que concuerde con el formato para el puntaje de percepción mencionado arriba. Ya esto forma la primera base útil para el modelo. 
+
+
+* P1_Mambm: 1 a 5 -> 5 (=1) a 1 (=5)
+* P3;A-F: 1 a 5 -> 5 (=1) a 1 (=5), 8 (=0), 9 (=0)
+* P4: 1 a 3 -> 1 (=1), 2 (=3), 3 (=5), 8 (=0), 9 (=0)
+* P19;1-6: 0 a 1 -> 0 (=1), 1 (=5)
+* P19: 8: 0 a 1 -> 0 (=5), 1 (=1)
+* P20: 1 a 4 -> 4 (=1), 3 (=5), 2 (=3), 1 (=4), 8 (=0), 9 (=0)
+* P21;B-D: 1 a 5 -> 1 (=1) a 5 (=5), 8 (=0), 9 (=0)
+* P30: 1 a 3 -> 1 (=5), 2 (=3), 3 (=1), 9 (=0)
+
+Excepciones:
+
+* P2_COD tiene que ser una variable dependiente separada, porque calcula la percepción del cambio climatico en terminos no-cuantitativos. Ve la diferencia en percepcion, y no la preocupación o relevancia.
+
+* P17_COD tiene que ser una variable dependiente separada, porque calcula la percepción del cambio climatico en terminos no-cuantitativos. Ve la diferencia en percepcion, y no la preocupación o relevancia.
+
+Estas se veran como variables dependientes separadas.
+
+```{r warning=FALSE}
+# #RECODING the values
+P1_clean <- var_dep %>%
+  dplyr::select(P1_MAmb) %>%
+  rec(rec= "1=5;2=4;3=3;4=2;5=1;8,9=0;else=copy",suffix="")
+
+P3F_clean <- var_dep %>%
+  dplyr::select(P3F) %>%
+  rec(rec= "1=5;2=4;3=3;4=2;5=1;8,9=0;else=copy",suffix="")
+
+P30_clean <- var_dep %>%
+  dplyr::select(P30) %>%
+  rec(rec= "1=5;2=3;3=1;9=0;else=copy",suffix="")
+# 
+
+P20_clean <- var_dep %>%
+  dplyr::select(P20) %>%
+  rec(rec= "4=1;3=5;2=3;1=4;8,9=0; else=copy",suffix="")
+
+# 
+P4_clean <- var_dep %>%
+  dplyr::select(P4) %>%
+  rec(rec= "1=1;2=3;3=5;8,9=0;else=copy",suffix="")
+
+var_dep$P20 <- P20_clean
+var_dep$P4 <- P4_clean
+var_dep$P3F <- P3F_clean
+var_dep$P1_MAmb <- P1_clean
+
+#after cleaning all the data, convert to numeric type
+
+# var_dep[] <- lapply(var_dep, function(x) as.numeric(as.character(x)))
+```
+
+### 2.3.2 Creación del score de percepción
+
+Tenemos 4 variables dependientes que cada representa la percepción de algúna forma:
+
+* P17_COD
+* P2_COD
+* Importancia: la suma de (P1_MAmb, P3F, P4, P20, P21_promedio, P30)
+* Preocupación: la suma de (P30, P19_suma, P20)
+
+
+
+
+
+
+
+```{r}
+var_dep_total <- var_dep %>% dplyr::select(ZONAS, REGION, P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_3,P19_4,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21B, P21C, P21D, P21_promedio, P30)
+```
+
+```{r}
+var_dep_total <- do.call(data.frame, var_dep_total)
+
+var_dep_total[] <- lapply(var_dep_total, function(x) as.numeric(as.character(x)))
+
+write_sav(var_dep_total, "var_dependientes_total.sav")
+```
+
+
+
+#### 2.3.3 Principal Component Analysis y Analisis Multifactorial
+
+Ahora que sabemos el tipo de escala hay que combinarlas a una escala. Esta se puede desarollar o por el Analisis factorial o el Principal Component Analysis.
+
+Primero que combinarlas en cualquier caso es importante saber como se relacionan con las variables independientes y como se relacionan entre si. Lo primero lo hacemos por visualizar algunas de estas relaciones. La segunda cuestión la hacemos por usar el **Alfa de Cronbach**.
+
+**Quitando los outliers**
+
+Para P1_Mamb, no hay outliers.
+
+```{r warning=FALSE}
+var_dep_total %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P1_MAmb))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P1_Mamb" ,x = "Zonas de Chile", y = "P1_Mamb") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+Para P17_COD, vemos que no hay outliers.
+
+```{r}
+length(which(var_dep_total$P17_COD==99))
+```
+
+```{r warning=FALSE}
+var_dep_total %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = P17_COD)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P17_COD" ,x = "Zonas de Chile", y = "P17_COD") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+
+var_dep_total <- var_dep_total[var_dep_total$P17_COD  != 99, ]
+```
+Para P2_COD, vemos que hay outliers. Estos son los valores de '99', cuales son los **no respondientes** de la pregunta de la encuesta. Quitamos estos respondientes. 
+
+Hacemos el mismo proceso para cada pregunta que tenga outliers.
+
+
+```{r}
+length(which(var_dep_total$P2_COD==99))
+```
+
+
+```{r warning=FALSE}
+var_dep_total %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = P2_COD)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P2_COD" ,x = "Zonas de Chile", y = "P2_COD") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_clean <- var_dep_total[var_dep_total$P2_COD  != 99, ]
+```
+
+```{r warning=FALSE}
+length(which(var_dep_total_P2_clean$P20==1))
+length(which(var_dep_total_P2_clean$P20==0))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P20))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P20" ,x = "Zonas de Chile", y = "P20") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_clean <- var_dep_total_P2_clean[var_dep_total_P2_clean$P20  >0, ]
+```
+
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = P30)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P30" ,x = "Zonas de Chile", y = "P30") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_P30_clean <- var_dep_total_P2_P20_clean[var_dep_total_P2_P20_clean$P2_COD  <8, ]
+```
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_clean$P4==0))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P4))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P4" ,x = "Zonas de Chile", y = "P4") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_P30_clean <- var_dep_total_P2_P20_P30_clean[var_dep_total_P2_P20_P30_clean$P4  >0, ]
+
+```
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_clean$P3F==0))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P3F))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P3F" ,x = "Zonas de Chile", y = "P3F") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_P30_clean <- var_dep_total_P2_P20_P30_clean[var_dep_total_P2_P20_P30_clean$P3F  >0, ]
+
+```
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_clean$P21_promedio==1))
+length(which(var_dep_total_P2_P20_P30_clean$P21_promedio==0))
+length(which(var_dep_total_P2_P20_P30_clean$P21_promedio==2))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P21_promedio))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P21_Promedio" ,x = "Zonas de Chile", y = "P21_Promedio") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_P30_P21promedio_clean <- var_dep_total_P2_P20_P30_clean[var_dep_total_P2_P20_P30_clean$P21_promedio>0, ]
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_1))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_1" ,x = "Zonas de Chile", y = "P19_1") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_2))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_2" ,x = "Zonas de Chile", y = "P19_2") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+Removemos P19_3 y P19_4 porque tiene un sesgo muy fuerte a la respuesta (No), cual es (1) codificado.
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_P21promedio_clean$P19_3==5))
+```
+
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_3))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_3" ,x = "Zonas de Chile", y = "P19_3") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_clean <- var_dep_total_P2_P20_P30_P21promedio_clean %>% dplyr::select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_4,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21B, P21C, P21D, P21_promedio, P30)
+```
+
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_P21promedio_P19_3_clean$P19_4==5))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_4))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_4" ,x = "Zonas de Chile", y = "P19_4") +
+  theme_minimal(base_family = "Roboto Condensed")
+
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_clean %>% dplyr::select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21B, P21C, P21D, P21_promedio, P30)
+```
+
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_5))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_5" ,x = "Zonas de Chile", y = "P19_5") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P19_6))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P19_6" ,x = "Zonas de Chile", y = "P19_6") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+Escogemos un nombre mas simple para el dataframe que esta limpio ahora. Despues de esta limpieza fuimos de 7601 observaciones a 6466 observaciones. Tambien tuvimos que remover P19_3 y P19_4. El resto parece tener una distribución dispersa por la que no hay un sesgo.
+
+
+
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P21B))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P21B" ,x = "Zonas de Chile", y = "P21B") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean[var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean$P21B  > 0, ]
+
+```
+
+```{r}
+length(which(var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean$P21B==0))
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P21C))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P21C" ,x = "Zonas de Chile", y = "P21C") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean[var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean$P21C  > 0, ]
+```
+
+```{r warning=FALSE}
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = unlist(P21D))) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de P21D" ,x = "Zonas de Chile", y = "P21D") +
+  theme_minimal(base_family = "Roboto Condensed")
+#frq(df_lapop_chile, eff1)
+
+var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean[var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean$P21C  > 0, ]
+
+```
+
+
+
+```{r}
+var_dep_total_clean <- var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean
+
+#with p21_promedio and not its 3 subquestions
+var_dep_total_clean_reduced <- var_dep_total_clean %>% dplyr::select(ZONAS,P1_MAmb, P2_COD, P3F, P4, P17_COD, P19_1,P19_2,P19_5,P19_6,P19_7,P19_8, P19_suma, P20, P21_promedio, P30)
+
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x)))
+```
+
+
+```{r}
+var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)
+var_dep_total_clean_reduced <- do.call(data.frame, var_dep_total_clean_reduced)
+
+write_sav(var_dep_total_clean_reduced, "var_dependientes_total_clean_reduced_final.sav")
+write_sav(var_dep_total_clean, "var_dependientes_total_clean_unreduced_final.sav")
+
+```
+
+
+
+
+
+
+### Salvando los datasets
+
+Salvamos las diferentes variables dependientes que se usaran durante la creación del modelo.
+
+```{r}
+
+var_dep_total_clean[] <- lapply(var_dep_total_clean, function(x) as.numeric(as.character(x)))
+
+
+#seleccionamos los subsets
+
+var_dep_P17_COD <- var_dep_total_clean %>% dplyr::select(P17_COD)
+var_dep_P2_COD <- var_dep_total_clean %>% dplyr::select(P2_COD)
+
+
+var_dep_importancia <- var_dep_total_clean %>% dplyr::select(ZONAS,P1_MAmb, P3F, P4, P20, P21B, P21C, P21D, P21_promedio, P30)
+var_dep_preocupacion <- var_dep_total_clean %>% dplyr::select(ZONAS,P30, P19_1,P19_2,P19_5,P19_6,P19_7,P19_8, P19_suma, P20)
+
+#saving dataframes to .sav format
+
+write_sav(var_dep_P17_COD, "var_dependientes_P17_clean.sav")
+write_sav(var_dep_P2_COD, "var_dependientes_P2_clean.sav")
+
+var_dep_importancia <- do.call(data.frame, var_dep_importancia)
+var_dep_preocupacion <- do.call(data.frame, var_dep_preocupacion)
+var_dep_total <- do.call(data.frame, var_dep_total)
+
+
+write_sav(var_dep_importancia, "var_dependientes_importancia_clean.sav")
+write_sav(var_dep_preocupacion, "var_dependientes_preocupacion_clean.sav")
+write_sav(var_dep_total, "var_dependientes_total_clean.sav")
+```
+
+
+
+
+
+
+
+
+
+Cargamos los paquetes:
+
+```{r, message=F}
+pacman::p_load(tidyverse, haven, GGally, factoextra, FactoMineR)
+```
+
+Para hacer análisis factorial también se puede usar la función `fa` del paquete `psych`.
+
+
+
+
+```{r warning=FALSE}
+var_dep_total_clean_reduced[] <- lapply(var_dep_total_clean_reduced, function(x) {
+    if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+
+cor(na.omit(var_dep_total_clean_reduced)) #Correlaciones: es necesario omitir los NA. 
+
+ggcorr(var_dep_total_clean_reduced, label = T) #NA se omiten automáticamente
+```
+
+
+En general, la correlación es muy baja entre las preguntas de la encuesta. Esto se podria explicar porque tienen otra escala cual fue recodificada. Esto pudo afectar la correlación. Sin embargo, si esto no se hubiera hecho, no se podria medir la correlación. Decidimos ser flexibles, y considerar todas las variables que tienen una correlación arribe del 0. Es interesante ver que P19_7 no tiene correlación ni con su parilla. **Esto podria indicar que la mayoria de las personas podria estar preocupada por el medio ambiente, pero no sentire "responsable o culpable" por el medio ambiente.**
+
+Recordamos que las preguntas P2_COD y P17_COD tienen su propia escala. Tambien recordamos que P4, y P30 tiene 4 respuestas posibles  (0,1,3,5), comparado a las otras preguntas recodificadas que tienen 6 respuestas posibles (de 0 a 5). P20, P21_promedio tiene 5 respuestas posibles (0,1,2,4,5). Sin embargo, presentan una correlación baja, por la cual no son estadisticamente significativos. 
+
+Consideramos P1_MAmb porque indica claramente la importancia del medio ambiente. Automaticamente, el PCA removera preguntas que no sean relevantes porque tendran una dominancia mas baja cuando intentan explicar la varianza. P2_COD, y P17_COD porque no se sabe cual correlación tienen, ya que son variables categóricas, y el resto son ordinales.
+
+
+
+
+**Seleccionando las variables** 
+
+
+```{r warning=FALSE}
+library(ggcorrplot)
+var_dep_total_clean_remove <- names(var_dep_total_clean_reduced) %in% c("ZONAS","P30", "P19_suma", "P21_promedio", "P4", "P20")
+var_dep_high_corr  <- var_dep_total_clean_reduced[!var_dep_total_clean_remove]
+
+# cor(na.omit(var_dep_high_corr)) #Correlaciones: es necesario omitir los NA.
+
+ggcorr(var_dep_high_corr, label = T) #NA se omiten automáticamente
+```
+
+
+Realicemos el PCA.
+
+Podemos ver directamente que hay mucha contribución de las preguntas de P19. Esta parrilla representa las emociones causadas por el cambio climatico. Especialmente P19_1 (Pena), P19_2 (preocupación), P19_5 (Rabia), P19_6 (Frustación), aunque sin embargo, P19_1, P19_2, y P19_5 mas 6 tienen otra correlación con la dimension como podemos ver por la dirección del vector entre las dos dimensiones.
+
+```{r}
+pca_1 <- PCA(var_dep_high_corr, graph = T) #Sin gráfico = F
+```
+
+
+### Pesos relativos
+
+Cuando vemos la magnitud de los eigenvalues, junto con el screeplot cual redondea la magnitud de los eigenvalues, vemos que las primeras 7 dimensiones son las mas interesantes. Hasta la dimension 5 hay un eigenvalue arriba del 1.00, cual indica que estas dimensiones son los mas dominantes, y explica 56.85 % de la varianza. Hasta la dimension 7 hay un eigenvalue cerca del 1.00, y explica 76.58 % de la varianza. Hasta ahora, parece mejor escoger algo entre 5 y 7 dimensiones. 
+
+```{r}
+get_eig(pca_1)
+```
+```{r}
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+```
+
+### Contribuciones de las variables a cada componente principal:
+
+**Si es que las contribuciones fuesen uniformes, todas estarían en la línea de referencia.**
+
+Cómo contribuye cada variable para cada dimensión:
+
+
+1. Esta dimension parece indicar "**Sentimientos de preocupación hacia el cambio climatico**". 
+
+* P19_1 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Pena/Tristeza/Dolor
+* P19_2 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Preocupación/Angustia
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 1)
+```
+
+2. Esta dimension parece indicar "**Sentimientos negativos sobre el cambio climatico**". 
+
+De nuevo esta el P19_1 en la pregunta ya que es un sentimiento negativo, aunque no de rabia o frustación hacia el medio ambiente, si podria estar relacionado con estos sentimientos negativos.
+
+* P19_1 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Pena/Tristeza/Dolor
+* P19_5 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Rabia/enfado
+* P19_6 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Frustración 
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 2)
+```
+
+3. Es mayormente explicado por "**la indiferencia sobre el cambio climatico**".
+
+Vemos que en la tercera dimension, la pregunta P19_8 solo tiene la mayor contribucion. Esta dimension ve mayormente la **indiferencia hacia el cambio climatico**. Tambien hay una contribución de alrededor del 10 % de P19_2 (**preocupación**), P1_MAmb (**importancia de temas**). Esto parece tener sentido, ya que si alguien siente indiferencia hacia el cambio climatico, estaria relacionado a si se preocupa, o la importancia que le da al medio ambiente comparada a otros temas.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 3)
+```
+
+4. Es mayormente explicado por "**Percepcion hacia problemas ambientales del medio ambiente de la región**". 
+
+* P2_COD Según su percepción, ¿cuál es el principal problema ambiental que lo afecta a Ud.? (codificado)
+* P3F ¿Cómo evalúa usted…? El estado general del medio ambiente en su región
+* P19_7 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Responsabilidad/culpa
+
+Las mayores contribuciones vienen de estas 3 preguntas que parecen enfocarse en los problemas ambientales, y el sentimiento de responsabilidad. Es interesante que caigan bajo una dimensión, cual podria indicar que **la asociación que un encuestado tiene con responsibalidad al cambio climatico, es al cambio en su ambiente (region)**, cual afecta el problema ambiental que experiencia (P2_COD).
+
+Hay una contribucion minima de P19_1 (de +/- 10 %) cual indica tambien algún sentimiento de pena.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 4)
+```
+
+5. No parece tener una dimension explicativa.
+
+* P3F ¿Cómo evalúa usted…? El estado general del medio ambiente en su región
+* P1_MAmb Ordene los siguientes temas del más importante al menos importante para el país: Medioambiente
+* P19_7 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Responsabilidad/culpa
+* P19_8 ¿Qué sentimientos o emociones le surgen cuando escucha sobre Cambio Climático?: Indiferencia
+
+La dimension 5 se parece a la 3ra y 4ta dimension combinada con la diferencia que el enfoque cae en, no la indiferencia como en la tercera dimension (cual es un aspecto que indica la importancia anadida personal de alguien), pero **la importancia de contribuir al medio ambiente conjunta con la importancia misma del medio ambiente**.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 5)
+```
+
+>Importante: incluir aquellas variables que son importantes teóricamente para tu modelo.
+
+### Biplots (combinaciones posibles)
+
+Vemos que no hay varianza aleatoria en las dimensiones por el hecho que hay patrones similares a clusters en el espacio de las dos dimensiones.
+
+```{r}
+fviz_pca(pca_1, axes = c(1, 2), label = "var")
+```
+
+```{r}
+fviz_pca(pca_1, axes = c(1, 3), label = "var")
+```
+
+```{r}
+fviz_pca(pca_1, axes = c(2, 3), label = "var")
+```
+
+### Generar el índice:
+
+Los scores que asignan las dimensiones a cada observación:
+
+Vemos que la mayoria de las variables tiene una dominancia baja, pero no es el caso que hay una dimension que no tenga una variable de varianza explicativa mayor.
+
+```{r warning=FALSE, results='hide'}
+head(pca_1$ind$coord,15) #para cada observación, tendremos un score por dimensión. 
+head(pca_1$var$coord,15) # Los scores de cada variable dentro del componente (cómo cada uno de los ítems se relacionan con el componente).
+head(pca_1$var$cos2,15) #Calidad de la representación de la variable en el factor
+
+```
+
+
+```{r, echo= FALSE}
+library(kableExtra)
+
+readxl::read_excel("data/Overview pca correlation.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:6, width_min = "2cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+Vemos que la mayoria de las variables tiene buena representación en alguna de las dimensiones, ya que siempre terminara una de las variables en el top 3 de correlación, contribución, y  representación mas alta en una de las primero 5 dimensiones. Como no hay una dimension que tenga solo contribuciones relativas a otras dimensiones bajas, no hay que eliminar ningúna dimension del indice del PCA que vamos a formar ahora.
+
+
+Recordemos los pesos relativos:
+
+```{r}
+get_eig(pca_1)
+```
+Decidimos mantener hasta la quinta dimension, porque:
+
+* por su eigenvalue arriba de 1
+* la cantidad de dimensiones ya considerada
+* la cantidad de varianza explicada
+* el hecho que se vuelve menos explicativa las dimensiones mientras mas consideramos. Esto ya lo vimos cuando consideramos la quinta dimensión que ya era un conjunto de tercera y cuarta dimension.
+
+Podemos generar el índice ponderando los scores por los *pesos relativos* de cada dimensión:
+
+
+La base:
+```{r}
+indice_base <- pca_1$ind$coord %>% 
+  as_tibble() %>% #base de lo que queremos
+  mutate(indice_pca_1 = (Dim.1 * 12.55606 + Dim.2 * 12.050347 + Dim.3 * 10.714678 + Dim.4 * 9.965088 + Dim.5 * 9.453926) / 54.74010) 
+```
+
+Realizar el índice:
+
+```{r}
+#use GGaly for rescale
+library(GGally)
+
+data_pca <- pca_1$ind$coord%>%
+ as_tibble() %>%
+  mutate(primera_dimension = 
+           (Dim.1 * 0.147637814
+  + Dim.1 * (-0.129372723)
+  + Dim.1 * 0.003247604
+  + Dim.1 * (-0.077784388)
+  + Dim.1 * 0.6780854
+  + Dim.1 * (-0.816830999)
+  + Dim.1 * 0.323197741
+  + Dim.1 * 0.192560697
+  + Dim.1 * (-0.033211521)
+  + Dim.1 * 0.147967062)
+  / 13.361415,
+         segunda_dimension = 
+           (Dim.2 * 0.13871496
+  + Dim.2 * 0.24152279
+  + Dim.2 * 0.13341258
+  + Dim.2 * (-0.05413818)
+  + Dim.2 * (-0.56408977) 
+  + Dim.2 * (-0.1058223)  
+  + Dim.2 * 0.54226924
+  + Dim.2 * 0.66729425
+  + Dim.2 * (-0.10013599)
+  + Dim.2 * (-0.03308774))
+  /11.781601,
+         tercera_dimension = 
+           (Dim.3 * 0.336080856
+   + Dim.3 * 0.004084886
+   + Dim.3 * 0.070417536
+   + Dim.3 * 0.103946373
+   + Dim.3 * 0.162107985
+   + Dim.3 * 0.394812783
+   + Dim.3 * 0.394812783
+   + Dim.3 * 0.092663477
+   + Dim.3 * 0.04537039
+   + Dim.3 * (-0.288109942)
+   + Dim.3 * 0.831843635)
+          /10.965028,
+         cuarta_dimension = 
+           (Dim.4 * (-0.176993637)
+    + Dim.4 * (-0.176993637)
+    + Dim.4 * (0.561048251)
+    + Dim.4 * (0.556245195)
+    + Dim.4 * (0.005953102)
+    + Dim.4 * (0.211164719)
+    + Dim.4 * (-0.025369939)
+    + Dim.4 * (-0.129355932)
+    + Dim.4 * (-0.086586216)
+    + Dim.4 * (-0.536537479)
+    + Dim.4 * (-0.174885917))
+             /10.434679,
+         quinta_dimension = 
+           (Dim.5 * (-0.363789833)
+    + Dim.5 * (0.077273589)
+    + Dim.5 * (0.482089883)
+    + Dim.5 * (-0.453667881)
+    + Dim.5 * (-0.030729207)
+    + Dim.5 * (-0.003999931)
+    + Dim.5 * (0.070126668)
+    + Dim.5 * (-0.067209014)
+    + Dim.5 * (0.56018772)
+    + Dim.5 * (0.360240945))
+            /10.305184) %>% 
+ mutate(pca_01 = (primera_dimension * 13.361415 + segunda_dimension * 11.781601 + tercera_dimension * 10.965028 + cuarta_dimension * 10.434679 + quinta_dimension * 10.305184) / 56.84791,
+        pca_02 = (Dim.1 * 13.361415 + Dim.2 * 11.781601 + Dim.3 * 10.965028 + Dim.4 * 10.434679 + Dim.5 * 10.305184) / 56.84791) %>% 
+  mutate(indice_pd = GGally::rescale01(primera_dimension)*100,
+         indice_sd = GGally::rescale01(segunda_dimension)*100,
+        indice_td = GGally::rescale01(tercera_dimension)*100,
+        indice_cd = GGally::rescale01(cuarta_dimension)*100,
+        indice_qd = GGally::rescale01(quinta_dimension)*100) %>% 
+  mutate(indice_01 = GGally::rescale01(pca_01)*100,
+         indice_02 = GGally::rescale01(pca_02)*100)
+```
+
+
+```{r}
+dependiente_total_pca <- bind_cols(var_dep_high_corr, data_pca)
+```
+
+
+Salvamos el dataframe final:
+
+```{r}
+write_sav(dependiente_total_pca, "var_dependientes_total_pca.sav")
+```
+
+
+
+#### No podemos correr el Analsis factorial porque tenemos demasiadas dimensiones.
+
+
+# PCA para la importancia
+
+
+
+```{r}
+colnames(var_dep_total_clean)
+
+dep_importancia <- var_dep_total_clean %>% dplyr::select(P1_MAmb, P4, P21B, P21C, P21D, P17_COD)
+```
+
+
+```{r}
+cor(na.omit(dep_importancia)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(dep_importancia, label = T) #NA se omiten automáticamente
+```
+
+Nos quedamos con P1_MAmb, P21B, P21C, p21D, porque son esenciales para medir la importancia. Nos quedamos con P17_COD, y P4 porque tienen su propia escala, por la cual la correlación no se puede medir. Corremos un Kruskal Wallis test para ver si hay alguna correlación entre estas variables no-parametricas. 
+
+Ambas preguntas parecen tener una correlación con P21B, por la cual incluimos ambas preguntas en el dataset.
+
+```{r warning=FALSE}
+kruskal.test(P4~ P21B, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P4~ P21C, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P4~ P1_MAmb, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P4~ P17_COD, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P17_COD~ P21B, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P17_COD~ P21C, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P17_COD~ P21D, data = dep_importancia)
+```
+
+
+```{r warning=FALSE}
+kruskal.test(P17_COD~ P1_MAmb, data = dep_importancia)
+```
+
+
+Realicemos el PCA.
+
+
+Vemos que las preguntas parecen ir en solamente dos direcciones. En estas dos direcciones las preguntas se dividen con magnitud relativamente igual.
+
+```{r warning=FALSE}
+pca_1 <- PCA(dep_importancia, graph = T) #Sin gráfico = F
+```
+
+
+### Pesos relativos
+
+Especialmente la primer dimension es dominante con un eigenvalue arriba de 2.00. Esta dimension ya explica gran parte de la varianza, un 34.3 %. La segunda y tercera dimension parecen ser menos explicativas, pera al incluirlas se explica 68.14 % cual puede considerarse alto. La cuarta dimension cubriria casi toda la varianza (84.3 %), pero ya tiene un eigenvalue bajo el 1.00. Vamos a analizar las dimensiones ahora.
+
+```{r}
+get_eig(pca_1)
+```
+
+```{r}
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+```
+
+### Contribuciones de las variables a cada componente principal:
+
+**Si es que las contribuciones fuesen uniformes, todas estarían en la línea de referencia.**
+
+Cómo contribuye cada variable para cada dimensión:
+
+1. La parilla: **La importancia del cambio climatico**
+
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 1)
+```
+
+
+2. Parece tener un conjunto raro entre **la vulnerabilidad percibida hacia el cambio climatico (en general y en el ambiente personal)** y entre **la calidad del medio ambiente de la región**. Estos dos conceptos estan obviamente relacionados, pero podrian considerarse mutuamente exclusivos.
+
+Si vemos (mas tarde), la segunda dimension parece ser un conjunto de la tercera y cuarta dimension.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 2)
+```
+
+3. Esta dimension parece indicar "**La importancia del cambio climatico medido por la experiencia personal**". Sin embargo, la contribución de P1_MAmb, parece ser significante menos (alrededor del 40 % menos).
+
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 3)
+```
+4. Es mayormente explicado por "**la relación entre la calidad del ambiente personal y su importancia**".
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 4)
+```
+5. No parece tener una dimension explicativa otra ya que es la combinación de las dos dimensiones de importancia del cambio climatico, la externa (región) y interna (personal).
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 5)
+```
+
+
+### Generar el índice:
+
+Por definición del poder explicativo de la dimensión, hasta la tercera dimensión, parece que la contribución de la variable respectivo a la dimensión se puede explicar.
+
+Los scores que asignan las dimensiones a cada observación:
+
+Vemos que la mayoria de las variables tiene una dominancia baja, pero no es el caso que hay una dimension que no tenga una variable de varianza explicativa mayor.
+
+La quinta dimension no tiene variables que dominen en correlación relativo a la correlación que tienen esas mismas variables con otras dimensiones. Por esta razon, es mejor no considerarla. Tambien aunque la cuarta dimension si una contribución alta de P1_MAmb y P4, la segunda dimension tambien tiene esta correlación alta, y  ademas anade correlación de otras variables. Concluimos que nos interesan las primeras tres dimensiones.
+
+```{r}
+head(pca_1$ind$coord) #para cada observación, tendremos un score por dimensión. 
+head(pca_1$var$coord) #para cada observación, tendremos un score por dimensión. 
+```
+```{r, echo= FALSE}
+library(kableExtra)
+
+readxl::read_excel("data/Overview pca importancia correlation.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:6, width_min = "2cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+
+
+Recordemos los pesos relativos:
+
+```{r}
+get_eig(pca_1)
+```
+Decidimos mantener hasta la tercera dimension, porque:
+
+* por su eigenvalue cerca de 1
+* la cantidad de varianza explicada
+* el hecho que se vuelve menos explicativa las dimensiones mientras mas consideramos. Esto ya lo vimos cuando consideramos la cuarta dimensión.
+
+
+```{r}
+#use GGaly for rescale
+library(GGally)
+
+data_pca <- pca_1$ind$coord%>%
+ as_tibble() %>%
+  mutate(primera_dimension = 
+           (Dim.1 * (-0.0104548)
+  + Dim.1 * (0.01737406)
+  + Dim.1 * 0.78220123
+  + Dim.1 * (0.8793162)
+  + Dim.1 * 0.81639348
+  + Dim.1 * (-0.08095817))
+  / 34.308324,
+         segunda_dimension = 
+           (Dim.2 * 0.61573692
+  + Dim.2 * 0.68003185
+  + Dim.2 * 0.01538236
+  + Dim.2 * (-0.01014835)
+  + Dim.2 * (0.03373041)
+  + Dim.2 * (0.44496169))
+  /17.350725,
+         tercera_dimension = 
+           (Dim.3 * (-0.51327501)
+   + Dim.3 * (-0.08931565)
+   + Dim.3 * 0.03764559
+   + Dim.3 * 0.0305664
+   + Dim.3 * 0.01017055
+   + Dim.3 * 0.84539396)
+          /16.476240) %>% 
+ mutate(pca_01 = (primera_dimension * 34.308324 + segunda_dimension * 17.350725 + tercera_dimension * 16.476240) / 68.13529,
+        pca_02 = (Dim.1 * 34.308324 + Dim.2 * 17.350725 + Dim.3 * 16.476240) / 68.13529) %>% 
+  mutate(indice_pd = GGally::rescale01(primera_dimension)*100,
+         indice_sd = GGally::rescale01(segunda_dimension)*100,
+        indice_td = GGally::rescale01(tercera_dimension)*100) %>% 
+  mutate(indice_01 = GGally::rescale01(pca_01)*100,
+         indice_02 = GGally::rescale01(pca_02)*100)
+```
+
+
+```{r}
+dependiente_importancia_pca <- bind_cols(var_dep_high_corr, data_pca)
+```
+
+Salvamos el dataframe final:
+
+```{r}
+write_sav(dependiente_importancia_pca, "var_dependientes_importancia_pca.sav")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# PCA para la preocupacion
+
+```{r}
+dep_preocupacion <- var_dep_total_clean %>% dplyr::select(P2_COD, P19_1,P19_2,P19_5,P19_6,P19_7, P19_8)
+```
+
+
+```{r}
+cor(na.omit(dep_preocupacion)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(dep_preocupacion, label = T) #NA se omiten automáticamente
+``` 
+Todas las preguntas tienen una correlación baja.
+
+No consideramos P19_7 y P19_8 por su falta de correlación.
+
+```{r}
+dep_preocupacion <- dep_preocupacion %>% dplyr::select(P2_COD, P19_1,P19_2,P19_5,P19_6)
+```
+
+
+Corremos un Kruskal Wallis test para ver si hay alguna correlación entre estas variables no-parametricas. 
+
+P2_COD parece solo tener una correlación significativa con P19_1, por la cual la incluimos en el dataset. Para el resto de las preguntas, parece no haber ninguna correlación importante.
+
+```{r}
+kruskal.test(P2_COD~ P19_1, data = dep_preocupacion)
+kruskal.test(P2_COD~ P19_2, data = dep_preocupacion)
+kruskal.test(P2_COD~ P19_5, data = dep_preocupacion)
+kruskal.test(P2_COD~ P19_6, data = dep_preocupacion)
+kruskal.test(P2_COD~ P19_7, data = dep_preocupacion)
+kruskal.test(P2_COD~ P19_8, data = dep_preocupacion)
+```
+
+
+Realicemos el PCA.
+
+
+Vemos direcciones y magnitudes similares a cuando hicimos el PCA total. Seria interesante ver cuando corramos modelos regresivos como se relaciona la variable dependiente total, y la de preocupación, ya que comparten similitudes.
+
+```{r}
+pca_1 <- PCA(dep_preocupacion, graph = T) #Sin gráfico = F
+```
+
+
+### Pesos relativos
+
+Tres dimensiones con eigenvalue arriba de 1.00. Juntos explican ya 69.76 % de la varianza!
+
+```{r}
+get_eig(pca_1)
+```
+```{r}
+fviz_eig(pca_1, choice = "eigenvalue", addlabels = T)
+```
+
+### Contribuciones de las variables a cada componente principal:
+
+**Si es que las contribuciones fuesen uniformes, todas estarían en la línea de referencia.**
+
+Cómo contribuye cada variable para cada dimensión:
+
+1. La parilla: **Pena y frustación**
+
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 1)
+```
+
+
+2. **Pena, rabio, enfado. Los sentimientos de ira**. Especialmente el enfado contribuye a esta dimension cual explica alrededor de 10 % de la varianza.
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 2)
+```
+
+3. **Problema ambiental principal personal**. Es decir, esta dimension solo consiste de una pregunta. 
+
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 3)
+```
+
+### Las variables de estas dimensiones (4,5) ya tienen mayor contribución en las primeras tres dimensiones, por la cual no las consideramos.
+
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 4)
+```
+
+```{r}
+fviz_contrib(pca_1, choice = "var", axes = 5)
+```
+
+
+### Generar el índice:
+
+Por definición del poder explicativo de la dimensión, hasta la tercera dimensión, parece que la contribución de la variable respectivo a la dimensión se puede explicar.
+
+Los scores que asignan las dimensiones a cada observación:
+
+Vemos que la mayoria de las variables tiene una dominancia baja, pero no es el caso que hay una dimension que no tenga una variable de varianza explicativa mayor.
+
+La quinta dimension no tiene variables que dominen en correlación relativo a la correlación que tienen esas mismas variables con otras dimensiones. Por esta razon, es mejor no considerarla. Tambien aunque la cuarta dimension si una contribución alta de P1_MAmb y P4, la segunda dimension tambien tiene esta correlación alta, y  ademas anade correlación de otras variables. Concluimos que nos interesan las primeras tres dimensiones.
+
+```{r}
+head(pca_1$ind$coord) #para cada observación, tendremos un score por dimensión. 
+head(pca_1$var$coord) #para cada observación, tendremos un score por dimensión. 
+```
+```{r, echo= FALSE}
+library(kableExtra)
+
+readxl::read_excel("data/Overview pca preocupacion correlation.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:6, width_min = "2cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+
+
+Recordemos los pesos relativos:
+
+```{r}
+get_eig(pca_1)
+```
+Decidimos mantener hasta la tercera dimension, porque:
+
+* por su eigenvalue cerca de 1
+* la cantidad de varianza explicada
+* el hecho que se vuelve menos explicativa las dimensiones mientras mas consideramos. Esto ya lo vimos cuando consideramos la cuarta dimensión.
+
+
+```{r}
+#use GGaly for rescale
+library(GGally)
+
+data_pca <- pca_1$ind$coord%>%
+ as_tibble() %>%
+  mutate(primera_dimension = 
+           (Dim.1 * (-0.1352883)
+  + Dim.1 * (0.6732564)
+  + Dim.1 * (-0.8587398)
+  + Dim.1 * (0.2975378)
+  + Dim.1 * 0.1660857)
+  / 26.50249,
+         segunda_dimension = 
+           (Dim.2 * 0.2017577
+  + Dim.2 * (-0.5638351)
+  + Dim.2 * (-0.1454642)
+  + Dim.2 * (0.5645079)
+  + Dim.2 * (0.6865296))
+  /23.39536,
+         tercera_dimension = 
+           (Dim.3 * (0.92140521)
+   + Dim.3 * (0.17477537)
+   + Dim.3 * (-0.09400599)
+   + Dim.3 * (-0.30625642)
+   + Dim.3 * 0.10466202)
+          /19.86236) %>% 
+ mutate(pca_01 = (primera_dimension * 26.50249 + segunda_dimension * 23.39536 + tercera_dimension * 19.86236) / 69.76022,
+        pca_02 = (Dim.1 * 26.50249 + Dim.2 * 23.39536 + Dim.3 * 19.86236) / 69.76022) %>% 
+  mutate(indice_pd = GGally::rescale01(primera_dimension)*100,
+         indice_sd = GGally::rescale01(segunda_dimension)*100,
+        indice_td = GGally::rescale01(tercera_dimension)*100) %>% 
+  mutate(indice_01 = GGally::rescale01(pca_01)*100,
+         indice_02 = GGally::rescale01(pca_02)*100)
+```
+
+
+```{r}
+dependiente_preocupacion_pca <- bind_cols(var_dep_high_corr, data_pca)
+```
+
+Salvamos el dataframe final:
+
+```{r}
+write_sav(dependiente_preocupacion_pca, "var_dependientes_preocupacion_pca.sav")
+```
+
+
+
+
+
+

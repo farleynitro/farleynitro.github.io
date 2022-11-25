@@ -1,0 +1,5 @@
+"0","# Selección de variables para matching "
+"0","X <- cbind(popdensity, pre_acres, income, countyid)"
+"0",""
+"0","#salavamos a un matrix de solo estas variables"
+"0","X <- as.matrix(X) # Covariantes"

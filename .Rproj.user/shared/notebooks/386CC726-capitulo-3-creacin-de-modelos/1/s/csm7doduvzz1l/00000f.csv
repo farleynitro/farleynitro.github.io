@@ -1,6 +1,7 @@
 "0","library(tidyverse)"
 "0","library(sjmisc)"
 "0","library(haven)"
+"0","library(VIM)"
 "0","library(kableExtra)"
 "0","library(skimr)"
 "0","library(sjPlot)"
@@ -13,3 +14,4 @@
 "0","library(MASS) # ordinal regression"
 "0","library(nnet) # multinomial regression"
 "0","library(moderndive) # get_regression_table"
+"0","library(broom)"

@@ -1,0 +1,1054 @@
+---
+title: "Capitulo 3: Creación de modelos"
+description: |
+  A short description of the post.
+author:
+  - name: Farley Rimon
+    url: {}
+date: 2022-11-03
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+Cargamos los datos y paquetes que necesitamos
+
+```{r paquetes, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(VIMG)
+library(kableExtra)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(naniar)
+library(plyr)
+library(dplyr) # df manipulation
+library(texreg) # model evaluation
+library(MASS) # ordinal regression
+library(nnet) # multinomial regression
+library(moderndive) # get_regression_table
+library(broom)
+```
+
+
+Cargamos los datos:
+
+```{r}
+ind_con_control <- read_sav("data/var_independientes_y_control.sav")
+dep_pca_total <- read_sav("data/var_dependientes_total_pca.sav")
+dep_pca_importancia <- read_sav("data/var_dependientes_importancia_pca.sav")
+dep_pca_preocupacion <- read_sav("data/var_dependientes_preocupacion_pca.sav")
+dep_total_clean <- read_sav("data/var_dependientes_total_clean_unreduced_final.sav")
+```
+
+# 1 Construcción de modelo
+
+Juntamos los dataframes:
+
+```{r}
+reg_pca_total <- merge(ind_con_control, dep_pca_total,
+                          by = 'row.names', all = TRUE)
+reg_pca_importancia <- merge(ind_con_control, dep_pca_importancia,
+                          by = 'row.names', all = TRUE)
+reg_pca_preocupacion <- merge(ind_con_control, dep_pca_preocupacion,
+                          by = 'row.names', all = TRUE)
+dep_total_clean <- merge(ind_con_control, dep_total_clean,
+                          by = 'row.names', all = TRUE)
+```
+## Conceptos basicos para modelos de regresion
+
+Nuestra variable dependiente es continua ya que se toma el promedio.
+
+Requisitos para regresión múltiple:
+
+* Tamano muestral elevado de minimo 500 observaciones. Tenemos 6466 observaciones asi que satisfacemos eso.
+* Variable dependiente tiene que ser continua o dicotómica
+* Mejor es ver relacion individual entre VD y VI y despues anadir al set de componentes
+* No anadir variables innecesarias!
+* Para tener variables significativas , el p < 0.05
+
+## 1.1 Modelo regresión lineal PCA
+
+
+Vemos que el plot no muestra alguna relación linear. Es algo esperado ya que nuestra variable independiente no es parametrica. Vemos que el indice del PCA esta distribuido por todas partes sin mostral algúna relación con las zonas. Aún asi es posible correr un modelo de regresión lineal múltiple, ya que la regresión sirve como una manera de predecir cuanto incrementa nuestra variable dependiente cuando tienes un incremento de una unidad en nuestra variable(s) independientes. Es decir, **la linearidad en regresión asume que es esta relación entre variable dependiente y independiente estan correlacionadas**, por la cual es un suposición de nuestro modelo.
+
+
+Corremos los modelos y controlamos sobre las variables confundidores para ver si aún asi hay alguna significancia estadistica.
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_total %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 01" ,x = "Zonas", y ="Indice PCA 01") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_total %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+Las Zonas de Chile no parecen tener ningúna significancia estadistica. Su valor-p > 0.05, indicando que nuestra hipótesis nula es cierta (la percepción no cambia entre zonas). Es mas, el $R^{2}$ ajustado es de 0. No hay ningúna significancia.
+
+```{r}
+modelo_pca_tot_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total, na.action = na.exclude)
+
+modelos_pca_tot <- list(modelo_pca_tot_1, modelo_pca_tot_2)
+
+screenreg(modelos_pca_tot) 
+```
+
+Controlamos por las variables confundidoras mas relevantes según la literatura. Esto seria, el nivel socio-economico (NSE), el nivel de educación, y la edad.
+
+Tampoco las variables confundidoras parecen tener alguna significancia estadistica.
+
+```{r}
+modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+
+modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)
+
+screenreg(modelos_pca_tot_2) 
+```
+Anadimos todas las variables confundidoras que tenemos. Esto va con el riesgo que hacemos un **overfit** de nuestro modelo, a nuestros datos especificos. Aún asi, hacemos esto para ver si hay algúna relevancia.
+
+Sacamos los nombres de todos las variables independientes:
+
+```{r}
+colnames(ind_con_control)
+```
+Interesantemente, solo el uso de transporte mas frecuente tiene una significancia estadistica con valor-p <0.05. Continuamos con nuestra investigacion inicial, pero vamos a ver a esta hipótesis, "el uso de transporte afecta tu percepción sobre el cambio climatico", luego. Lo mantenemos en el fondo de nuestras mentes.
+
+```{r}
+modelo_pca_tot_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+
+modelo_pca_tot_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+
+modelos_pca_tot_3 <- list(modelo_pca_tot_1_3, modelo_pca_tot_2_3)
+
+screenreg(modelos_pca_tot_3) 
+```
+Almenos vemos que no hay sesgo en la predicción.
+
+```{r}
+
+ggplot(mapping = aes(x = modelo_pca_tot_2_3$fitted.values, y = modelo_pca_tot_2_3$residuals)) +
+  labs(x = "Valores predichos", y = "Residuos") +
+  geom_point() +
+  geom_hline(mapping = aes(yintercept = 0), color = "red")
+```
+
+Cuando solo el uso de transporte mas frecuente, incluyendo variables confundidoras mas relevantes, vemos que ya no es significante. Mejor no cambiar la hipotesis ya que la significancia depende de controlar (y overfit) el modelo a nuestros datos.
+
+
+
+```{r}
+modelo_pca_tot_2_4 <- lm(indice_02 ~ 1 + Transporte_mas_freq, data = reg_pca_total, na.action = na.exclude)
+modelo_pca_tot_2_5 <- lm(indice_02 ~ 1 + Transporte_mas_freq + Edad + NSE + Niv_Edu, data = reg_pca_total, na.action = na.exclude)
+
+
+modelos_pca_tot_2_4_5 <- list(modelo_pca_tot_2_4, modelo_pca_tot_2_5) 
+screenreg(modelos_pca_tot_2_4_5) 
+```
+
+### Modelo regresión lineal PCA total filtrando outliers
+
+Vemos que la distribución de los dos indices que creamos en la exploración son un poco diferentes. En el primer indice hay un grupo de datos separados del resto, con un valor entre 0 y 25. En el indice 2 vemos un comportamiento similar, solo que esto grupo es mas pequeno. Podemos ver, si filtramos estos datos si el modelo tendria mas significancia.
+
+La cantidad de valores bajo el 25 para el indice 1, es de 186, un 3 % de nuestros datos. Para el indice 2 es un 0.05 % de nuestros datos. Asumo que es tan minimo, que filtrar estos subsets no afectaria la predicción del modelo.
+
+```{r}
+length(which(reg_pca_total$indice_01<25))
+length(which(reg_pca_total$indice_02<25))
+```
+
+
+```{r}
+reg_pca_total_filter_indice1 <- reg_pca_total[reg_pca_total$indice_01  >25, ]
+reg_pca_total_filter_indice2 <- reg_pca_total[reg_pca_total$indice_02  >25, ]
+```
+
+
+Aún, no parece haber ningúna significancia estadistica.
+
+```{r}
+modelo_pca_tot_1_filtered <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_total_filter_indice1, na.action = na.exclude)
+modelo_pca_tot_2_filtered <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_total_filter_indice2, na.action = na.exclude)
+
+modelos_pca_tot_filtered <- list(modelo_pca_tot_1_filtered, modelo_pca_tot_2_filtered)
+
+screenreg(modelos_pca_tot_filtered) 
+```
+
+
+
+### Modelo regresión lineal PCA con ordinal smooth
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Modelo regresión lineal PCA preocupacion
+
+Vemos una distribución muy uniforme entres las diferentes zonas. Esto ya indica que no va a hay una relación concreta entre nuestra variable independiente, y dependiente. Sin embargo, si controlamos sobre las variables confundidoras, podriamos tener alguna significancia.
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+El modelo no parece tener algúna relevancia. Nuestra hipótesis, que la zona puede predecir el nivel de preocupación no parece ser valida. 
+
+
+```{r}
+modelo_pca_preo_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_preo_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_preocupacion, na.action = na.exclude)
+
+modelos_pca_preo <- list(modelo_pca_preo_1, modelo_pca_preo_2)
+
+screenreg(modelos_pca_preo) 
+```
+
+```{r}
+modelo_pca_preo_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)
+modelo_pca_preo_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_preocupacion, na.action = na.exclude)
+
+modelos_pca_preo_2 <- list(modelo_pca_preo_1_2, modelo_pca_preo_2_2)
+
+screenreg(modelos_pca_preo_2) 
+```
+
+```{r}
+modelo_pca_preo_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+
+modelo_pca_preo_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+
+modelos_pca_preo_3 <- list(modelo_pca_preo_1_3, modelo_pca_preo_2_3)
+
+screenreg(modelos_pca_preo_3) 
+```
+
+### Modelo regresión lineal PCA importancia
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_importancia %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_importancia %>% 
+  ggplot(aes(x = as_factor(ZONAS), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indica PCA" ,x = "Zonas", y ="Indica PCA") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+El modelo no parece tener algúna relevancia. Nuestra hipótesis, que la zona puede predecir el nivel de importancia no parece ser valida. El tipo de combustible que alguien tiene un valor-p < 0.05. Sin embargo, para cambiar nuestra hipotesis y cambiar esto hay algunaas cosas que hay que considerar que no todo el mundo tienen un auto. Por esta razon, no se puede filtrar sobre un subgrupo de la populación que tenga vehiculo.
+
+```{r}
+modelo_pca_imp_1 <- lm(indice_01 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2 <- lm(indice_02 ~ 1 + ZONAS, data = reg_pca_importancia, na.action = na.exclude)
+
+modelos_pca_imp <- list(modelo_pca_imp_1, modelo_pca_imp_2)
+
+screenreg(modelos_pca_imp)
+```
+
+```{r}
+modelo_pca_imp_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+
+modelos_pca_imp_2 <- list(modelo_pca_imp_1_2, modelo_pca_imp_2_2)
+
+screenreg(modelos_pca_imp_2) 
+```
+
+```{r}
+modelo_pca_imp_1_3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+
+modelo_pca_imp_2_3 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+
+modelos_pca_imp_3 <- list(modelo_pca_imp_1_3, modelo_pca_imp_2_3)
+
+screenreg(modelos_pca_imp_3) 
+```
+Cuando solo vemos el uso de combustible, incluyendo variables confundidoras mas relevantes, vemos que ya aun sigue siendo significante esta variable predictiva. Esto los discutimos en la siguiente sección.
+
+```{r}
+modelo_pca_imp_1_4 <- lm(indice_01 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_1_5 <- lm(indice_01 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+
+modelo_pca_imp_2_4 <- lm(indice_02 ~ 1 + Automovil_Combustible, data = reg_pca_importancia, na.action = na.exclude)
+modelo_pca_imp_2_5 <- lm(indice_02 ~ 1 + Automovil_Combustible + Edad + NSE + Niv_Edu, data = reg_pca_importancia, na.action = na.exclude)
+
+
+modelos_pca_imp_4_5 <- list(modelo_pca_imp_1_4,modelo_pca_imp_1_5,modelo_pca_imp_2_4, modelo_pca_imp_2_5) 
+screenreg(modelos_pca_imp_4_5) 
+```
+Sin embargo vemos que hay un sesgo hacia la derecha en los valores predichos.
+
+```{r}
+# estimadores <- get_regression_table(modelo_pca_imp_1_5)
+# estimadores_obs <- get_regression_points(modelo_pca_imp_1_5)
+
+ggplot(mapping = aes(x = modelo_pca_imp_1_5$fitted.values, y = modelo_pca_imp_1_5$residuals)) +
+  labs(x = "Valores predichos", y = "Residuos") +
+  geom_point() +
+  geom_hline(mapping = aes(yintercept = 0), color = "red")
+```
+
+
+
+## Discusión
+
+Como hemos visto los modelos que creamos no parecen tener una significancia estadistica. Esto significa que tampoco es relevante evaluarlas. Durante este proceso hay algúnas observaciones que merecen una discusión. Esta discusión llevara a una solución para tener un modelo útil, sea porque cambiamos la hipótesis, o porque cambiamos nuestra metodologia.
+
+* 1. La manera en la que creamos el indice puede ser incorrecta. Aunque creamos dos diferentes indices, ambas son amiguas. 
+
+
++ * Es posible que otras maneras de crear el indice si muestren una significancia.
+
+* 2. Al incluir variables con poca correlacion afectamos la aplicación del PCA. 
+
++ * Es dificil determinar la correlación entre variables no-parametricas que intentar cuantificar conceptos. Especificamente, en algunos casos incluimos variables que no tienen correlación porque teoreticamente tienen una relación, aunque no se vea en los datos. Podriamos excluir variables con poca correlación, aunque esto signifique que la latente cambie.
+
+* 3. Podriamos cambiar nuestra variable independiente a una que vea la diferencia entre la región metropolitana y el resto de Chile. 
+
+
+
++ * Chile tiene una distribución de populación muy concentrada en la región metropolitana (RM) por la que la gente de esta región tiene otros problemas ambientales que el resto de Chile. Para esto podriamos:
+
+
+
++ * **1** crear un PCA nuevo con otras variables dependientes.**No lo consideramos por una limitación al tiempo disponible**
+
+
++ * **2** crear una columna que indice si la zona es afuera o adentro de la región metropolitana. Despues corremos nuevamente los modelos a ver si la predicción mejora. **Lo consideramos por una limitación al tiempo disponible**
+
+
+* 4. Nuestras latentes podrian no estar bien formuladas porque el concepto sigue siendo muy amplio.
+
++ * Para esto podriamos enfocarnos en latentes que conceptualmente sean menos ambiguas. Esto podria enfocarse en una latente que tenga una parilla hecha con un alfa de Cronbach alto. **No lo consideramos por una limitación al tiempo disponible**
+
+* 5. El uso de combustible para el vehiculo tiene una significancia estadistica al predecir el indice de importancia. Sin embargo, tengo la idea que hay otra razon por la que muestra significancia. Una variable que domina ambas variables. Esto podria ser la posesion de tener un auto. Requiere mas investigación. **No lo consideramos porque cae afuera del marco teórico de esta investigación**
+
+* 6. Puede ser que el modelo funcione para modelo no-lineales. Sin embargo, esto requiere tener un muy buen conocimiento de los conceptos para asi entender lo que el modelo predice.**No lo consideramos porque cae afuera del contenido de esta clase**
+
+* 7. Corremos Analisis Factorial donde determinamos si se pueden clusterizar algúnos conceptos. Esto nos inspira a crear un PCA del conjunto que crea. Si es asi, bien deberiamos de conseguir un modelo con significancia estadistica, y por esto una posible causalidad.
+
+* 8. Usar Analisis Factorial para determinar si se forman dos latentes del P19 y P21. Incluimos las variables que excluimos anteriormente por el alfa de Cronbach.
+
+* 9. 
+
+
+
+### Enfoque punto 3
+
+```{r}
+# #RECODING the values
+zonas_rec <- reg_pca_total %>%
+  dplyr::select(ZONAS) %>%
+  rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+
+zonas_rec <- reg_pca_importancia %>%
+  dplyr::select(ZONAS) %>%
+  rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+
+zonas_rec <- reg_pca_preocupacion %>%
+  dplyr::select(ZONAS) %>%
+  rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+
+reg_pca_total$Zonas_recoded <- zonas_rec
+reg_pca_importancia$Zonas_recoded <- zonas_rec
+reg_pca_preocupacion$Zonas_recoded <- zonas_rec
+
+reg_pca_total[] <- lapply(reg_pca_total, function(x) as.numeric(as.character(x)))
+reg_pca_total <- do.call(data.frame, reg_pca_total)
+
+reg_pca_importancia[] <- lapply(reg_pca_importancia, function(x) as.numeric(as.character(x)))
+reg_pca_importancia <- do.call(data.frame, reg_pca_importancia)
+
+reg_pca_preocupacion[] <- lapply(reg_pca_preocupacion, function(x) as.numeric(as.character(x)))
+reg_pca_preocupacion <- do.call(data.frame, reg_pca_preocupacion)
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_importancia %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 1" ,x = "Zonas", y ="Indica PCA 1") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+```{r warning = FALSE, message = FALSE}
+reg_pca_importancia %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 1" ,x = "Zonas", y ="Indica PCA 1") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_01)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 1" ,x = "Zonas", y ="Indice PCA 1") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+```{r warning = FALSE, message = FALSE}
+reg_pca_preocupacion %>% 
+  ggplot(aes(x = as_factor(Zonas_recoded), y = indice_02)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_point(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+    labs(title = "Zonas vs Indice PCA 2" ,x = "Zonas", y ="Indice PCA 2") +
+  theme_minimal(base_family = "Roboto Condensed")
+```
+Nada aun. De nuevo el uso de tipo de autocombustible tiene significancia estadistica. Sin embargo, creo que esto es una variable confundidora, ya que hay otra variable que afecta el autocombustible y la percepción.
+
+```{r}
+modelo_pca_preo_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_preocupacion, na.action = na.exclude)
+
+modelo_pca_imp_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_importancia, na.action = na.exclude)
+
+modelo_pca_tot_enfoque3 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = reg_pca_total, na.action = na.exclude)
+
+
+modelos_pca_enfoque3 <- list(modelo_pca_preo_enfoque3, modelo_pca_imp_enfoque3, modelo_pca_tot_enfoque3)
+
+screenreg(modelos_pca_enfoque3) 
+```
+
+### Enfoque punto 2
+
+### Enfoque punto 4
+
+
+#### Intento con P21_promedio
+
+Nada...
+
+```{r}
+zonas_rec <- dep_total_clean %>%
+  dplyr::select(ZONAS.x) %>%
+  rec(rec= "1=1;2,3,4=0;else=copy",suffix="")
+
+
+dep_total_clean$Zonas_recoded <- zonas_rec
+
+dep_total_clean[] <- lapply(dep_total_clean, function(x) {
+    if(is.factor(x)) as.numeric(as.character(x)) else x
+})
+dep_total_clean <- do.call(data.frame, dep_total_clean)
+```
+
+```{r}
+modelo_P21_promedio_zonas_recoded_enfoque4 <- lm(P21_promedio ~ 1 + Zonas_recoded + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+
+modelo_P21_promedio_zonas_normal_enfoque4 <- lm(P21_promedio ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici + Trab_Ingr + Religion + Razon_Bici + Automovil_Combustible + Transporte_mas_freq + Religion, data = dep_total_clean, na.action = na.exclude)
+
+modelos_P21_promedio_enfoque4 <- list(modelo_P21_promedio_zonas_recoded_enfoque4,modelo_P21_promedio_zonas_normal_enfoque4)
+
+screenreg(modelos_P21_promedio_enfoque4)
+```
+#### Intento con otro analisis de PCA
+
+Parilla 22 Efectividad de acciones (externas/no individuales)
+
+P22A-G ¿Cuán efectivas cree que pueden llegar a hacer las acciones que emprendan para mitigar el cambio climático?: El gobierno y las municipalidades
+
+
+Parilla 19 Sentimientos
+
+Parilla 29 Politicas que hay que incorporar
+
+Parilla 14 participacion protestas contra cambio climatico
+
+Parilla 6 Acciones personales contra cambio climatico
+
+
+```{r, results='hide', echo=FALSE}
+#Para ver Average Marginal Effect (sort of sensitivity analysis)
+
+# ¿Cuál es el efecto medio?
+
+# marginal_ef <- margins(mod1a)
+# 
+# plot(marginal_ef)
+```
+
+
+
+# 2 Evaluando los mejores modelos
+
+El AIC mide la “distancia” que existe entre los parámetros verdaderos y los estimadores del modelo mediante una distancia matemática llamada divergencia Kullback-Leibler. Cuanto más pequeña sea la distancia, mejor será el modelo.
+
+El BIC, a diferencia del AIC, penaliza la complejidad del modelo más rigurosamente ya que además toma en consideración el número de observaciones de la muestra.
+
+```{r}
+# broom::glance(modelo.lm)
+```
+
+
+Grafico ROC: Lo más importante de la figura es el área debajo de la curva diagonal que la cruza.
+Sensibilidad: relación entre los verdaderos positivos y la suma de los verdaderos positivos más los falsos negativos.
+Especificidad: relación entre los verdaderos negativos y la suma de los falsos positivos a los verdaderos negativos.
+Tener en consideración el cálculo del AUC (Área bajo la Curva): cuanto mayor sea, mejor será el ajuste.
+
+### Metodos de evaluación
+
+ANOVA is a statistical test for estimating how a quantitative dependent variable changes according to the levels of one or more categorical independent variables. ANOVA tests whether there is a difference in means of the groups at each level of the independent variable.
+
+Esto lo usamos como recurso final para ver si hay variables que no contienen variacion en relación a otras variables independientes. Por ejemplo, si la 
+[https://www.scribbr.com/statistics/anova-in-r/]
+
+
+```{r}
+# ¿Cuál es el efecto medio?
+# 
+# marginal_ef <- margins(mod1a)
+# plot(marginal_ef)
+# 
+# library(pscl)
+# 
+# # Pseudo R-cuadrado
+# 
+# pR2(mod1b)[["McFadden"]]
+# 
+# # Pseudo R cuadrado ajustado
+# 
+# library(DescTools)
+# 
+# PseudoR2(mod1b, c("McFadden"))
+```
+
+
+```{r, echo=FALSE}
+# ROC
+
+# library(plotROC)
+# 
+# pred_models <- bind_rows(augment(mod1b, response.type = "pred") %>%
+#                            mutate(model = "Modelo 1"),
+#                          augment(mod2, response.type = "pred") %>%
+#                            mutate(model = "Modelo 2"),
+#                          augment(mod3, response.type = "pred") %>%
+#                            mutate(model = "Modelo 3"))
+# 
+# roc <- ggplot(pred_models, aes(d = election, m = .fitted, color = model)) +
+#   geom_roc(n.cuts = 0) + 
+#   geom_abline(slope = 1) +
+#   labs(x = "1 - especificidad", y = "Sensibilidad") +
+#   hrbrthemes::theme_ipsum_rc()
+# 
+# roc
+# 
+# calc_auc(roc)
+```
+
+### Testeando los modelos
+
+Los gráficos de diagnóstico muestran los residuos de cuatro maneras diferentes:
+
+Para la relación **residuos vs real** Residuos vs. Ajuste: se utiliza para comprobar los supuestos de linealidad. Si los residuos se distribuyen por igual en torno a una línea horizontal sin patrones distintos (la línea roja es aproximadamente horizontal en cero), es una buena indicación de que existe una relación lineal.
+
+Lo ideal es una línea horizontal alrededor de cero:
+
+Para la **distribución de residuos** Q-Q normal: se utiliza para comprobar el supuesto de normalidad de los residuos. Si la mayoría de los residuos siguen la línea recta discontinua, se cumple el supuesto.
+
+El gráfico QQ de los residuos puede utilizarse para comprobar visualmente el supuesto de normalidad. El gráfico de probabilidad normal de los residuos debe seguir aproximadamente una línea recta". Un patrón de desviaciones en forma de arco con respecto a la diagonal indica que los residuos tienen una asimetría excesiva (es decir, no están distribuidos simétricamente, con demasiados errores grandes en la misma dirección). Un patrón de desviaciones en forma de S indica que los residuos tienen una curtosis excesiva, es decir, que hay demasiados o muy pocos errores grandes en ambas direcciones.
+
+Para la **Homoesticidad** Escala-Localización: se utiliza para comprobar la homocedasticidad de los residuos (igual varianza de los residuos). Si los residuos se reparten de forma aleatoria y se ve una línea horizontal con puntos repartidos de forma igual (aleatoria), entonces se cumple la hipótesis.
+
+Gráfico de escala-ubicación / gráfico de dispersión-ubicación (igual que el anterior, sólo que utilizando residuos estandarizados) "Queremos una línea más o menos horizontal con puntos más o menos equitativos alrededor".
+
+**No lo evaluamos** Residuales vs. Apalancamiento: se utiliza para identificar cualquier valor influyente en nuestro conjunto de datos. Los valores influyentes son valores extremos que podrían influir en los resultados de la regresión cuando se incluyen o excluyen del análisis. Busque los casos fuera de la línea discontinua.
+
+Ayuda recibida de: https://bookdown.org/jimr1603/Intermediate_R_-_R_for_Survey_Analysis/testing-regression-assumptions.html 
+
+```{r}
+# # Change the panel layout to 2 x 2 (to look at all 4 plots at once)
+# par(mfrow = c(2, 2))
+# 
+# # Use plot() function to create diagnostic plots
+# plot(simple_model)
+```
+
+
+### Multicolinealidad en la regresión
+
+Mientras que la colinealidad puede detectarse con una matriz de correlación, la multicolinealidad no es tan fácil de detectar. El Factor de Inflación de la Varianza (VIF) puede utilizarse para determinar en qué medida la varianza de un coeficiente de regresión está inflada debido a la multicolinealidad en el modelo. El menor valor posible es uno, lo que indica que no hay multicolinealidad. Un valor superior a 5 o 10 indica una cantidad problemática de multicolinealidad en los datos. En R utilizamos la función vif() del paquete auto para detectar la multicolinealidad en un modelo de regresión múltiple (donde la variable de respuesta es el ozono y se añaden todas las variables explicativas):
+
+
+Idealmente esta cerca de 1. Si no removemos esta variable de nuestra regresión.
+
+```{r}
+# car::vif(modelo)
+```
+
+
+# 3 Creación de clusters
+
+```{r}
+library(factoextra) # Visualización y cálculos
+library(cluster)
+library(NbClust) # Cálculo de índices
+library(fpc) # Clusters con iteraciones
+library(dendextend)
+library(tidyverse)
+```
+Vemos para multicolinealidad primero que correr el algoritmo de cluster, porque el K-means es sensitivo a producir clusters incorrectos si se construye a base de dos o mas varianzas similares.
+
+El clustering es un metodo que agrupa nuestro indice a base de la distancia entre el valor.
+
+1. Vamos a formar clusters a base de las preguntas mas importantes de cada latente que analizamos. Es mejor no considerar demasiadas variables 
+
+2. Estandardizamos las variables. En este caso no estandarizamos las variables porque ya tienen una escala de Likert similar.
+
+3. Corremos un analisis de multicolinealidad.
+
+4. Analizamos usando cluster
+
+5. Evaluamos los cluster
+
+
+Vamos a ver esto por región ya que hay mas regiones que zonas, haciendo la caracterización por clusters mas significativo. Luego a base de los clusters, y por saber a cual zona pertenece una región, decidimos si en verdad la percepción se puede categorizar a base de las zonas. En su forma, es una forma indirecta de ver si podemos categorizar a base de zona usando la región como variable instrumental.
+
+```{r}
+df_var <- read_sav("data/var_dependientes_total.sav")
+```
+
+#### 1 
+
+Recordamos las columnas que tenemos:
+
+```{r}
+colnames(df_var)
+```
+Para disminuir la influencia que tiene la caracterización a base de variables que no son significativas, formamos varios conceptos de las variables que podrian estar asociadas para la formación de un concepto. Formamos estos clusters a base de una mezcla de analisis cualitativo y cuantitativo. Vemos los conceptos que van juntos con las variables (1), y vemos las dimensiones que conseguimos anteriormente (2). Analizamos 1 y 2 separadamente y vemos si hay alguna consistencia en los resuktados que nos da la clusterización.
+
+* Indice de PCA formado
+* P1_MAmb (importancia relativa), P21D (importancia absoluta)
+* P19_2 (preocupación), P3F (calidad medio ambiente), P19_1 (Tristeza)
+* Todo: P1_MAmb, P3F, P19_2, P21D, P19_1
+* Dimension 1 ("**Sentimientos de preocupación hacia el cambio climatico**")
+* Dimension 4 ("**Percepcion hacia problemas ambientales del medio ambiente de la región**")
+
+```{r}
+#clusters
+region_1 <- df_var %>% dplyr::select(REGION,P1_MAmb, P21D)
+region_2 <- df_var %>% dplyr::select(REGION,P19_2, P3F, P19_1)
+region_3 <- df_var %>% dplyr::select(REGION,P19_2, P3F, P19_1,P1_MAmb, P21D)
+
+zonas_1 <- df_var %>% dplyr::select(ZONAS,P1_MAmb, P21D)
+zonas_2 <- df_var %>% dplyr::select(ZONAS,P19_2, P3F, P19_1)
+zonas_3 <- df_var %>% dplyr::select(ZONAS,P19_2, P3F, P19_1,P1_MAmb, P21D)
+
+
+edad_3 <- df_var %>% dplyr::select(P33,P19_2, P3F, P19_1,P1_MAmb, P21D)
+nse_3 <- df_var %>% dplyr::select(NSE,P19_2, P3F, P19_1,P1_MAmb, P21D)
+edu_3 <- df_var %>% dplyr::select(P34,P19_2, P3F, P19_1,P1_MAmb, P21D)
+```
+
+#### 2
+
+```{r}
+region_1[c(2, 3)] <- scale(region_1[c(2, 3)])
+region_2[c(2, 3,4)] <- scale(region_2[c(2, 3,4)])
+region_3[c(2, 3,4,5,6)] <- scale(region_3[c(2, 3,4,5,6)])
+```
+
+```{r}
+edad_3[c(2, 3,4,5,6)] <- scale(edad_3[c(2, 3,4,5,6)])
+nse_3[c(2, 3,4,5,6)] <- scale(nse_3[c(2, 3,4,5,6)])
+edu_3[c(2, 3,4,5,6)] <- scale(edu_3[c(2, 3,4,5,6)])
+zonas_3[c(2, 3,4,5,6)] <- scale(zonas_3[c(2, 3,4,5,6)])
+```
+
+#### 3
+
+Hay mucho NA (>5%)
+
+```{r}
+library(mice)
+
+md.pattern(region_3)
+
+aggr_plot <- aggr(region_3)
+```
+
+Removemos las columnas con NA ya que no hay manera correcta de imputar sin tener un analisis profundo.
+
+```{r}
+region_3 <- region_3 %>% dplyr::select(REGION, P3F, P1_MAmb)
+zonas_3 <- zonas_3 %>% dplyr::select(ZONAS, P3F, P1_MAmb)
+edad_3 <- edad_3 %>% dplyr::select(P33, P3F, P1_MAmb)
+edu_3 <- edu_3 %>% dplyr::select(P34, P3F, P1_MAmb)
+nse_3 <- nse_3 %>% dplyr::select(NSE, P3F, P1_MAmb)
+```
+
+
+
+Nada de que preocuparnos. No hay multicolinealidad.
+
+```{r}
+library(GGally)
+cor(na.omit(region_3)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(region_3, label = T) #NA se omiten automáticamente
+```
+
+```{r}
+library(GGally)
+cor(na.omit(zonas_3)) #Correlaciones: es necesario omitir los NA. 
+ggcorr(zonas_3, label = T) #NA se omiten automáticamente
+```
+
+
+
+#### 4
+
+### Región
+
+Interesantemente, para la regiones parece no formar un cluster optimo. El sum of squares inter-clusters es muy bajo, por lo que hay mucho superposición entre los diferentes clusters. Tampoco forma un cluster optimo en cuatro clusters, el número ideal si se podria caracterizar a base de zonas.
+
+```{r}
+k1 <- kmeansruns(region_3, krange = 3, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k1, data = region_3)
+```
+
+```{r}
+d <- dist(region_3, method = "euclidean")
+```
+
+
+**Método de codos**
+
+```{r}
+fviz_nbclust(region_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+**Método de brecha estadística**
+
+No lo corremos porque no converge.
+
+
+**Método de silueta promedio**
+
+```{r}
+fviz_nbclust(region_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+**Metodo completo**
+
+No converge.
+
+
+### Zonas
+
+Hay demasiada diferencia intra-cluster, y muy poca diferencia inter-cluster. Hay aún alguna superposición. Es decir no se puede caracterizar a base de zonas.
+
+```{r}
+k2 <- kmeansruns(zonas_3, krange = 4, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k2, data = zonas_3)
+```
+
+**Método de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(zonas_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 10.
+
+
+```{r}
+fviz_nbclust(zonas_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+# IMAGINEMOS....
+
+Imaginiemos que nada es correcto en nuestra hipótesis y que tenemos que ir a zero. Que no caracterizamos a base de indicadores espaciales. Caracterizamos a base de nuestras variables de control que conceptualmente eran las que eran ciertas. Es decir, caracterizamos a base de la Edad, el Nivel socio-económico, el Nivel de educación. Vamos a ver que tal!
+
+
+### Edad
+
+Tampoco se pueden dividir clusters a base de la edad. No hay caracterización que hacer entre personas de diferentes edades.
+
+Entre cluster 1, y 2 si hay alguna diferencia interesante.
+
+```{r}
+k3 <- kmeansruns(edad_3, krange = 3, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k3, data = edad_3)
+```
+
+**Método de codos**
+
+Indica k optimo es 3.
+
+```{r}
+fviz_nbclust(edad_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 2.
+
+
+```{r}
+fviz_nbclust(edad_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+### Nivel socio-económico
+
+Partimos el k clusters en 5, a pesar del algoritmo, ya que hay solo 5 maneras de caracterizar el NSE. Aún asi vemos que hay mucha superposición entre algúnos clusters.
+
+Entre 1,2,5 si hay una diferencia que se podria investigar.
+
+```{r}
+k4 <- kmeansruns(nse_3, krange = 5, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k4, data = nse_3)
+```
+
+**Metodo de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(nse_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(nse_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+### Nivel de educacion
+
+Demasiada superposición. El sum of squares intra-cluster y inter-cluster tampoco es muy buena. Especialmente inter-cluster no esta muy bueno.
+
+```{r}
+k5 <- kmeansruns(edu_3, krange = 10, runs = 100)
+# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos
+fviz_cluster(k5, data = edu_3)
+```
+
+**Metodo de codos**
+
+Indica k optimo es 10.
+
+```{r}
+fviz_nbclust(edu_3, kmeans, method = "wss") +
+  labs(subtitle = "Método codos")
+```
+
+**Método de silueta promedio**
+
+Indica k optimo es 2.
+
+```{r}
+fviz_nbclust(edu_3, kmeans, method = "silhouette") +
+  labs(subtitle = "Método de silueta promedio")
+```
+
+
+#### 5
+
+Bueno, podemos decir que hay unos clusters de baja calidad, pero de algúna calidad sin embargo para **Nivel socio-económico**. Parece haber una diferencia significativa entre grupos 1,2,5. 
+
+COMO INVESTIGAMOS ESTO AHORA?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+
+### Modelo regresión ordinal/nominal P21D
+
+* Según su percepción, ¿cuán importante es el cambio climático para usted?
+
+### Modelo regresión logistica ordinal P1_MAmb 
+
+
+```{r}
+# modelo_log_p1_control_1 <- as.factor(P1_MAmb) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+# modelo_log_p1_sin_control <- as.factor(P1_MAmb) ~ 1 + ZONAS.x 
+# modelo_log_p1_control_2 <- as.factor(P1_MAmb) ~ 1 + ZONAS.x + NSE + Edad
+# modelo_log_p1_control_3 <- as.factor(P1_MAmb) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+# 
+# 
+# mod_log_p1_control_1 <- polr(modelo_log_p1_control_1, method= c("logistic"), data = reg_total_clean, na.action = na.exclude)
+# mod_log_p1_sin_control <- polr(modelo_log_p1_sin_control, method= c("logistic"), data = reg_total_clean, na.action = na.exclude)
+# mod_log_p1_control_2 <- polr(modelo_log_p1_control_2, method= c("logistic"), data = reg_total_clean, na.action = na.exclude)
+# mod_log_p1_control_3 <- polr(modelo_log_p1_control_3, method= c("logistic"), data = reg_total_clean, na.action = na.exclude)
+# 
+# modelos_p1 <- list(mod_log_p1_control_1, mod_log_p1_control_2, mod_log_p1_control_3, mod_log_p1_sin_control)
+# 
+# screenreg(modelos_p1)
+```
+
+### Modelo regresión logistica nominal P2
+
+
+```{r}
+# modelo_log_p2_control_1 <- as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+# modelo_log_p2_sin_control <- as.factor(P2_COD) ~ 1 + ZONAS.x 
+# modelo_log_p2_control_2 <-  as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad
+# modelo_log_p2_control_3 <- as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+# 
+# 
+# mod_log_p2_control_1 <- multinom(modelo_log_p2_control_1, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p2_sin_control <- multinom(modelo_log_p2_sin_control, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p2_control_2 <- multinom(modelo_log_p2_control_2, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p2_control_3 <- multinom(modelo_log_p2_control_3, data = reg_total_clean, na.action = na.exclude)
+# 
+# 
+# 
+# 
+# modelos_p2 <- list(mod_log_p2_control_1, mod_log_p2_control_2, mod_log_p2_control_3, mod_log_p2_sin_control)
+# 
+# screenreg(modelos_p2)
+```
+
+### Modelo regresión logistica nominal P17
+
+
+```{r}
+# modelo_log_p17_control_1 <- as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Razon_Bici
+# modelo_log_p17_sin_control <- as.factor(P2_COD) ~ 1 + ZONAS.x 
+# modelo_log_p17_control_2 <-  as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad
+# modelo_log_p17_control_3 <- as.factor(P2_COD) ~ 1 + ZONAS.x + NSE + Edad + Estudiante + Niv_Edu + Religion + Razon_Bici + Transporte_mas_freq + Trab_Ingr
+# 
+# 
+# mod_log_p17_control_1 <- multinom(modelo_log_p17_control_1, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p17_sin_control <- multinom(modelo_log_p17_sin_control, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p17_control_2 <- multinom(modelo_log_p17_control_2, data = reg_total_clean, na.action = na.exclude)
+# mod_log_p17_control_3 <- multinom(modelo_log_p17_control_3, data = reg_total_clean, na.action = na.exclude)
+# 
+# 
+# 
+# 
+# modelos_p17 <- list(mod_log_p17_control_1, mod_log_p17_control_2, mod_log_p17_control_3, mod_log_p17_sin_control)
+# 
+# screenreg(modelos_p17)
+```
+
+### Modelo regresión ordinal/nominal P21 promedio (B, C y D)
+
+* **Promedio**Según su percepción, ¿cuán importante es el cambio climático para…?: su región (B), familia y amigos (C), usted (D)
+
+### Modelo regresión lineal multiple P21 PCA (B, C y D)
+
+
+### Modelo regresión nominal P2 (Como afecta el medio ambiente)
+
+* Según su percepción, ¿cuál es el principal problema ambiental que lo afecta a Ud.? (codificado)
+
+
+
+
+```{r, results='hide', echo=FALSE}
+#To control on Zonas USE LATER
+
+# predict_model_1a <- prediction::prediction(
+#   mod1a, at = list(W = unique(model.frame(mod1a)$W))
+# )
+# 
+# summary(predict_model_1a)
+# 
+# cdat <- cplot(mod1a, "W", what = "prediction",
+#               main = "Pr(Tamaño de la coalición ganadora)", draw = F)
+# 
+# ggplot(cdat, aes(x = xvals)) +
+#   geom_line(aes(y = yvals)) +
+#   geom_line(aes(y = upper), linetype = 2)+
+#   geom_line(aes(y = lower), linetype = 2) +
+#   geom_hline(yintercept = 0) +
+#   labs(title = "Pr. las visitas diplomáticas de EEUU",
+#        x = "Tamaño de la coalición ganadora", y = "Prob. predicha") +
+#   hrbrthemes::theme_ipsum_rc()
+```
+

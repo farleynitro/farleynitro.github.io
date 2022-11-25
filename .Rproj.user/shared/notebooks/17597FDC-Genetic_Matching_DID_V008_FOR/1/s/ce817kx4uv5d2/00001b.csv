@@ -1,0 +1,6 @@
+"0",""
+"0","Tables_3 <- tab2 %>% dplyr::select_(""Variable"")"
+"0",""
+"0","Tabla_pos_4 <- merge(Tables_3, tab2, by = ""Variable"")"
+"0",""
+"0","(Tabla_pos_4)"

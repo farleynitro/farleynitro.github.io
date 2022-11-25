@@ -1,0 +1,1221 @@
+---
+title: "Genetic_Matching_V008"
+author: "Francisco España"
+date: "08/11/2022"
+output: pdf_document
+number_sections: TRUE
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_ALL", "ES_ES.UTF-8") # para compilar en R los acentos
+
+```
+
+\newpage
+```{r Librerias, echo=F, include=F, results='hold', eval=FALSE}
+# Actividades preliminares
+rm(list = ls()) # Borrar la base de datos. 
+
+# Libreria para realizar matching
+install.packages("rbounds") #package performs Rosenbaum’s method of sensitivity analyses for matched data
+install.packages("Matching") 
+install.packages("rgenoud")  
+install.packages("readr")
+
+## Manipulacion de los datos. 
+install.packages("tidyverse")
+
+# Varias graficos en 1
+install.packages("gridExtra")
+install.packages("grid")
+
+install.packages("dplyr")
+
+# Analisis
+install.packages("nortest")
+install.packages("ri")
+install.packages("abind")
+install.packages("xtable")
+install.packages("rstudioapi")
+install.packages("texreg")
+install.packages("ggplot2")
+
+```
+
+
+```{r, results='hold', echo=F, include=F}
+# Actividades preliminares
+rm(list = ls()) # Borrar la base de datos. 
+
+# Libreria para realizar matching
+library(rbounds) #package performs Rosenbaum’s method of sensitivity analyses for matched data
+library(Matching) 
+library(rgenoud)  
+# library(readr)
+
+## Manipulacion de los datos. 
+```
+
+
+```{r, results='hold', echo=F, include=F}
+# install.packages("rlang")
+```
+
+
+```{r, results='hold', echo=F, include=F}
+# library(tidyverse)
+
+# Varias graficos en 1
+library(gridExtra)
+library(grid)
+
+library(dplyr)
+
+```
+
+
+```{r, results='hold', echo=F, include=F}
+ 
+######################################################################
+# Cargamos la base de datos
+baseDL701_R <- read.csv("C:/Users/Farley Nick Rimon/Documents/EPA/Pontificia Universidad Catolica de Chile/AGE3802_Evaluacion_de_Impacto_de_Politicas_Ambientales/Matching_Workshop/003_Material_Adunto/003_Material_Adunto/Base_NAME_NEW_V001.csv") 
+
+# Eliminamos la columna X
+library(dplyr)
+
+baseDL701_R <- baseDL701_R %>%
+  subset(select=-X)
+```
+
+## Variables
+
+* age="AGE",             Edad [años] 
+* basiced="EDUb",        Educacion Basica [Dummy] 
+* highed="EDUm",         Educacion secundaria y > [Dummy]
+* offfarmincome98="INCO",Ingresos Fuera de la granja
+* gender="GEND",         genero [Dummy]
+* indigenous="INDI",     Perteneciente a pueblos originarios [Dummy]
+* land="LAND",           Tamaño de la propiedad [ha]
+* soil="SOIL",           Calidad del suelo,  suelos pobres [ha]
+* slope="SLOP",          Suelos con pendiente fuerte [ha]
+* city="CITY",           Distancia a Ciudad mas cercana [km]
+* conaf="CONA",          Distancia a Oficina CONAF mas cercana [km]
+* indap="INDA",          Distancia a Oficina INDAP mas cercana [km]
+* roaddistance="ROAD",   Distancia a Carretera mas cercana [km] 
+* county="COUN",         Region son 4 tipos de regiones 7, 8, 9,10 
+* livestock98="LIVE",    Cabezas de ganado [nº]
+* tractor98="MECA",      Posesion de tractor (Yes=1) , (No=0)
+* plantation98="PLAN",   Superficie de plantacion forestal [ha]
+* native98="NATI",       Superficie de bosque nativo  [ha]
+* crops98="CROP",        Superficie de cultivos  [ha]
+* nonabsentee="DENI",    Propietario viviendo en predio
+* forexp="FEXP",         Experiencia en plantaciones de arboles antes de 1998 [Dummy]
+* dl701="t_ind"          Asignacion al tratamiento [1] o No recibio el Tratamiento [0].
+* Regiones:
+  * REGVII               Region del Maule
+  * REGVIII              Region del BioBio
+  * REGIX                Region de La Araucania
+  * REGX                 Region de Los Lagos
+  
+
+```{r, results='hold', echo=T, include=F}
+
+# Now, we load, sort, and attach the data set d in earthquake.RData.
+d <- baseDL701_R[order(baseDL701_R$t_ind, decreasing=TRUE), ]
+attach(d)
+names(d)
+# Visualizamos los tratamientos "T" (1) y controles "C" (0)
+table(t_ind) 
+
+```
+
+
+
+
+\newpage
+
+# Analisis Decreto Ley Nº701, 1974 MINAGRI. 
+
+En el presente informe contiene el analisis del DL701 mediante la modificacion con la Ley 19. 561  de 1998 del Ministerio de Agricultura, en su artículo 1º , establece que la finalidad de la implementación de esta Ley es la de regular la actividad forestal en suelos de aptitud preferentemente forestal(en adelante APF).   
+```{r}
+d$Dforest
+```
+
+```{r, results='hold', echo=T, include=T}
+# OUTCOME: SELF REPORTED FOREST COVER (2013)
+
+# Outcome: change in forest plantation cover (2013-1998)
+Y_PLAN <- d$Dforest
+```
+
+
+
+
+```{r, results='hold', echo=FALSE, include=TRUE}
+# Selección de variables 
+X <- cbind(AGE,
+           EDUb,
+           EDUm,
+           INCO,
+           GEND,
+           INDI,
+           LAND,
+           SOIL,
+           SLOP,
+           CITY,
+           CONA,
+           INDA,
+           ROAD,
+           LIVE,
+           MECA,
+           PLAN,
+           NATI,
+           CROP,
+           DENI,
+           FEXP,
+           FPLA, 
+           REGVII,
+           REGVIII,
+           REGIX,
+           REGX,
+           SPEC_FOR
+           )# Sin COUN 
+
+X <- as.matrix(X) # Covariantes
+
+```
+
+
+# COVARIATE MATCHING USING GENETIC MATCHING ALGORITHM
+
+
+Link: https://www.jstatsoft.org/article/view/v042i07
+Empleamos el siguiente codigo:
+
+*gen_mat1* <- GenMatch(Tr=t_ind, #Un vector que indica las observaciones que estan en el regimen de tratamiento y las que no.\medskip
+                 X=X_mat, # Una matriz que contiene las variables con las que deseamos unir.\medskip
+                 M=1,#Un escalar para el numero de coincidencias que se deben encontrar. El valor predeterminado es la coincidencia uno a uno.\medskip
+                 pop.size=2000) # Tamaño de la poblacion. Este es el n??mero de personas que genoudutiliza para resolver el problema de optimizacion.\medskip
+
+
+```{r Genetic_matching, echo=F, include=F, results='hold'}
+# Esta modelacion demora!!!!
+# Calculate ATT using genetic matching algorithm with 1 match per treated, bias adjustment, robust se and calipers at 2.0 stdev
+
+gen_mat1 <- GenMatch(Tr=t_ind, #Un vector que indica las observaciones que estan en el regimen de tratamiento y las que no.
+                 X=X, # Una matriz que contiene las variables con las que deseamos unir.
+                 M=1,#Un escalar para el numero de coincidencias que se deben encontrar. El valor predeterminado es la coincidencia uno a uno.
+                 pop.size=100,# Tamaño de la poblacion. Este es el numero de personas que genoudutiliza para resolver el problema de optimizacion.
+                 weights=NULL
+                 )  
+
+
+```
+
+
+
+```{r, results='hold', echo=F, include=F}
+
+ATT_PLAN <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=t_ind,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATT",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat1,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=2.0, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+
+summary(ATT_PLAN)  
+
+```
+
+### Exportando la base de datos 
+
+```{r}
+
+matched.baseDL701_R <- rbind(baseDL701_R[ATT_PLAN$index.treated,],baseDL701_R[ATT_PLAN$index.control,])
+write.csv(matched.baseDL701_R,file="plantation_gm8_FOR.csv")
+
+```
+
+
+## Analisis de sensibilidad. 
+
+####Rosenbaum test for p-value
+
+####Rosenbaum test for estimated treatment effect 
+
+## MatchBalance
+
+
+
+```{r, results='hold', echo=F, include=T}
+
+##MatchBalance
+mb_1 <- MatchBalance(formul=
+                       t_ind~ 
+                       AGE +
+                       EDUb +
+                       EDUm +
+                       INCO +
+                       FPLA +
+                       LAND + 
+                       SOIL +
+                       SLOP + 
+                       CITY +
+                       CONA +
+                       INDA +
+                       LIVE +
+                       NATI +
+                       PLAN +
+                       CROP +
+                       DENI +
+                       MECA +
+                       REGVII +
+                       REGVIII +
+                       REGIX +
+                       REGX +
+                       SPEC_FOR,
+                     data=d, # Un marco de datos que contiene todas las variables en la fórmula.
+                     match.out= ATT_PLAN,# El objeto de salida de la Match función. Si se incluye esta salida, 
+                     ks=T,
+                     weights = NULL,
+                     digits = 5,
+                     print.level = 1,
+                     paired = T,
+                     nboots=1000 #El número de muestras de bootstrap que se ejecutarán. Si es cero, no se realizan bootstraps.
+                     )
+
+
+```
+
+
+### Interpretacion de la tabla:
+* var ratio (Tr/Co): Varianza del tratamiento sobre el control  (que debería ser igual a 1 si hay un equilibrio perfecto)
+* T-test p-value: t-test de diferencia de medias (la t-test pareada se proporciona después de Matching).
+
+```{r}
+# QQ Plot. Link: https://www.jstatsoft.org/article/view/v042i07
+
+qqplot(d$PLAN[ATT_PLAN$index.control], d$PLAN[ATT_PLAN$index.treated])
+abline(coef=c(0,1), col=2)
+
+```
+
+
+\newpage
+
+# Analyze the outcomes: Asymptotic Wilcoxon signed rank test
+
+Para analizar los resultados, podemos utilizar la prueba de rango con signo de Wilcoxon.
+
+* Description:Performs one and two sample Wilcoxon tests on vectors of data for possibly tied observations.
+
+Usage
+
+* Default S3 method:
+
+* **wilcox.exact(x,y = NULL, alternative = c("two.sided", "less", "greater"),mu = 0, paired = FALSE,exact = NULL,conf.int = FALSE, conf.level = 0.95, ...)**
+
+* S3 method for class 'formula':
+
+* **wilcox.exact(formula, data, subset, na.action, ...)**
+
+(Fuente: https://cran.r-project.org/web/packages/exactRankTests/exactRankTests.pdf ), page 24 pdf.
+
+Arguments: 
+\medskip
+
+* **x** numeric vector of data values.
+
+* **y** an optional numeric vector of data values.
+
+* **alternative** the alternative hypothesis must be one of "two.sided" (default), "greater" or "less". You can specify just the initial letter.
+
+* **mu** a number specifying an optional location parameter.
+
+* **paired** a logical indicating whether you want a paired test.
+
+* **exact** a logical indicating whether an exact p-value should be computed.
+
+* **conf.int** a logical indicating whether a confidence interval should be computed.
+
+* **conf.level** confidence level of the interval.
+
+* **formula** a formula of the form lhs ~ rhs where lhs is a numeric variable giving the data values and rhs a factor with two levels giving the corresponding groups.
+
+* **data** an optional data frame containing the variables in the model formula.
+
+* **subset** an optional vector specifying a subset of observations to be used.
+
+* **na.action** a function which indicates what should happen when the data contain NAs. Defaults to getOption("na.action").
+
+* **...** further arguments to be passed to or from methods.
+
+
+```{r, results='hold', echo=F, include=F}
+# Cargamos la base generada del Genetic Matching. 
+
+Plantation_GM <- read.csv("plantation_gm8_FOR.csv")
+
+
+Plantation_GM <- Plantation_GM %>%
+  subset(select=-X)
+
+
+```
+
+
+
+
+```{r}
+# Pruebas test de hipotesis para evaluar los resultados
+# Now, we load, sort, and attach the data set d 
+dat <-  Plantation_GM[order(Plantation_GM$t_ind,
+                       decreasing=TRUE), ]
+attach(dat)
+# Obtenidos desde: https://rpubs.com/Joaquin_AR/218465
+
+library("nortest")
+lillie.test(x = dat$PLAN_13)
+
+```
+
+
+
+
+# 
+```{r, results='hold', echo=F, include=F}
+
+base_reGM1 <- dat %>%  
+  mutate(ATT_PLAN=(PLAN_13-PLAN)
+         )
+
+```
+
+
+
+\newpage
+
+## Wilcox Test 
+```{r, echo=FALSE, results = 'asis', include=TRUE}
+
+wilcox.test(dat$PLAN_13[dat$t_ind==1],
+            dat$PLAN_13[dat$t_ind==0],
+            m0=0,
+            alternative = "two.side",
+            paired = T,
+            conf.int = T,
+            conf.level = 0.95,
+            exact = F,
+            correct=F
+            )
+
+###################################################
+library(exactRankTests)
+wilcox.exact(dat$PLAN_13[dat$t_ind==1],
+            dat$PLAN_13[dat$t_ind==0],
+            paired = T,
+            conf.int = T,
+            conf.level = 0.95
+            )
+```
+
+
+* Significado: 
+
+Al emplear el estadistico de rango Wilcoxon para probar nuestra hipotesis nula $H_0$ libre de los efectos del tratamiento y derivar una estimacion puntual resolviendo la ecuacion de estimacion de ecuación de estimación de Hodges y Lehmann. Obtenemos un intervalo de confianza del 95% invirtiendo la prueba. A través de este método, encontramos que el subsidio forestal (DL701) aumentó la las superficie forestadas  en el 2013 en 2.1 hectareas [ha], con un valor p asociado de 6.423e-08 y un intervalo de confianza del 95% de [1.50, 2.75].
+
+
+
+\newpage
+
+# **DID: Analisis Differences in Differences**
+
+## Formalizacion del  efecto causal en base a DID
+
+Tal como lo mencionan Angrist y Pischke (2009) Diferencia en Diferencias (DID) es una versión de la estimación por medio de efectos fijos usando datos agregados. En su forma más básica, los resultados son observados para dos grupos en dos puntos en el tiempo. Uno de los grupos es expuesto al tratamiento en el segundo periodo, pero no en el primero, mientras que el otro grupo nunca es expuesto al tratamiento.
+
+Con pooled cross-sections tenemos que A es el grupo de control y B el tratamiento, formalmente la ecuación de regresión se expresa como:
+
+$$Y=\beta_0 + \beta_1B + \lambda_tD_2*B + \mu$$
+
+El efecto causal (DID) se obtiene del siguiente modo:
+
+$$\hat\delta_1= (\bar{Y}_{B,2} - \bar{Y}_{B,1}) -  (\bar{Y}_{A,2} - \bar{Y}_{A,1})$$
+Donde:
+$\beta_1B$ son las características previas a la aplicación del tratamiento
+$\lambda_tD_2$ es el tiempo para los tratados y los controles
+$\lambda_1D_2*B$ es la interacción entre el tiempo y el tratamiento; sigma es un ATT, es el coeficiente de la interacción.
+
+
+En lo que denominaremos segundo periodo (a partir de 1998), se dicta una primera modificación al cuerpo Legal del DL 701, mediante la Ley 19. 561  de 1998 del Ministerio de Agricultura, en su artículo 1º , establece que la finalidad de la implementación de esta Ley es la de regular la actividad forestal en suelos de aptitud preferentemente forestal(en adelante APF ) y en suelos degradados e incentivar la forestación, en especial, por parte de los pequeños propietarios forestales (en adelante PPF ) y aquélla necesaria para la prevención de la degradación, protección y recuperación de los suelos del territorio nacional. 
+
+Formalmente el efecto causal vía DID es realizado de la siguiente manera:
+
+$$\hat\delta_1= (\bar{Y}_{Cambio.Plantaciones,2} - \bar{Y}_{Cambio.Plantaciones,1}) -  (\bar{Y}_{Sin.cambio.Plantaciones,2} - \bar{Y}_{Sin.cambio.Plantaciones,1}), \forall {i}=1,2$$
+Donde:
+
+* $i$: Periodos en evaluación, donde $i=1$ corresponde al periodo del 1998 y $i=2$ al año 2013. 
+
+* ${\bar{Y}_{Cambio.Plantaciones,i}}$: Sustitución de bosque nativo por plantaciones comerciales de arboles exóticos, principalmente el Pinus radiata y Eucalyptus ssp.
+
+* ${\bar{Y}_{Sin.cambio.Plantaciones,i}}$ : Terrenos sin sustitucion  de bosque nativo por plantaciones comerciales de arboles exóticos, subsidiada por el DL701 1974. 
+
+Angrist y Pischke (2009) recomiendan este método, especialmente cuando existe homocedasticidad y errores no correlacionados, y más de dos periodos. Más específicamente, los supuestos en los cuales se basa el método DID son dos: 
+
+* (1) El primero es el supuesto de independencia o líneas paralelas.
+
+Este supuesto implica que la tendencia del grupo de control es paralela a lo que hubiera sucedido si el grupo de tratamiento no hubiera recibido el tratamiento. En términos formales sería:
+
+$$E[Y^C_{i1}-Y^C_{i0}]\mid g=0]=E[Y^C_{i1}-Y^C_{i0}]\mid g=1]$$
+En este caso tenemos los resultados potenciales en la condición de control $Y^C$, con unidades i que están distribuidas en dos grupos (g), donde 1 es tratado y 0 es control. 
+
+* (2) El segundo supuesto corresponde a la independencia condicional. 
+
+En cuanto el uso de covariables permiten que el supuesto de independencia sea más robusto, además de que las estimaciones son más eficientes. Este supuesto se expresa de la siguiente manera:
+
+$$E[Y^C_{i1}-Y^C_{i0}]\mid g=0,X_i]=E[Y^C_{i1}-Y^C_{i0}]\mid g=1,X_i]$$
+Con $Pr[g=1 \mid X_i] < 1$ para todo $X_i$.
+
+Existen principalmente tres mecanismos para asegurar la independencia condicional utilizando DID: 
+
+1. Modelo de regresión que incorpora covariables pre-tratamiento.
+
+2. IPW en base a covariables.
+
+3. Matching en base a covariables, para nuestro desarrollo emplearemos Genetic Matching (Sekhon, 2007). 
+
+
+
+
+\newpage
+
+```{r, results='hold', echo=F, include=F}
+getwd() # Obtener la direccion de trabajo actual.
+
+# Limpiamos el espacio de trabajo.
+rm(list = ls())
+# Cargamos los paquetes.
+library(foreign)
+library(optmatch)
+library(RItools)
+library(sandwich)
+library(AER)
+#library(ri)
+library(abind)
+library(xtable)
+library(dplyr)
+library(rstudioapi)
+library(texreg)
+library(ggplot2)
+library(tidyr)
+
+```
+
+
+
+```{r, results='hold', echo=F, include=F}
+# Cargamos la base con la cual deseamos trabajar
+base_reGM1 <- read.csv("plantation_gm8_FOR.csv") 
+
+
+```
+
+
+# Differences in Difference: Package in R Studio
+
+```{r, results='hold', echo=F, include=F}
+# Now, we load, sort, and attach the data set d 
+dat <-  base_reGM1[order(base_reGM1$t_ind,
+                       decreasing=TRUE), ]
+attach(dat)
+
+rm(base_reGM1)
+```
+
+
+## Vectores para analisis 
+
+```{r, results='hold', echo=F, include=F}
+# Vectores para análisis
+covarsname <- colnames(dat)
+
+Xcovs <- dat[,covarsname]
+
+DL701 <- Xcovs[,"t_ind"] # Tratamiento
+
+Y <- Xcovs[,"PLAN_13"] # Variable Resultado
+
+X <- as.data.frame(Xcovs[,-c(1,7,8,9,21,23,25,30,31,32,33,34,35)]) # Covariantes, menos resultado (plantation) y tratamiento (t_ind). Aprovechamos de retirar los Deltas (Delta Mecanizacion, delta Plantation, etc). 
+
+
+deltaY <- (Y - X[,"PLAN"]) # Variable cambio en outcome
+
+
+X <- as.matrix(X[,-c(4)]) # Covariantes sin PLAN 1998
+
+```
+
+\newpage
+
+# Analis tablas: Medias ^ SD. 
+
+```{r, results='hold', include=T, echo=F}
+## Tablas sin ajustes:
+
+base <- dat %>% 
+  group_by(t_ind) %>% summarise_all(mean) %>% 
+  gather(Variable, mean, 2:38) %>% 
+  spread(t_ind, mean)
+
+base_sd <- dat %>% 
+  group_by(t_ind) %>% summarise_all(sd) %>% 
+  gather(Variable, sd, 2:38) %>% 
+  spread(t_ind, sd)
+
+merge_sa <- merge(base, base_sd, by = "Variable")
+cbind_sa <- cbind(base, base_sd$`0`, base_sd$`1`)
+
+colnames(merge_sa) <- c("Variable", "u Control", "u Tratado", "sd Control", "sd Tratado")
+merge_sa
+
+
+
+```
+
+\newpage
+
+```{r,results='hold', echo=F, includeT}
+# Forma Manual 
+plantation_t <- filter(dat, t_ind == 1)
+
+plantation_c <- filter(dat, t_ind == 0)
+
+# Media Plantaciones 1998 (Tratados)  : B,1
+B_1 <- mean(plantation_t$PLAN)
+# Media Plantaciones 1998 (Controles) : A,1
+A_1 <- mean(plantation_c$PLAN)
+
+# Media Plantaciones 2013 (Tratados)  : B,2
+B_2 <- mean(plantation_t$PLAN_13)
+
+# Media Plantaciones 2013 (Controles) : A,2
+A_2 <- mean(plantation_c$PLAN_13)
+
+#  DID Forma 2
+DID_2 <- as.data.frame((B_2-B_1)-(A_2-A_1))
+
+DID_2
+```
+
+
+```{r,results='hold', echo=F, includeT}
+# Plot
+df2 <- data.frame(supp=rep(c("Control", "Tratado"), each=1),
+                Year=c(1998,1998, 2013,2013),
+                Grupo=c(A_1, B_1, A_2, B_2))
+
+knitr::kable(df2, digits = 3, 
+             caption = "Differences in Difference")
+
+
+plot_DID <- ggplot(df2, aes(x=Year, y=Grupo, group=supp)) +
+  geom_line(aes(color=supp))+
+  geom_point(aes(color=supp,shape=supp ))
+
+plot_DID
+```
+
+
+```{r,include=F, echo=FALSE, results='hold'}
+#EFECTO CAUSAL SIN COVARIABLES (MODELO 1)
+DID.CC_n1<-(lm(deltaY ~ DL701,
+               data=dat))
+
+
+#EFECTO CAUSAL CON COVARIABLES desagrupadas (MODELO 2)
+
+DID.CC_desagm_n2 <- (lm(deltaY ~ DL701 +
+                          AGE +
+                          EDUb +
+                          EDUm +
+                          INCO +
+                          INDI +
+                          LAND +
+                          SOIL +
+                          SLOP +
+                          CITY +
+                          CONA +
+                          INDA +
+                          ROAD +
+                          LIVE +
+                          NATI +
+                          CROP +
+                          DENI +
+                          FEXP,
+                     data=dat)
+                  ) # Sin los efectos regiones REGVII...  GEND y MECA
+
+#EFECTO CAUSAL CON COVARIABLES desagrupadas (MODELO 3)
+
+DID.CC_desagm_n3 <- (lm(deltaY ~ DL701 +
+                          AGE +
+                          EDUb +
+                          EDUm +
+                          INCO +
+                          INDI +
+                          LAND +
+                          SOIL +
+                          SLOP +
+                          CITY +
+                          CONA +
+                          INDA +
+                          ROAD +
+                          LIVE +
+                          NATI +
+                          CROP +
+                          DENI +
+                          FEXP +
+                          REGVII +
+                          REGVIII +
+                          REGIX +
+                          REGX ,
+                     data=dat)
+                  )#(-) GEND,MECA,
+
+#EFECTO CAUSAL CON COVARIABLES desagrupadas (MODELO 4)
+
+DID.CC_desagm_n4 <- (lm(deltaY ~ DL701 +
+                          AGE +
+                          EDUb +
+                          EDUm +
+                          INCO +
+                          GEND +
+                          INDI +
+                          LAND +
+                          SOIL +
+                          SLOP +
+                          CITY +
+                          CONA +
+                          INDA +
+                          ROAD +
+                          LIVE +
+                          NATI +
+                          CROP +
+                          DENI +
+                          FEXP +
+                          REGVII +
+                          REGVIII +
+                          REGIX +
+                          REGX ,
+                     data=dat)
+                  ) #(-)  MECA
+
+ 
+
+#EFECTO CAUSAL CON COVARIABLES desagrupadas (MODELO 5)
+
+DID.CC_desagm_n5 <- (lm(deltaY ~ DL701 + 
+                       AGE +
+                       EDUb +
+                       EDUm +
+                       INCO +
+                       GEND +
+                       INDI +
+                       LAND +
+                       SOIL +
+                       SLOP +
+                       CITY +
+                       CONA +
+                       INDA +
+                       ROAD +
+                       LIVE +
+                       MECA +
+                       NATI +
+                       CROP +
+                       DENI +
+                       FEXP +
+                       REGVII +
+                       REGVIII +
+                       REGIX +
+                       REGX ,
+                     data=dat)
+                  )
+
+
+#EFECTO CAUSAL CON COVARIABLES desagrupadas (MODELO 6)
+
+DID.CC_desagm_n6 <- (lm(deltaY ~ DL701 + 
+                       AGE +
+                       EDUb +
+                       EDUm +
+                       INCO +
+                       GEND +
+                       INDI +
+                       LAND +
+                       SOIL +
+                       SLOP +
+                       CITY +
+                       CONA +
+                       INDA +
+                       ROAD +
+                       LIVE +
+                       MECA +
+                       NATI +
+                       CROP +
+                       DENI +
+                       FEXP +
+                       REGVII +
+                       REGVIII +
+                       REGIX +
+                       REGX +
+                       SPEC_FOR,
+                     data=dat)
+                  )
+
+```
+
+
+
+```{r,echo=FALSE, results = 'asis', include=TRUE}
+
+texreg(l=list(DID.CC_n1,
+              DID.CC_desagm_n2,
+              DID.CC_desagm_n3,
+              DID.CC_desagm_n4,
+              DID.CC_desagm_n5, 
+              DID.CC_desagm_n6
+              ),
+       caption="Estimación efectos causales",
+       float.pos ="h!",
+       caption.above = TRUE,
+       single.row = TRUE,
+       digits=3, custom.model.names = c("Modelo 1","Modelo 2","Modelo 3","Modelo 4","Modelo 5","Modelo 6")
+       )
+
+```
+
+\newpage
+
+```{r,echo=FALSE, results = 'asis', include=TRUE}
+
+texreg(l=list(DID.CC_n1,
+              DID.CC_desagm_n6
+              ),
+       caption="Estimación efectos causales",
+       float.pos ="h!",
+       caption.above = TRUE,
+       single.row = TRUE,
+       digits=3, custom.model.names = c("Modelo 1","Modelo 6")
+       )
+
+```
+
+\newpage
+
+# DID: Analisis de datos sin Arreglos
+
+```{r, results='hold', echo=F, include=F}
+
+# Cargamos la base de datos
+baseDL701_R <- read.csv("C:/Users/Farley Nick Rimon/Documents/EPA/Pontificia Universidad Catolica de Chile/AGE3802_Evaluacion_de_Impacto_de_Politicas_Ambientales/Matching_Workshop/003_Material_Adunto/003_Material_Adunto/Base_NAME_NEW_V001.csv") # Cargamos la base
+
+# Creacion de una nueva variable, edad al cuadrado
+baseDL701_R <- baseDL701_R %>% 
+  mutate(AGE_sqr=AGE^2)
+
+# Eliminamos la columna X
+baseDL701_R <- baseDL701_R[,-c(1,31,32,33,34)]
+
+```
+
+```{r,results='hold',  include=F, echo=T }
+
+# Now, we load, sort, and attach the data set d 
+dat_saj <-  baseDL701_R[order(baseDL701_R$t_ind, decreasing=TRUE), ]
+attach(dat_saj)
+
+```
+
+
+```{r,results='hold',  include=F, echo=F}
+# Vectores para análisis
+covarsname_sa <- colnames(dat_saj)
+
+Xcovs_sa <- dat_saj[,covarsname_sa]
+
+DL701 <- Xcovs_sa[,"t_ind"] # Tratamiento
+
+Y_sa <- Xcovs_sa[,"PLAN_13"] # Variable Resultado
+
+X_sa <- as.data.frame(Xcovs_sa[,-c(6,7,8,19,21,23,28,29)]) # Covariantes, menos resultado (plantation) y tratamiento (t_ind). Aprovechamos de retirar los Deltas (Delta Mecanizacion, delta Plantation, etc). 
+
+deltaY_sa <- (Y_sa - X_sa[,"PLAN"]) # Variable cambio en outcome
+
+X_sa <- as.matrix(X_sa[,-c(4)]) # Covariantes sin PLAN 1998
+
+dat_saj <- dat_saj %>% 
+  mutate(DPLAN=(PLAN_13-PLAN))
+
+```
+
+
+
+```{r,results='hold',  include=T, echo=F}
+Plantation_t_sa=filter(dat_saj, t_ind == 1)
+
+Plantation_c_sa=filter(dat_saj, t_ind == 0)
+
+# Media Plantaciones 1998 (Tratados)  : B,1
+B_1_sa <- mean(Plantation_t_sa$PLAN)
+# Media Plantaciones 1998 (Controles) : A,1
+A_1_sa <- mean(Plantation_c_sa$PLAN)
+
+# Media Plantaciones 2013 (Tratados)  : B,2
+B_2_sa <- mean(Plantation_t_sa$PLAN_13)
+
+# Media Plantaciones 2013 (Controles) : A,2
+A_2_sa <- mean(Plantation_c_sa$PLAN_13)
+
+#  DID Forma 2
+DID_2_sa <- as.data.frame((B_2_sa-B_1_sa)-(A_2_sa-A_1_sa))
+
+DID_2_sa
+
+# Plot
+df2_sa <- data.frame(supp=rep(c("Control", "Tratado"), each=1),
+                Year=c(1998,1998, 2013,2013),
+                Grupo=c(A_1_sa, B_1_sa, A_2_sa, B_2_sa))
+
+knitr::kable(df2_sa, digits = 3, 
+             caption = "Differences in Difference")
+
+
+plot_DID_sa <- ggplot(df2_sa, aes(x=Year, y=Grupo, group=supp)) +
+  geom_line(aes(color=supp))+
+  geom_point(aes(color=supp,shape=supp ))
+
+plot_DID_sa
+
+```
+
+
+
+\newpage
+
+```{r, results='hold', echo=F, include=T}
+# Graficas comparacion: Sin Ajustes V/S Genetic Matching -- 
+library("gridExtra")
+library(grid)
+
+grid.arrange(
+  plot_DID_sa,
+  plot_DID,
+  nrow = 2,
+  top = "DID: Sin Ajustes v/s Genetic Matching",
+  bottom = textGrob(
+    "this footnote is right-justified",
+    gp = gpar(fontface = 3, fontsize = 9),
+    hjust = 1,
+    x = 1
+  )
+)
+
+```
+
+
+
+\newpage
+
+# Analisis de sensibilidad. 
+
+
+## Paquetes a revisar
+
+* library(optmatch)
+* library(RItools)
+
+Mediante la funcion **xBalance** del paquete **RItools** rea lizamos el analisis de sensibilidad del genetic matching empleado.  Es de esta forma como mediante **xBalance** Standardized Differences for Stratified Comparisons. 
+
+__"Dadas las covariables, una variable de tratamiento y un factor de estratificación, calcula las diferencias de medias estandarizadas a lo largo de cada covariable, con y sin la estratificación y prueba la independencia condicional de la variable de tratamiento y las covariables dentro de los estratos."__
+
+link: https://cran.r-project.org/web/packages/RItools/RItools.pdf
+
+## Analisis de datos sin ajustes
+
+\newpage
+
+
+```{r, results = 'asis', echo=FALSE, include=F, eval=FALSE}
+# Paquete para manipular datos
+library(dplyr)
+# Paquetes para matching
+library(optmatch)
+library(RItools)
+# Paquetes para inferencia y estimar ATE
+#library(ri)
+library(lmtest)
+library(sandwich)
+library(car)
+library(coin)
+library(estimatr)
+
+# Eliminamos la columna X
+library(dplyr)
+library(RItools)
+
+# Paquetes para tablas
+library(texreg)
+library(xtable)
+install.packages("kableExtra")
+
+library(kableExtra)
+
+# Paquete para gráfico
+library(ggplot2)
+
+```
+
+\newpage
+# Analisis de sensibilidad. 
+
+## Paquetes a revisar
+
+* library(optmatch)
+* library(RItools)
+
+Mediante la funcion **xBalance** del paquete **RItools** rea lizamos el analisis de sensibilidad del genetic matching empleado.  Es de esta forma como mediante **xBalance** Standardized Differences for Stratified Comparisons. 
+
+__"Dadas las covariables, una variable de tratamiento y un factor de estratificación, calcula las diferencias de medias estandarizadas a lo largo de cada covariable, con y sin la estratificación y prueba la independencia condicional de la variable de tratamiento y las covariables dentro de los estratos."__
+
+link: https://cran.r-project.org/web/packages/RItools/RItools.pdf
+
+
+## Analisis de datos sin ajustes
+
+```{r, echo=FALSE, results = 'asis', include=F}
+# 
+# rm(list = ls())
+# ######################################################################
+# # Cargamos la base de datos
+# baseDL701_R <- read.csv("/Users/francisco/Dropbox/002 Doc/003 Tesis/04 Do File/005_Finales/00_BASE/001_STATA/03_BASE_var/Base_NAME_NEW_V001.csv")
+# 
+# # Creacion de una nueva variable, edad al cuadrado
+baseDL701_R <- baseDL701_R %>%
+  mutate(AGE_sqr=AGE^2)
+
+
+baseDL701_R <- baseDL701_R %>%
+  subset(select=-X)
+
+# Now, we load, sort, and attach the data set d in earthquake.RData.
+d_sa <- baseDL701_R[order(baseDL701_R$t_ind, decreasing=TRUE), ]
+attach(d_sa)
+names(d_sa)
+
+table(t_ind) # Visualizamos los tratamientos "T" (1) y controles "C" (0)
+
+```
+
+
+### Vectores para analisis 
+
+```{r, results='hold', echo=F, include=F}
+# Vectores para análisis
+covarsname_sa <- colnames(d_sa)
+
+Xcovs_sa <- d_sa[,covarsname_sa]
+
+W_sa <- Xcovs_sa[,"t_ind"] # Tratamiento
+
+Y_sa <- Xcovs_sa[,"PLAN_13"] # Variable Resultado
+
+X_sa <- as.data.frame(Xcovs_sa[,-c(1,7,8,9,21,23,31,32,33,34,35)]) # Covariantes, menos resultado (plantation) y tratamiento (t_ind). Aprovechamos de retirar los Deltas (Delta Mecanizacion, delta Plantation, etc). 
+
+
+deltaY_sa <- (Y_sa - X_sa[,"PLAN"]) # Variable cambio en outcome
+
+
+X_sa <- as.matrix(X_sa[,-c(4)]) # Covariantes sin PLAN 1998
+
+```
+
+```{r}
+
+# xBalance
+
+prebal_sa <- xBalance(deltaY_sa ~ W_sa + 
+                     AGE +
+                     EDUb +
+                     EDUm +
+                     INCO +
+                     GEND +
+                     INDI +
+                     LAND +
+                     SOIL +
+                     SLOP +
+                     CITY +
+                     CONA +
+                     INDA +
+                     ROAD +
+                     #COUN +
+                     LIVE +
+                     MECA +
+                     NATI +
+                     CROP +
+                     DENI +
+                     FEXP +
+                     FPLA + 
+                     SPEC_FOR, 
+            data=d_sa,
+         report = c("adj.means","chisquare.test", "std.diffs"))
+
+# Codigo para ver mejor resultados de xBalance
+names(prebal_sa)
+
+prebal_report <- as.data.frame(prebal_sa[[1]])
+
+names(prebal_report)
+
+tab1_sa <- cbind(rownames(prebal_report), prebal_report[,1:3],"Pre matching")
+
+colnames(tab1_sa) <- c("Variable","Media_control","Media_tratado","Dif.std","Tipo_de_matching")
+
+
+
+Tables_2 <- tab1_sa %>% select_("Variable")
+
+Tabla_sa_4 <- merge(Tables_2, tab1_sa, by = "Variable")
+
+
+knitr::kable(Tabla_sa_4, digits = 4, 
+             caption = " Sin Ajustes")
+
+```
+
+\newpage
+
+## Analisis base Genetic Matching
+
+```{r, results='hold', echo=F, include=F}
+# Cargamos la base con la cual deseamos trabajar
+base_reGM1 <- read.csv("plantation_gm8_FOR.csv")
+
+```
+
+
+```{r, results='hold', echo=F, include=F}
+# Now, we load, sort, and attach the data set d 
+dat <-  base_reGM1[order(base_reGM1$t_ind,
+                       decreasing=TRUE), ]
+attach(dat)
+
+```
+
+
+## Vectores para analisis 
+
+```{r, results='hold', echo=F, include=F}
+# Vectores para análisis
+covarsname <- colnames(dat)
+
+Xcovs <- dat[,covarsname]
+
+W <- Xcovs[,"t_ind"] # Tratamiento
+
+Y <- Xcovs[,"PLAN_13"] # Variable Resultado
+
+X <- as.data.frame(Xcovs[,-c(1,7,8,9,21,23,31,32,33,34,35)]) # Covariantes, menos resultado (plantation) y tratamiento (t_ind). Aprovechamos de retirar los Deltas (Delta Mecanizacion, delta Plantation, etc). 
+
+
+deltaY <- (Y - X[,"PLAN"]) # Variable cambio en outcome
+
+X <- as.matrix(X[,-c(4)]) # Covariantes sin PLAN 1998
+
+```
+
+
+
+```{r}
+# xBalance
+
+postbal <- xBalance(deltaY ~ W + 
+                     AGE +
+                     EDUb +
+                     EDUm +
+                     INCO +
+                     GEND +
+                     INDI +
+                     LAND +
+                     SOIL +
+                     SLOP +
+                     CITY +
+                     CONA +
+                     INDA +
+                     ROAD +
+                     #COUN +
+                     LIVE +
+                     MECA +
+                     NATI +
+                     CROP +
+                     DENI +
+                     FEXP +
+                     FPLA, 
+            data = dat,
+         report = c("adj.means","chisquare.test", "std.diffs"))
+
+
+
+# Codigo para ver mejor resultados de xBalance
+names(postbal)
+
+postbal_report <- as.data.frame(postbal[[1]])
+names(postbal_report)
+
+
+tab2 <- cbind(rownames(postbal_report),postbal_report[,1:3],"Genetic Matching")
+
+colnames(tab2) <- c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+tab2
+
+Tables_3 <- tab2 %>% dplyr::select_("Variable")
+
+Tabla_pos_4 <- merge(Tables_3, tab2, by = "Variable")
+
+(Tabla_pos_4)
+
+knitr::kable(Tabla_pos_4, digits = 4, 
+             caption = " Genetic Matching ")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

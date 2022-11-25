@@ -1,0 +1,3 @@
+"0","k3 <- kmeansruns(edad_3, krange = 3, runs = 100)"
+"0","# Suma de errores al cuadrado entre clusters: la separación entre los clusters explica el 47.5% de los datos"
+"0","fviz_cluster(k3, data = edad_3)"

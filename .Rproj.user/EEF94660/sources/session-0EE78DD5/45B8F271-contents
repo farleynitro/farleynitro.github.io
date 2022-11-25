@@ -1,0 +1,385 @@
+---
+title: "problem_set_2"
+output: html_document
+date: "2022-11-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cargamos los datos y paquetes
+
+```{r}
+#packages que necesitamos
+library(haven)
+library(sjmisc)
+library(tidyverse)
+library(haven)
+library(skimr)
+library(sjPlot)
+library(ggcorrplot)
+library(naniar)
+library(moderndive)
+library(texreg)
+
+library(rbounds) #package performs Rosenbaum’s method of sensitivity analyses for matched data
+library(Matching) 
+library(rgenoud)  
+
+library(exactRankTests)
+# Cargamos los paquetes.
+library(foreign)
+library(optmatch)
+library(RItools)
+library(sandwich)
+library(AER)
+#library(ri)
+library(abind)
+library(xtable)
+library(dplyr)
+library(rstudioapi)
+library(ggplot2)
+library(tidyr)
+```
+
+
+```{r}
+#limpiar database
+rm(list = ls())
+
+#load data
+data <- read_dta('landuse-1.dta')
+
+#skim data 
+skimr::skim(data)
+```
+
+
+
+
+## Pregunta 1: Participación
+
+Para ver si la asignación de tratamiento fue aleatoria, usamos el t-test. El t-test indica si hay una diferencia entre los promedios del grupo de control y tratados. Un valor-p < 0.05 indicaria que no hubo participación aleatoria basada en los indicadores, ya que la probabilidad que haya una diferencia por **aleotiridad** entre los dos promedios de los grupos es menos de 0.05.
+
+Para:
+
+* income: el valor-p es bajo del 0.05, indicando que no hay aleotiridad en la asignación. Es lógico que comunas de menor ingreso decidan participar en este programa, especialmente si son elegibles para un *tax revenue*. Esto tambien se ve en boxplot, que el grupo tratado tiene un income mas bajo.
+* countyid: el valor-p es arriba del 0.05, indicando que si hay aleotiridad en la asignación a base de este indicador.
+* pre_acres: el valor-p es bajo del 0.05, indicando que no hay aleotiridad en la asignación.
+* pop_dens: el valor-p es bajo del 0.05, indicando que no hay aleotiridad en la asignación. 
+
+
+```{r}
+t.test(income ~ consprog, data = data, conf.level=0.95)
+```
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(consprog), y = income)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de participantes en el programa" ,x = "No participa (0) vs Participa (1)", y = "Income")
+```
+
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(consprog), y = pre_acres)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de participantes en el programa a base de porc. conservación en 1999" ,x = "No participa (0) vs Participa (1)", y = "% bajo conservación en 1999")
+```
+
+```{r}
+t.test(popdensity ~ consprog, data = data,conf.level=0.95)
+```
+
+
+```{r warning = FALSE, message = FALSE}
+data %>% 
+  ggplot(aes(x = as_factor(consprog), y = popdensity)) +
+  geom_jitter(shape = 16, position = position_jitter(0.2), color = "#588157") +
+  geom_boxplot(fill = "#a3b18a", color = "#3a5a40", alpha = 0.5) +
+  stat_summary(fun = mean) +
+    labs(title = "Boxplot de participantes en el programa a base de pop density" ,x = "No participa (0) vs Participa (1)", y = "Population density")
+```
+
+```{r}
+t.test(countyid ~ consprog, data = data,conf.level=0.95)
+```
+
+```{r}
+t.test(pre_acres ~ consprog, data = data,conf.level=0.95)
+```
+
+
+
+## Pregunta 2: Participación condicional a base de ingreso y densidad poblacional
+
+Para esto estratificamos. 
+
+```{r}
+# slice_sample() by group in R 
+stratified_data <- data %>% group_by(income, popdensity) %>% slice_sample(n = 1)
+```
+
+
+
+
+## Pregunta 3: Regresión lineal
+
+Usamos el valor-p como indicador de causalidad. El valor-p indica la probabilidad que rechazemos incorrectamente la hipotesis nula ($H_{0}$). En este caso la $H_{0}$ es: **el valor del net forest change no es un efecto de la participación de una comuna. Cuando el valor-p es bajo el 0.05, indica que la probabilidad de la $H_{0}$ sea cierta es bajo del 0.05, haciendolo estadisticamente significante.
+
+En ambos modelos, la participación tiene un valor-p bajo el 0.001. Esto indica una fuerta relación entre el net forest change y la participación en el programa. El valor-p es tan bajo que se puede suponer que hay algún efecto causal si no se aplica otros metodos mas precisos de comparación entre grupos de control y tratados, como el matching o propensity score matching.
+
+El ATE es de un incremento en 5%, por cada asignación de participación.
+
+```{r}
+#creando la variable net forest change
+
+data$net_forest_change <- data$post_acres - data$pre_acres
+
+#sin controlar sobre variables confundidoras
+modelo_1 <- lm( net_forest_change ~ 1 + consprog, data = data)
+
+#controlando sobre variables confundidoras
+modelo_2 <- lm( net_forest_change ~ 1 + consprog + popdensity + income + pre_acres, data = data)
+
+
+
+#juntando los modelos
+modelos <- list(modelo_1,modelo_2)
+screenreg(modelos)
+```
+## Pregunta 4: Matching con 1 vecino y 4 vecinos
+
+Corremos 4 tests:
+
+* Experimento 1: 1 vecino ATT
+* Experimento 2: 1 vecino ATE
+* Experimento 3: 4 vecinos ATT
+* Experimento 4: 4 vecinos ATE
+
+Para cada haremos los siguientes pasos:
+
+* generar Matching usando GenMatch
+* colectar los resultados del matching para el net forest change
+* Evaluar los resultados usando el Wilcoxon test 
+
+```{r}
+# Now, we load, sort, and attach the data set d in earthquake.RData.
+d <- data[order(data$consprog, decreasing=TRUE), ]
+attach(d)
+names(d)
+# Visualizamos los tratamientos "T" (1) y controles "C" (0)
+table(consprog) 
+```
+```{r, results='hold', echo=T, include=T}
+# Outcome: change in forest plantation cover (2013-1998)
+Y_PLAN <- d$net_forest_change
+```
+
+```{r, results='hold', echo=FALSE, include=TRUE}
+# Selección de variables para matching 
+X <- cbind(popdensity, pre_acres, income, countyid)
+
+#salavamos a un matrix de solo estas variables
+X <- as.matrix(X) # Covariantes
+```
+
+Corremos el Genetic Matching para tener matching de las covariantes. Corremos con una población de 1000 para tener mejores resultados de convergencia para el resultado de la optimización.
+
+```{r Genetic_matching, echo=F, include=F, results='hold'}
+# Calculate ATT using genetic matching algorithm with 1 match per treated, bias adjustment, robust se and calipers at 2.0 stdev
+
+gen_mat1 <- GenMatch(Tr=consprog, #Un vector que indica las observaciones que estan en el regimen de tratamiento y las que no.
+                 X=X, # Una matriz que contiene las variables con las que deseamos unir.
+                 M=1,#Un escalar para el numero de coincidencias que se deben encontrar. El valor predeterminado es la coincidencia uno a uno.
+                 pop.size=1000,# Tamaño de la poblacion. Este es el numero de personas que genoudutiliza para resolver el problema de optimizacion.
+                 weights=NULL
+                 )  
+
+# Calculate ATT using genetic matching algorithm with 4 match per treated, bias adjustment, robust se and calipers at 2.0 stdev
+
+gen_mat4 <- GenMatch(Tr=consprog, #Un vector que indica las observaciones que estan en el regimen de tratamiento y las que no.
+                 X=X, # Una matriz que contiene las variables con las que deseamos unir.
+                 M=4,#Un escalar para el numero de coincidencias que se deben encontrar. El valor predeterminado es la coincidencia uno a uno.
+                 pop.size=1000,# Tamaño de la poblacion. Este es el numero de personas que genoudutiliza para resolver el problema de optimizacion.
+                 weights=NULL
+                 )
+```
+
+#### Exp 1: 1 vecino ATT
+
+El plan de ATT para 1 vecino: Con un valor-p de 3.9e-06 el net forest change entre tratados causado por la participación es de 3.72%.
+
+```{r, results='hold', echo=F, include=F}
+
+ATT_PLAN_1_neighb <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATT",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat1,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=2.0, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+summary(ATT_PLAN_1_neighb)  
+```
+
+
+El plan de ATE para 1 vecino: Con un valor-p de 1.0843e-10 el net forest change entre tratados causado por la participación es de 4.45%. Es lógico que el valor-p sea mas bajo porque se supone que el efecto de participación entre grupo de control y tratado sea mas significante que entre tratados. Por esta razon tambien el ATE es mas alto que el ATT con un valor interesantemente similar al que encontramos en la regresión lineal.
+
+```{r, results='hold', echo=F, include=F}
+
+ATE_PLAN_1_neighb <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATE",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat1,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=2.0, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+summary(ATE_PLAN_1_neighb)  
+```
+
+
+
+#### 4 vecinos
+
+El plan de ATT para 4 vecinos: Con un valor-p de 2.48e-10 el net forest change entre tratados causado por la participación es de 4.49%.
+
+```{r, results='hold', echo=F, include=F}
+
+ATT_PLAN_4_neighb <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATT",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat4,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=2.0, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+summary(ATT_PLAN_4_neighb)  
+```
+
+El plan de ATE para 4 vecinos: Con un valor-p de 9.33e-15 el net forest change entre tratados causado por la participación es de 4.67%.
+
+
+```{r, results='hold', echo=F, include=F}
+
+ATE_PLAN_4_neighb <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATE",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat4,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=2.0, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+summary(ATE_PLAN_4_neighb)  
+```
+
+
+*Significancia:
+
+Vemos que mientras mas vecinos tenemos, mas significancia estadistica se consigue. Tambien vemos un incremento minimo en el net forest change para ambo el ATT y el ATE. Mientras mas Matching hay, mejor el resultado de la participación, aunque vemos que es sensitivo al esocogo de numero de vecinos. 
+
+Sin embargo, vemos que el net forest change por la participación no es significantemente diferente comparado al resultado obtenido en la regresión lineal. Esto se puede deber a que solo tenemos 500 observaciones por la que el matching es menos relevante para esta cantidad de observaciones baja.
+
+### Pregunta 5: Matching con analisis de caliper
+
+
+Ponemos el caliper a 0.5 veces el standard deviation de los datos.
+
+```{r, results='hold', echo=F, include=F}
+
+ATT_PLAN_1_neighb_caliper_0.5 <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATT",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat1,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=0.5, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+
+ATE_PLAN_1_neighb_caliper_0.5 <- Match(Y=Y_PLAN,# Un vector que contiene el resultado de interes. Los valores faltantes no estan permitidos.
+                  Tr=consprog,# Un vector que indica las obs que estan en el regimen de Tr y las que no. 
+                  X=X,# Una matriz que contiene las variables con las que deseamos unir.
+                  estimand="ATE",#Una cadena de caracteres para el estimado. El valor estimado predeterminado es "ATT".
+                  Weight.matrix=gen_mat1,#Esta matriz denota los pesos que utiliza el algoritmo de coincidencia al ponderar cada una de las cov en X. 
+                  BiasAdj=TRUE,#Un escalar logico para determinar si se debe usar el ajuste de reg.
+                  Var.calc=1,#Un escalar para la estima de la var que debe usarse. Por defecto, lo Var.calc=0 que significa que se supone la homocedas.
+                  caliper=0.5, #Un escalar que indica si se debe usar un calibrador al hacer coincidir. 
+                  ties = TRUE # Por defecto. 
+                  )
+
+summary(ATT_PLAN_1_neighb_caliper_0.5) 
+summary(ATE_PLAN_1_neighb_caliper_0.5) 
+```
+
+
+El valor-p para el ATE fue de 1.0843e-10 a < 2.22e-16. El valor-p del ATE fue de 3.9e-06 a 3.906e-10. La significancia incremento, no solo indicando que la estimación del efecto es mas sigificante estadisticamente, pero tambien que nuestros modelo para evaluacion del Matching esta mejor ajustado a nuestros datos. 
+
+A su vez vemos que el efecto del ATE bajo de 4.45% a 4.37%, y el ATT de 3.72% a 3.35%. 
+
+Como vimos, aunque el efecto sea mas signficativo, sacrificamos validación externa. Esto se debe al hecho que el caliper busca pares mas precisos, especificamente, no pueden variar mas de 0.5 de la desviación estandar de cada covariable. Esto hace el Matching muy preciso a nuestros datos. Aunque sea mas significante, no podemos afirmar que la efectividad de este programa sea similar si cambiamos los datos. Por eso, siempre es mejor conseguir un balance entre un caliper alto y bajo que se ocupe de validación interna y externa.
+
+### Pregunta 6: Propensity Score Matching (PSM)
+
+a) aplicando modelo probit
+
+```{r}
+#scale between 0 and 1
+
+# data$net_forest_change = scale(data$net_forest_change)
+
+
+glm_psm <- glm(as.factor(consprog ) ~ 1 + popdensity + income,  family = binomial(link = "probit"), data = d)
+```
+
+
+b) Prediciendo la participación usando probit
+
+```{r}
+summary(glm_psm)
+```
+
+
+c) Matching usando PSM
+
+```{r}
+ATT_psm = Match(Y = Y_PLAN, Tr = consprog, X = glm_psm$fitted, estimand = "ATT", M = 1, ties = TRUE, replace = TRUE)
+
+ATE_psm = Match(Y = Y_PLAN, Tr = consprog, X = glm_psm$fitted, estimand = "ATE", M=1, ties = TRUE, replace = TRUE)
+```
+
+```{r}
+summary(ATT_psm) 
+summary(ATE_psm)
+```
+* Significancia:
+Usando PSM vemos que el incremento del net forest change entre grupo de control y tratados es de 4.43% para el ATE, y 4.69% para el ATT. El valor-p tambien es bajo, indicando que su significancia para el experimento es valido. Comparado a resultados anteriores, el ATT ahora es mas alto que el ATE. Esto parece ser una inconsistencia causada por el hecho que no hay overlap en covariables del grupo de control y el grupo tratado. Para esto recurrimos a la pregunta 7.
+
+Para determinar si hay un efecto causal no sesgado analizamos el overlap entre los scores del PSM de los dos grupos. Este overlap se llama el **common support**.
+
+### Pregunta 7: Visualizar las relaciones causales para justificar matching
+
+Examinamos la region de common support.
+
+```{r}
+boxplot(glm_psm)
+```
+
+El overlap es definido como todo entre el minimo y maximo en el mismo *bandwidth* entre grupo de control y grupo tratado. Vemos que hay overlap entre el score para pertenecer al grupo de control y el grupo de tratamiento basado en los scores del PSM. Este queda entre un poco mas que '-2' hasta '1'. Esto significa que se puede hablar de un overlap significante entre los dos grupos por cual el matching serviria como metodo valido para determinar el efecto causal.
+

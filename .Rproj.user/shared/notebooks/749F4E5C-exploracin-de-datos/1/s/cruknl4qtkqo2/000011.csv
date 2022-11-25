@@ -1,7 +1,0 @@
-"0","var_dep_total_P2_P20_P30_P21promedio_P19_3_4_clean %>% "
-"0","  ggplot(aes(x = as_factor(ZONAS), y = unlist(P21B))) +"
-"0","  geom_jitter(shape = 16, position = position_jitter(0.2), color = ""#588157"") +"
-"0","  geom_boxplot(fill = ""#a3b18a"", color = ""#3a5a40"", alpha = 0.5) +"
-"0","  stat_summary(fun = mean) +"
-"0","    labs(title = ""Boxplot de P21B"" ,x = ""Zonas de Chile"", y = ""P21B"") +"
-"0","  theme_minimal(base_family = ""Roboto Condensed"")"

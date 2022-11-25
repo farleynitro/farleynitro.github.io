@@ -1,7 +1,0 @@
-"0","library(ggcorrplot)"
-"0","var_dep_total_clean_remove <- names(var_dep_total_clean_reduced) %in% c(""ZONAS"",""P30"", ""P19_suma"", ""P21_promedio"", ""P4"", ""P20"")"
-"0","var_dep_high_corr  <- var_dep_total_clean_reduced[!var_dep_total_clean_remove]"
-"0",""
-"0","# cor(na.omit(var_dep_high_corr)) #Correlaciones: es necesario omitir los NA."
-"0",""
-"0","ggcorr(var_dep_high_corr, label = T) #NA se omiten automáticamente"

@@ -1,0 +1,63 @@
+"0","# Now, we load, sort, and attach the data set d "
+"0","dat <-  base_reGM1[order(base_reGM1$t_ind,"
+"0","                       decreasing=TRUE), ]"
+"0","attach(dat)"
+"2","The following object is masked _by_ .GlobalEnv:
+
+    X
+
+"
+"2","The following objects are masked from dat (pos = 6):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind, X
+
+"
+"2","The following objects are masked from dat_saj (pos = 7):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, ROAD, SLOP, SOIL, SPEC_FOR, SPEC_PRED, t_ind
+
+"
+"2","The following objects are masked from dat_saj (pos = 8):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, ROAD, SLOP, SOIL, SPEC_FOR, SPEC_PRED, t_ind
+
+"
+"2","The following objects are masked from dat (pos = 9):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind, X
+
+"
+"2","The following objects are masked from dat (pos = 10):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind, X
+
+"
+"2","The following objects are masked from dat (pos = 29):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind
+
+"
+"2","The following objects are masked from d (pos = 30):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind
+
+"
+"2","The following objects are masked from d (pos = 31):
+
+    AGE, CITY, CONA, CROP, CROP_13, DENI, EDUb, EDUm, FEXP, folio, FPLA, GEND, GRASS, GRASS_13, INCO, INCO_13, INDA, INDI,
+    LAND, LIVE, LIVE_13, MECA, MECA_13, NATI, NATI_13, PLAN, PLAN_13, REGIX, REGVII, REGVIII, REGX, ROAD, SLOP, SOIL,
+    SPEC_FOR, SPEC_PRED, t_ind
+
+"

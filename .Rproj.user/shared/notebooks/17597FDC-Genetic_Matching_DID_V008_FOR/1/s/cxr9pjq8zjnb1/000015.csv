@@ -1,0 +1,7 @@
+"0","# Plot"
+"0","df2 <- data.frame(supp=rep(c(""Control"", ""Tratado""), each=1),"
+"0","                Year=c(1998,1998, 2013,2013),"
+"0","                Grupo=c(A_1, B_1, A_2, B_2))"
+"0",""
+"0","knitr::kable(df2, digits = 3, "
+"0","             caption = ""Differences in Difference"")"

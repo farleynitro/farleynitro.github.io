@@ -1,4 +1,0 @@
-"0","pca_1 <- PCA(dep_importancia, graph = T, na.action=na.exclude) #Sin gráfico = F"
-"2","Error in PCA(dep_importancia, graph = T, na.action = na.exclude) : 
-  unused argument (na.action = na.exclude)
-"

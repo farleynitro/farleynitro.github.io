@@ -1,0 +1,89 @@
+"0","getwd() # Obtener la direccion de trabajo actual."
+"1","[1]"
+"1"," ""C:/Users/Farley Nick Rimon/Documents/EPA/Pontificia Universidad Catolica de Chile/AGE3802_Evaluacion_de_Impacto_de_Politicas_Ambientales/Matching_Workshop"""
+"1","
+"
+"0","# Limpiamos el espacio de trabajo."
+"0","rm(list = ls())"
+"0","# Cargamos los paquetes."
+"0","library(foreign)"
+"0","library(optmatch)"
+"2","Warning: package ‘optmatch’ was built under R version 4.2.2"
+"0","library(RItools)"
+"2","Warning: package ‘RItools’ was built under R version 4.2.2"
+"2","Loading required package: ggplot2
+"
+"2","Warning: package ‘ggplot2’ was built under R version 4.2.2"
+"2","RStudio Community is a great place to get help: https://community.rstudio.com/c/tidyverse
+"
+"0","library(sandwich)"
+"2","Warning: package ‘sandwich’ was built under R version 4.2.2"
+"0","library(AER)"
+"2","Warning: package ‘AER’ was built under R version 4.2.2"
+"2","Loading required package: car
+"
+"2","Warning: package ‘car’ was built under R version 4.2.2"
+"2","Loading required package: carData
+"
+"2","
+Attaching package: ‘car’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    recode
+
+"
+"2","Loading required package: lmtest
+"
+"2","Warning: package ‘lmtest’ was built under R version 4.2.2"
+"2","Loading required package: zoo
+"
+"2","
+Attaching package: ‘zoo’
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+
+"
+"2","Loading required package: survival
+"
+"2","
+Attaching package: ‘survival’
+
+"
+"2","The following object is masked from ‘package:optmatch’:
+
+    strata
+
+"
+"0","#library(ri)"
+"0","library(abind)"
+"0","library(xtable)"
+"2","Warning: package ‘xtable’ was built under R version 4.2.2"
+"0","library(dplyr)"
+"0","library(rstudioapi)"
+"2","Warning: package ‘rstudioapi’ was built under R version 4.2.2"
+"0","library(texreg)"
+"2","Warning: package ‘texreg’ was built under R version 4.2.2"
+"2","Version:  1.38.6
+Date:     2022-04-06
+Author:   Philip Leifeld (University of Essex)
+
+Consider submitting praise using the praise or praise_interactive functions.
+Please cite the JSS article in your publications -- see citation(""texreg"").
+"
+"0","library(ggplot2)"
+"0","library(tidyr)"
+"2","Warning: package ‘tidyr’ was built under R version 4.2.2"
+"2","
+Attaching package: ‘tidyr’
+
+"
+"2","The following object is masked from ‘package:texreg’:
+
+    extract
+
+"

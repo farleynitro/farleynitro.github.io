@@ -1,6 +1,0 @@
-"0","var_dep_total_clean <- do.call(data.frame, var_dep_total_clean)"
-"0","var_dep_total_clean_reduced <- do.call(data.frame, var_dep_total_clean_reduced)"
-"0",""
-"0","write_sav(var_dep_total_clean_reduced, ""var_dependientes_total_clean_reduced_final.sav"")"
-"0","write_sav(var_dep_total_clean, ""var_dependientes_total_clean_unreduced_final.sav"")"
-"0",""

@@ -1,0 +1,28 @@
+"0","#limpiar database"
+"0","rm(list = ls())"
+"0",""
+"0","#load data"
+"0","data <- read_dta('landuse-1.dta')"
+"0",""
+"0","#skim data "
+"0","skimr::skim(data)"
+"1","── Data Summary ────────────────────────
+"
+"1","                           Values
+"
+"1","Name                       data  
+"
+"1","Number of rows             500   
+"
+"1","Number of columns          6     
+"
+"1","_______________________          
+"
+"1","Column type frequency:           
+"
+"1","  numeric                  6     
+"
+"1","________________________         
+"
+"1","Group variables            None  
+"

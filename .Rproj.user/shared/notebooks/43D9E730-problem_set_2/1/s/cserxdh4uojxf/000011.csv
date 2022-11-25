@@ -1,0 +1,54 @@
+"0","# Now, we load, sort, and attach the data set d in earthquake.RData."
+"0","d <- data[order(data$consprog, decreasing=TRUE), ]"
+"0","attach(d)"
+"2","The following objects are masked from d (pos = 3):
+
+    consprog, countyid, income, net_forest_change, popdensity, post_acres, pre_acres
+
+"
+"2","The following objects are masked from d (pos = 4):
+
+    consprog, countyid, income, popdensity, post_acres, pre_acres
+
+"
+"2","The following objects are masked from d (pos = 5):
+
+    consprog, countyid, income, popdensity, post_acres, pre_acres
+
+"
+"2","The following objects are masked from d (pos = 6):
+
+    consprog, countyid, income, net_forest_change, popdensity, post_acres, pre_acres
+
+"
+"2","The following objects are masked from d (pos = 7):
+
+    consprog, countyid, income, net_forest_change, popdensity, post_acres, pre_acres
+
+"
+"0","names(d)"
+"1","[1]"
+"1"," ""countyid""         "
+"1"," ""pre_acres""        "
+"1"," ""income""           "
+"1"," ""popdensity""       "
+"1"," ""consprog""         "
+"1"," ""post_acres""       "
+"1","
+"
+"1","[7]"
+"1"," ""net_forest_change"""
+"1","
+"
+"0","# Visualizamos los tratamientos ""T"" (1) y controles ""C"" (0)"
+"0","table(consprog) "
+"1","consprog
+"
+"1","  0 "
+"1","  1 "
+"1","
+"
+"1","300 "
+"1","200 "
+"1","
+"

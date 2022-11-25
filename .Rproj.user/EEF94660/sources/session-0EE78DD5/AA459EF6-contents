@@ -1,0 +1,463 @@
+---
+title: "Capitulo 2.1: Exploración de variable independiente y control"
+description: |
+  Explorando
+author:
+  - name: Farley Rimon
+    url: {}
+date: 2022-10-05
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+# 1 Limpiando el database
+
+Primero, cargaremos los paquetes que utilizaremos en esta sesión:
+
+```{r paquetes, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(kableExtra)
+library(readxl)
+library(skimr)
+library(sjPlot)
+library(naniar)
+library(ggcorrplot)
+library(mice) # Imputación de datos
+library(VIM) # Ver los datos perdidos de nuestra base de datos
+library(naniar)
+library(plyr)
+library(dplyr)
+
+#Cronbach analysis
+library(psych)
+```
+
+Y cargaremos la base de datos con variables ya seleccionadas:
+
+```{r}
+df_2014 <- read_sav("data/Base_en_SAV_Primera_Encuesta_Nacional_de_Medio_Ambiente_2014.sav")
+df_2015 <- read_sav("data/Base_en_SAV_Encuesta_Medio_Ambiente_2015.sav")
+df_2016 <- read_sav("data/Base_en_SAV_Encuesta_de_Medio_Ambiente_2016.sav")
+df_2018 <- read_excel("data/Base-en-excel-Encuesta-Nacional-de-Medio-Ambiente-2018.xlsx")
+```
+
+Es importante mencionar que algunas preguntas están doble. Como pregunta abierta, y luego fueron codificadas a base de respuestas similares.
+
+```{r, results='hide'}
+skimr::skim(df_2018)
+```
+
+```{r,results='hide'}
+skimr::skim(df_2016)
+sjPlot::view_df(df_2016)
+```
+
+
+```{r}
+(sum(is.na(df_2016))/prod(dim(df_2016)))*100
+```
+
+```{r,results='hide'}
+skimr::skim(df_2015)
+```
+
+
+```{r}
+(sum(is.na(df_2015))/prod(dim(df_2015)))*100
+```
+
+```{r,results='hide'}
+skimr::skim(df_2014)
+```
+
+
+```{r}
+(sum(is.na(df_2014))/prod(dim(df_2014)))*100
+```
+
+Vemos que la cantidad de datos faltantes es poca para el 2016, un 2% de la base.2014 y 2015 ya tienen mas del 30% de datos faltantes. Si ocurre en solo unas de las columnas, se pueden remover de la base para tener una base de datos limpia. Para eso usamos la funcion sort:
+
+```{r}
+sort( colSums( sapply(df_2016, is.na) ), decreasing=TRUE) %>% head(20)
+```
+Vemos que son 14 columnas con datos faltantes para el 2016. De 2170 observaciones, falta más de el 25% (598/2170*100%= 27.2%) de los datos para los indicadores. Removemos todas las columnas que le falten mas de 15% de las observaciones. En vez de observar cuales columnas tiene mas de 15% en el 2015 y 2014, removemos las columnas directamente ya que no son útiles en todo caso.
+
+```{r}
+df_2016_final <- df_2016[, colMeans(is.na(df_2016)) <= .15]
+df_2015_final <- df_2015[, colMeans(is.na(df_2015)) <= .15]
+df_2014_final <- df_2014[, colMeans(is.na(df_2014)) <= .15]
+```
+
+
+El siguiente Excel ofrece una descripción de la base de datos de las encuestas.
+
+Primero la data era la siguiente.
+
+```{r, echo= FALSE}
+
+readxl::read_excel("data/Overview data.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:2, width_min = "2cm", border_left = T) %>%
+      column_spec(3:8, width_min = "3cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+vemos que habian columnas especificas con la mayoria de los datos faltantes. Las columnas que quedan, juntas, tienen menos del 0.19% con datos faltantes. Esta fracción del total se puede ignorar. Despues de limpiar el database, el *overview* cambia a la siguiente.
+
+```{r}
+(sum(is.na(df_2016_final))/prod(dim(df_2016_final)))*100
+(sum(is.na(df_2015_final))/prod(dim(df_2015_final)))*100
+(sum(is.na(df_2014_final))/prod(dim(df_2014_final)))*100
+```
+
+```{r, results='hide'}
+skimr::skim(df_2014_final)
+skimr::skim(df_2015_final)
+skimr::skim(df_2016_final)
+```
+
+
+
+
+
+```{r, echo = FALSE}
+
+readxl::read_excel("data/Overview data 2.xlsx") %>%
+  knitr::kable(., align = 'lccccccc') %>%
+    kable_styling(bootstrap_options = c("striped"), html_font = 'Roboto Condensed') %>%
+      column_spec(1:2, width_min = "2cm", border_left = T) %>%
+      column_spec(3:8, width_min = "3cm", border_left = T) %>%
+ scroll_box(width = "100%", height = "400px")
+```
+
+
+# 2 EDA: Encontrando las variables operacionales
+
+## 2.1 Encuesta nacional del 2018
+
+Para simplificar el analisis, decido enfocarme solo en el 2016 y 2018 ya que es el mas completo de los años. A base del 2016 y 2018 decido cuales van a ser mis variables operacionales para todos los años.
+
+```{r}
+
+#re-ordering dataframe to have indicators in front
+
+df_2018_final_2 <- df_2018 %>%
+  dplyr::select("ZONAS", "ID", "COMUNA", "NSE","TNSE","NEDAD","TEDAD","REGION","CUOTA","POND", P32,P33,P34,P35,P36,P37,P38,P39, everything())
+sjPlot::view_df(df_2018_final)
+```
+
+```{r, results='hide', echo=FALSE}
+df_2018_final %>% head()
+
+# Just some tests for myself
+
+n_distinct(df_2018_final$P17_COD)
+unique(df_2018_final$P17_COD)
+
+n_distinct(df_2018_final$P26_OTRO)
+# unique(df_2018_final$P26_OTRO)
+```
+
+## 2.2 Exploración de variables independientes
+
+Primero que escoger mis variables independientes + de control voy a tener que entender su sesgo y varianca. Tengo mas que nada entender mis datos para asi tambien entender mis resultados.
+
+Variables socio-económicos y socio-demograficas son:
+
+* **Zonas (macrozona en Chile)**
+* **NSE (nivel Soco-Economico)**
+* **TNSE (xxxxx)**
+* **NEDAD (categórica de edad; 18-34;31-45; 46-60; 61+)**
+* **TEDAD (categórica de edad; 18-34; 35-54; 55+)**
+* **P32: Sexo (categórica: Hombre (1); Mujer (0))**
+* **P33: Edad (variable continua)**
+* **P34: Nivel de educación (categórica del 1-10)**
+* **P36: Estudia (categórica: Si(1);No (2))**
+* **P37: Nivel de educación con mas aporte al ingreso del hogar (categórica: 1-10)**
+* **P38: Profesión con mas aporte al ingreso del hogar (categórica: 1-10)**
+* **P39: Religión (categórica: 1-9)**
+* **P43: Tipo de combustible que usa el vehiculo del encuestado (categórica: 1-..)**
+* **P8: Razón por la que alguien no usa bicicleta (categórica: 1-..)**
+* **P18: Opinion de la causa del cambio climatico (categórca: 1-..)**
+
+De estas solo considero las cursivas. Las cursivas voy a analizar para multicolineadid y asi reducir las variables independientes usadas mas.
+
+```{r, results= 'hide', echo=FALSE}
+# unique(df_2018_final$POND)
+unique(df_2018_final$TNSE)
+unique(df_2018_final$NSE)
+n_distinct(df_2018_final$CUOTA)
+```
+
+```{r}
+# Rename columns of independent variables
+df_2018_final <-  df_2018_final %>% dplyr::rename('Razon_Bici'= 'P8','Razon_Cambio_Cl'= 'P18','Automovil_Combustible'= 'P43', 'Sexo'='P32' ,'Edad'='P33' ,'Niv_Edu'='P34','Estudiante'='P36','Edu_Ingr'='P37','Trab_Ingr'= 'P38','Religion'='P39', 'Transporte_mas_freq' = 'P7')
+```
+
+```{r}
+var_ind <- df_2018_final %>% 
+  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, Sexo, Edad, Niv_Edu, Estudiante, Edu_Ingr, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS) %>% 
+summarise_all(function(x)  mean(x, na.rm = T))
+  # na.omit()
+```
+Vemos que hay un warning. Vamos a ver cual variable ocasiona estos warning y porque. Yo pienso que son Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible. Las ultimas 3 variables tienen un ".", un dato que se puede considerar NA. Como no se puede reemplezar lo mejor es imputarlo con el valor que es equivalente a "No Responde" para estas preguntas, el número **9** para *Razon_Cambio_Cl(P18) y Automovil_Combustible (P43)*, el número **99** para *Razon_Bici (P8)*. Cambiamos las columnas a *numeric* y terminamos. Despues, volvemos a formar un subset de las variables independientes.
+
+```{r, results='hide'}
+
+unique(df_2018_final$ZONAS)
+unique(df_2018_final$NSE)
+unique(df_2018_final$TNSE)
+unique(df_2018_final$NEDAD)
+unique(df_2018_final$TEDAD)
+unique(df_2018_final$Sexo)
+unique(df_2018_final$Edad)
+unique(df_2018_final$Niv_Edu)
+unique(df_2018_final$Estudiante)
+unique(df_2018_final$Razon_Bici)
+unique(df_2018_final$Razon_Cambio_Cl)
+unique(df_2018_final$Automovil_Combustible)
+unique(df_2018_final$Transporte_mas_freq)
+
+df_2018_final["Razon_Bici"][df_2018_final["Razon_Bici"] == "."] <- "9"
+df_2018_final["Razon_Cambio_Cl"][df_2018_final["Razon_Cambio_Cl"] == "."] <- "99"
+df_2018_final["Automovil_Combustible"][df_2018_final["Automovil_Combustible"] == "."] <- "99"
+
+var_ind <- df_2018_final %>% 
+  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, Sexo, Edad, Niv_Edu, Estudiante, Edu_Ingr, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS) 
+
+#checking the class of every column
+sapply(var_ind, class)
+
+#applying a new class
+var_ind[] <- lapply(var_ind, function(x) as.numeric(as.character(x)))
+sjPlot::view_df(var_ind)
+```
+### 2.2.1 Multicolinealidad
+
+El nivel de correlación para todas las variables es alta ya que las variables son mayormente categóricas. Por eso, solo removemos variables que presenten una correlación alta para la mayoria de variables y que tengan una relación explicativa conceptualmente lógica. Es decir, no consideramos el TNSE,porque el NSE ya captura el estatus socio-económico. TEDAD, NEDAD es reemplazado por la variable continua de edad para tener mejor ajuste y distribución para el input del modelo (la edad es algo que se puede medir).
+
+```{r}
+#only include numeric/nominal categoric values
+
+colnames(var_ind)
+corr_vdem <- var_ind %>% 
+  select(7:16) %>% 
+  cor(use = "pairwise") %>% 
+  round(1)
+ggcorrplot(corr_vdem, type = "lower", lab = T, tl.cex = 9, show.legend = F)
+
+var_ind <- var_ind %>% 
+  select(ZONAS, NSE, TNSE, NEDAD, TEDAD, Sexo, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS)
+```
+Excluimos la variable Edu_Ingr (¿Cuál es el nivel de educación que alcanzó la persona que aporta el principal ingreso de este hogar?) por su nivel de correlación con Niv_Edu (¿Me podría decir cuál es tu nivel de educación?). Interesantemente, hay una correlación baja entre el Trab_Ing (¿Cuál es la profesión o trabajo de la persona que aporta el principal ingreso de este hogar?) y el Nivel de Educación.
+
+Vemos que todas las otras variables tienen colinealidad baja por la que no se presenta multicolinealidad y se pueden usar todas. **Importante es saber que muchas de estas variables no son continuas, pero nominales.** Ahora vamos a ver las variables ordinales.
+
+```{r}
+
+#only include numeric values
+
+colnames(var_ind)
+corr_vdem <- var_ind %>% 
+  select(1:6) %>% 
+  cor(use = "pairwise") %>% 
+  round(1)
+ggcorrplot(corr_vdem, type = "lower", lab = T, tl.cex = 9, show.legend = F)
+
+var_ind <- var_ind %>% 
+  select(ZONAS, NSE, TEDAD, Sexo, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici,Razon_Cambio_Cl,Automovil_Combustible, Transporte_mas_freq
+         ) %>% 
+    group_by(ZONAS)
+```
+
+Vemos que la NEDAD y TEDAD estan altamente correlacionados. Es logico porque las dos son variables ordinales de la edad. Sin embargo, nos quedamos con TEDAD que divide la edad en cuatro categorias en vez de 3 como por NEDAD. Esto creo que mas varianza en el input del modelo. El TNSE lo excluimos por la misma razon.
+
+Para reducir dimensionalidad y ocuparnos de tener las variables que son significante vamos a reducir la cantidad de variables independientes. 
+
+### NO ES VALIDO: 2.2.1.1 Chi-Square Test
+Si el p<0.05 asumimos que las variables son en verdad independientes. Solo hago el analisis en los que supongo conceptualmente que tienen dependencia.
+
+```{r}
+chisq.test(var_ind$Estudiante, var_ind$Trab_Ingr,simulate.p.value = TRUE)
+
+
+chisq.test(var_ind$Estudiante, var_ind$Razon_Bici,simulate.p.value = TRUE)
+
+
+chisq.test(var_ind$Razon_Bici, var_ind$Razon_Cambio_Cl,simulate.p.value = TRUE)
+
+
+chisq.test(var_ind$Razon_Bici, var_ind$Transporte_mas_freq, simulate.p.value = TRUE)
+
+
+chisq.test(var_ind$Niv_Edu, var_ind$Estudiante,simulate.p.value = TRUE)
+
+chisq.test(var_ind$Automovil_Combustible, var_ind$Niv_Edu,simulate.p.value = TRUE)
+
+
+chisq.test(var_ind$Niv_Edu, var_ind$NSE,simulate.p.value = TRUE)
+
+chisq.test(var_ind$Trab_Ingr, var_ind$NSE,simulate.p.value = TRUE)
+
+chisq.test(var_ind$Transporte_mas_freq, var_ind$NSE, simulate.p.value = TRUE)
+
+chisq.test(var_ind$ZONAS, var_ind$NSE,simulate.p.value = TRUE)
+
+```
+
+Todas parecen ser significantes, y por eso, independientes. Sin embargo, las aproximaciones pueden ser erroneas por los valores tan chicos. Esto resulta en un warning que me dio primero que usar el **simulated p-value**. Online decia esto:
+"It gave the warning because many of the expected values will be very small and therefore the approximations of p may not be right."
+
+### 2.2.1.2 TEST-VALIDO: Kruskal Wallis test
+
+Para variables categoricas en realidad no se puede medir la correlacion, porque no son variables parametricas. Por eso, usamos el test **Kruskal Wallis**, cual mide el Chi-square sobre estas variables ordinales y categoricas. Ya que nuestra variable independiente principal es "ZONA" relacionamos los tests cada vez a esta variable. Si el valor-p es <0.05, asumimos que hay una diferencia significante entre encuestados de diferentes zonas.
+
+```{r}
+kruskal.test(ZONAS~ NSE, data = var_ind)
+kruskal.test(ZONAS~ TEDAD, data = var_ind)
+kruskal.test(ZONAS~ Edad, data = var_ind)
+kruskal.test(ZONAS~ Sexo, data = var_ind)
+kruskal.test(ZONAS~ Niv_Edu, data = var_ind)
+kruskal.test(ZONAS~ Estudiante, data = var_ind)
+kruskal.test(ZONAS~ Trab_Ingr, data = var_ind)
+kruskal.test(ZONAS~ Religion, data = var_ind)
+kruskal.test(ZONAS~ Razon_Bici, data = var_ind)
+kruskal.test(ZONAS~ Razon_Cambio_Cl, data = var_ind)
+kruskal.test(ZONAS~ Automovil_Combustible, data = var_ind)
+kruskal.test(ZONAS~ Transporte_mas_freq, data = var_ind)
+```
+Vemos que el sexo tiene un valor-p > 0.05 por la que no la consideramos. Tambien vemos que hay mas varianza entre las zonas para la variable ordinal de edad, TEDAD, en vez de la variable parametrica, Edad. Aún asi, tomamos la edad ya que es parametrica.
+
+
+
+### 2.2.1.3 Variables independientes finales
+
+Nuestra variable independiente sigue siendo las zonas. Nuestras otras variables sirven como control ya que son indicadores socio-económicos y socio-demograficos.
+
+```{r}
+var_ind_s_control <- var_ind %>% select(ZONAS, NSE, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici, Razon_Cambio_Cl, Automovil_Combustible, Transporte_mas_freq) 
+```
+
+### 2.2.2 Visualización
+
+
+*Zonas:*
+
+Vemos que hay mas respondientes en las zona 4 (el Sur), alrededor de un 30% mas. Es importante considerar esto, porque no solo nuestro modelo estara mas entrenado para la zona 4, sino que tambien la relacion nacional (el baseline del analisis) estara sesgado a respondientes de la zona 4. Otras zonas parecen tener una cantidad relativemente igual de encuestados.
+
+```{r message=FALSE, warning=FALSE}
+var_ind_s_control %>% 
+  ggplot(aes(x = as_factor(ZONAS))) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de respondientes por zonas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+*TEDAD:*
+
+Vemos que la edad esta razonablemente distruida de una forma normal para cada zona. Sin embargo, vemos que la zona 1 cuenta con una cantidad de encuestados altos bajo la edad de 25. En la zona 4, resalta que una cantidad alta de respondientes esta alrededor de los 50 anos. Las zonas 1 y 2 parecen tener relativamente mas jovenes que las zonas 3 y 4. Sin embargo, casi se puede ignorar esta diferencia.
+
+A nivel nacional, la distribucion es muy similar a los de las zonas con un sesgo ligero a la izquierda, cual se puede deber a las zonas 1 y 2.
+
+```{r}
+var_ind_s_control %>% 
+  ggplot(aes(x = Edad, na.rm = T)) +
+  geom_histogram() +
+  facet_grid(~ZONAS) +
+  labs(x = "Edad por Zona", y = "Frecuencia",
+       title = "Edad",       caption = "Fuente: Encuesta Nacional 2018")
+```
+```{r}
+var_ind_s_control %>% 
+  ggplot(aes(x = Edad, na.rm = T)) +
+  geom_histogram() +
+  labs(x = "Edad", y = "Frecuencia",
+       title = "Edad distribucion Nacional", caption = "Fuente: Encuesta Nacional 2018")
+```
+*NSE:* 
+
+Como se esperaba, el Nivel socioeconomico es mas alto en el Sur. Donde 1 (clase alta, ABC1) y 2 (clase media acomodada, C2) es lo mas alto. 3 a 5 va de clase media a clase mas pobre. El Norte (zona 1) parece tambien tener una cantidad alta de clase alta. La zona central y RM parecen tener una distribucion mas normal con individuos de todas las clases. En todos los clasos, la cantidad de pobres que se entrevisto es muy baja. *Esto anade un sesgo al Nivel Socio-económico* ya que nos falta datos de la percepción de esta clase de gente. Para la otra clase se puede hablar de una representación relativamente justa.
+
+```{r message=FALSE, warning=FALSE}
+var_ind_s_control %>% 
+  ggplot(aes(x = as_factor(NSE))) +
+  facet_grid(~ZONAS) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de NSE dividido en Zonas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+
+
+*Nivel de educación:*
+
+Vemos que en la mayoria de los casos el nivel de educación se divide en dos categorias: 
+* 1) Universitaria completa (9)
+* 2) Media completa (5)
+
+Evidentemente, no hay una distribución normal de los datos. Esto es alarmante ya que indica que la variable puede anadir mucha inprecisión a los resultados del modelo. 
+
+```{r message=FALSE, warning=FALSE}
+var_ind_s_control %>% 
+  ggplot(aes(x = as_factor(Niv_Edu))) +
+  facet_grid(~ZONAS) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de Nivel de educación por zonas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+*Opinion de la razón del cambio climatico:*
+
+Vemos que la mayoria de los encuestados, sin importar de donde vienen piensan mayormente que el cambio climatico viene por la actividad humana (1). Por esta razón, decidimos excluir esta variable de nuestro set de variables independientes. Una gran cantidad del grupo no respondió (99).
+
+```{r message=FALSE, warning=FALSE}
+var_ind_s_control %>% 
+  ggplot(aes(x = as_factor(Razon_Cambio_Cl))) +
+  facet_grid(~ZONAS) +
+  geom_bar(color = "#ffafcc", fill = "#ffc8dd", alpha = 0.5) + # Colores
+  labs(title = "Barplot de Razón del cambio climatico por zonas",
+       x = " ", y = "Frecuencia") + # Títulos
+  theme_minimal(base_family = "Roboto Condensed")
+```
+```{r}
+#remove all NA from independent variables
+
+var_ind["Automovil_Combustible"][var_ind["Automovil_Combustible"] == "99"] <- NA
+var_ind["Razon_Bici"][var_ind["Razon_Bici"] == "99"] <- NA
+var_ind["Razon_Bici"][var_ind["Razon_Bici"] == "88"] <- NA
+var_ind["Religion"][var_ind["Religion"] == "9"] <- NA
+var_ind["Automovil_Combustible"][var_ind["Automovil_Combustible"] == "8"] <- NA
+```
+
+
+```{r}
+#convert all variables to factor
+```
+
+
+```{r}
+var_ind_s_control <- var_ind %>% select(ZONAS, NSE, Edad, Niv_Edu, Estudiante, Trab_Ingr, Religion, Razon_Bici, Automovil_Combustible, Transporte_mas_freq) 
+```
+
+Salvamos el dataframe para que lo podamos usar en la construcción de los modelos.
+
+```{r}
+write_sav(var_ind_s_control, "var_independientes_y_control.sav")
+```
+
+
+
+
+ 

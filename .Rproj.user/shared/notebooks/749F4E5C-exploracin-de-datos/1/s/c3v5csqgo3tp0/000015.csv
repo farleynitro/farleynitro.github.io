@@ -1,3 +1,0 @@
-"0","#frq(df_lapop_chile, eff1)"
-"0",""
-"0","var_dep_total <- var_dep_total[var_dep_total$P17_COD  != 99, ]"

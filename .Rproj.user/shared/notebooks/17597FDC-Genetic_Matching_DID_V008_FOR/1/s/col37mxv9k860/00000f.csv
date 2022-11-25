@@ -1,0 +1,54 @@
+"0",""
+"0","texreg(l=list(DID.CC_n1,"
+"0","              DID.CC_desagm_n6"
+"0","              ),"
+"0","       caption=""Estimación efectos causales"","
+"0","       float.pos =""h!"","
+"0","       caption.above = TRUE,"
+"0","       single.row = TRUE,"
+"0","       digits=3, custom.model.names = c(""Modelo 1"",""Modelo 6"")"
+"0","       )"
+"1","
+\begin{table}[h!]
+\caption{Estimación efectos causales}
+\begin{center}
+\begin{tabular}{l c c}
+\hline
+ & Modelo 1 & Modelo 6 \\
+\hline
+(Intercept) & $2.031 \; (0.333)^{***}$ & $-0.077 \; (1.970)$       \\
+DL701       & $2.357 \; (0.471)^{***}$ & $1.630 \; (0.442)^{***}$  \\
+AGE         &                          & $0.004 \; (0.018)$        \\
+EDUb        &                          & $0.498 \; (0.862)$        \\
+EDUm        &                          & $-0.087 \; (0.643)$       \\
+INCO        &                          & $0.001 \; (0.007)$        \\
+GEND        &                          & $-0.053 \; (0.471)$       \\
+INDI        &                          & $0.112 \; (0.601)$        \\
+LAND        &                          & $0.159 \; (0.024)^{***}$  \\
+SOIL        &                          & $0.021 \; (0.047)$        \\
+SLOP        &                          & $0.095 \; (0.052)$        \\
+CITY        &                          & $-0.029 \; (0.015)$       \\
+CONA        &                          & $-0.004 \; (0.011)$       \\
+INDA        &                          & $0.011 \; (0.016)$        \\
+ROAD        &                          & $-0.012 \; (0.027)$       \\
+LIVE        &                          & $0.015 \; (0.021)$        \\
+MECA        &                          & $-4.472 \; (2.729)$       \\
+NATI        &                          & $0.247 \; (0.085)^{**}$   \\
+CROP        &                          & $0.090 \; (0.075)$        \\
+DENI        &                          & $-1.528 \; (0.566)^{**}$  \\
+FEXP        &                          & $-0.501 \; (0.477)$       \\
+REGVII      &                          & $2.594 \; (1.148)^{*}$    \\
+REGVIII     &                          & $1.263 \; (0.896)$        \\
+REGIX       &                          & $0.982 \; (0.826)$        \\
+SPEC\_FOR   &                          & $-0.325 \; (0.070)^{***}$ \\
+\hline
+R$^2$       & $0.069$                  & $0.399$                   \\
+Adj. R$^2$  & $0.066$                  & $0.354$                   \\
+Num. obs.   & $342$                    & $342$                     \\
+\hline
+\multicolumn{3}{l}{\scriptsize{$^{***}p<0.001$; $^{**}p<0.01$; $^{*}p<0.05$}}
+\end{tabular}
+\label{table:coefficients}
+\end{center}
+\end{table}
+"

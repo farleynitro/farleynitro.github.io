@@ -1,7 +1,0 @@
-"0","var_dep_total %>% "
-"0","  ggplot(aes(x = as_factor(ZONAS), y = P2_COD)) +"
-"0","  geom_jitter(shape = 16, position = position_jitter(0.2), color = ""#588157"") +"
-"0","  geom_boxplot(fill = ""#a3b18a"", color = ""#3a5a40"", alpha = 0.5) +"
-"0","  stat_summary(fun = mean) +"
-"0","    labs(title = ""Boxplot de P2_COD"" ,x = ""Zonas de Chile"", y = ""P2_COD"") +"
-"0","  theme_minimal(base_family = ""Roboto Condensed"")"

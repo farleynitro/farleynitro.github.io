@@ -1,0 +1,3 @@
+"0","# Cargamos la base con la cual deseamos trabajar"
+"0","base_reGM1 <- read.csv(""plantation_gm8_FOR.csv"")"
+"0",""

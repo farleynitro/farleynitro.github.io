@@ -1,0 +1,289 @@
+---
+title: "Full Matching Ejemplo"
+author: "Francisco España"
+date: "10/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Variables
+	# Resultado
+		# p_nsdap
+
+	# tratamiento
+		# visit_10km
+		
+	# Covariables usadas en propensity score
+		# airfields_dist_min100km: variable continua 
+		# goebbels_10km: variable categorica
+		
+	# Election
+		# 1: May 1928
+		# 2: Sep 1930 (vamos a utilizar este)
+		# 3: Jul 1932
+		# 4: Nov 1932
+		# 5: Mar 1933 
+		
+# Limpiar objetos
+```{r}
+rm(list = ls())		
+```
+
+# Paquetes
+```{r,message=FALSE, warning=FALSE}
+# Paquete para manipular datos
+library(dplyr)
+
+# Paquetes para matching
+library(optmatch)
+library(RItools)
+
+# Paquetes para inferencia y estimar ATE
+library(ri)
+library(lmtest)
+library(sandwich)
+library(car)
+library(coin)
+library(estimatr)
+
+# Paquetes para tablas
+library(texreg)
+library(xtable)
+library(kableExtra)
+
+# Paquete para gráfico
+library(ggplot2)
+```
+
+# Base de datos
+```{r}
+load("county_df_pointdata_long.RData")
+
+# Nos quedamos con la eleccion de septiembre de 1930
+dat_ps <- county_df_long[county_df_long$election ==2,]
+
+dat_ps <- dat_ps %>% dplyr:: select(p_nsdap,visit_10km,airfields_dist_min100km,goebbels_10km)
+
+rm(county_df_long)
+```
+
+# Balance pre-matching
+
+```{r}
+# Balance pre-matching
+prebal <- xBalance(visit_10km~airfields_dist_min100km+goebbels_10km, 
+	     data = dat_ps, report=c("adj.means","chisquare.test", "std.diffs"))
+
+# Codigo para ver mejor resultados de xBalance		
+names(prebal)
+prebal_report <- as.data.frame(prebal[[1]])
+names(prebal_report)
+
+tab1 <- cbind(rownames(prebal_report),prebal_report[,1:3],"Pre matching")
+colnames(tab1)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+tab1
+```
+
+```{r,echo=FALSE}
+kable(tab1,row.names = FALSE, digits = 3)
+```
+
+```{r}
+# Propensity score
+psm <- glm(visit_10km~airfields_dist_min100km+goebbels_10km,data=dat_ps)
+boxplot(psm)
+
+dat_ps$ps <- psm$fitted.values # Guardamos el ps en la base de datos. 
+
+# Balance pre-matching con ps. Ver Table 2
+prebal2 <- xBalance(visit_10km~airfields_dist_min100km+goebbels_10km+ps, 
+	     data = dat_ps, report=c("adj.means","chisquare.test", "std.diffs"))
+
+prebal_report2 <- as.data.frame(prebal2[[1]])
+tab12 <- cbind(rownames(prebal_report2),prebal_report2[,1:3],"Pre matching")
+colnames(tab12)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+tab12
+```
+
+```{r,echo=FALSE}
+kable(tab12,row.names = FALSE, digits = 3)
+```
+
+
+# Full matching
+
+```{r}
+# Matriz de distancia: Distancia de Mahalanobis sobre ps
+psd <- match_on(psm) #psm creado previamente
+
+# Full matching 1 sobre el ps: SIN RESTRICCIONES, sin caliper
+full1 <- fullmatch(psd, data=dat_ps)
+summary(full1) 
+stratumStructure(full1)
+print(full1,grouped=T)
+
+# Full matching 2 sobre el ps: Sin restricciones, sin caliper
+psd2 <- match_on(visit_10km ~ ps,data=dat_ps)
+full2 <- fullmatch(psd2, data=dat_ps)
+summary(full2) 
+stratumStructure(full2)
+
+# Full matching 3 sobre el ps: Sin restricciones, caliper de 0,25 SD del ps
+full3 <- fullmatch(psd2 + caliper(psd,0.25), data=dat_ps)
+summary(full3) 
+stratumStructure(full3)
+
+# Full matching 4 sobre el ps: con restricciones, caliper de 0,25 SD del ps
+full4 <- fullmatch(psd2 + caliper(psd,0.25), data=dat_ps,min=0,max=1)
+summary(full4) 
+stratumStructure(full4)
+```
+
+# Balance post-matching
+
+```{r}
+postbal1 <- xBalance(visit_10km~airfields_dist_min100km+goebbels_10km+ps, 
+	     data = dat_ps, report=c("adj.means","chisquare.test", "std.diffs"),
+		 strata = data.frame(original = factor("none"),full1,full2,full3,full4))
+
+postbal1
+plot(postbal1)
+
+postbal_report1 <- as.data.frame(postbal1[[1]])
+names(postbal_report1)
+
+# full 1
+tabfull1 <- cbind(rownames(postbal_report1),postbal_report1[,5:7],"Post matching")
+colnames(tabfull1)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+tabfull1
+round(tabfull1$Dif.std,3)
+
+# full 2
+tabfull2 <- cbind(rownames(postbal_report1),postbal_report1[,9:11],"Post matching")
+colnames(tabfull2)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+
+# full 3
+tabfull3 <- cbind(rownames(postbal_report1),postbal_report1[,13:15],"Post matching")
+colnames(tabfull3)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+
+# full 4
+tabfull4 <- cbind(rownames(postbal_report1),postbal_report1[,17:19],"Post matching")
+colnames(tabfull4)=c("Variable","Media control","Media tratado","Dif.std","Tipo de matching")
+
+tabfull1
+tabfull2
+tabfull3
+tabfull4
+
+round(tabfull1$Dif.std,3)
+round(tabfull3$Dif.std,3)
+round(tabfull2$Dif.std,3)
+round(tabfull4$Dif.std,3)
+```
+
+```{r,echo=FALSE}
+kable(tabfull1,row.names = FALSE, digits = 3)
+kable(tabfull2,row.names = FALSE, digits = 3)
+kable(tabfull3,row.names = FALSE, digits = 3)
+kable(tabfull4,row.names = FALSE, digits = 3)
+```
+```
+
+¿CON CUAL MATCHING NOS QUEDAMOS?
+
+
+# Ejemplo gráfico (full4)
+```{r}
+#Para gráfico
+postbal <- xBalance(visit_10km~airfields_dist_min100km+goebbels_10km+ps, 
+                    data = dat_ps, report=c("std.diffs"),
+                    strata = data.frame(original = factor("none"),full4))
+
+balance=as.data.frame(postbal)
+names(balance)
+g.prebal=as.data.frame(balance$results.std.diff.original)
+g.posbal=as.data.frame(balance$results.std.diff.full4)
+g.dat=cbind(g.prebal,g.posbal)
+rownames(g.dat) <- c("airfields_dist_min100km","goebbels_10km","Propensity")
+colnames(g.dat) <- c("Pre-balance","Post-balance")
+
+g.datB <- data.frame(g.dat,names=c("airfields_dist_min100km","goebbels_10km","Propensity"),
+                     id=rep(1:3))
+
+# Base en formato long
+long <- reshape(g.datB,
+                varying = c("Pre.balance", "Post.balance"),
+                v.names = "diff",
+                timevar = "method",
+                times = c("Pre.balance", "Post.balance"),
+                new.row.names = 1:6,                 
+                direction = "long"
+)
+
+longB <- select(long,names,id,method,diff)
+```
+
+```{r,echo=FALSE}
+ggplot(data = long, aes(x = reorder(names,id), y = diff, colour = method)) +
+  geom_point(position = position_dodge(width = 0.4),size=2.5) +
+  scale_y_continuous(limits = c(-3,3)) +
+  coord_flip() +
+  scale_color_manual(name=" ",values=c("grey60","grey30")) +
+  geom_hline(yintercept = 0,size=.5,colour="black",linetype="solid") +
+  labs(y = "Diferencias", x = "") +
+  theme_bw() + theme(legend.position="top")
+```
+
+
+# Estimacion de ATEs
+
+```{r}
+all.equal(names(full4),rownames(dat_ps))
+
+# Pegado
+dat_ps$full4<-factor(full4)
+dat_ps$full2<-factor(full2)
+names(dat_ps)
+head(dat_ps)
+summary(dat_ps)
+
+dat_psfull4 <- na.omit(dat_ps)
+summary(dat_psfull4)
+
+# Estimador de bloques: full 4
+setmeanDiffs2 <- dat_psfull4 %>% group_by(full4) %>%
+                                       summarise(Y=mean(p_nsdap[visit_10km==1])-mean(p_nsdap[visit_10km==0]),
+                                       nb=n(),
+                                       )
+
+setmeanDiffs2
+summary(setmeanDiffs2$Y) # COMO SE INTERPRETA ESTE RESULTADO?
+with(setmeanDiffs2, sum(Y*nb/sum(nb))) # ATE
+
+boxplot(setmeanDiffs2$Y)
+
+
+# Estimador con regresiones: full 2
+dat_ps$probs <- genprobexact(dat_ps$visit_10km,blockvar=dat_ps$full2)
+dat_ps$weights <- dat_ps$visit_10km/dat_ps$probs + (1-dat_ps$visit_10km)/(1-dat_ps$probs)
+
+model1<-lm_robust(
+	p_nsdap~visit_10km,
+	dat=dat_ps,
+	se_type = "HC2",
+	weights=weights)
+
+model2<-lm_robust(
+	p_nsdap~visit_10km,
+	dat=dat_ps,
+	fixed_effects = ~ full2,
+	se_type = "HC2",
+	weights=weights)
+
+screenreg(l=list(model1,model2), single.row = TRUE, stars = c(0.01, 0.05, 0.10))	
+```
+
+Agradecimientos por material a Luis Maldonado. 
