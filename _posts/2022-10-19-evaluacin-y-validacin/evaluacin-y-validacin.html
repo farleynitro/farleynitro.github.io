@@ -118,7 +118,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"NULL"}
+  {"type":"character","attributes":{},"value":["data/Base-en-excel-Encuesta-Nacional-de-Medio-Ambiente-2018.xlsx","data/var_dependientes_importancia_pca.sav","data/var_dependientes_preocupacion_pca.sav","data/var_dependientes_total.sav","data/var_dependientes_total_clean_unreduced_final.sav","data/var_dependientes_total_pca.sav","data/var_independientes_y_control.sav","evaluacin-y-validacin_files/anchor-4.2.2/anchor.min.js","evaluacin-y-validacin_files/bowser-1.9.3/bowser.min.js","evaluacin-y-validacin_files/distill-2.2.21/template.v2.js","evaluacin-y-validacin_files/figure-html5/unnamed-chunk-12-1.png","evaluacin-y-validacin_files/figure-html5/unnamed-chunk-13-1.png","evaluacin-y-validacin_files/figure-html5/unnamed-chunk-15-1.png","evaluacin-y-validacin_files/figure-html5/unnamed-chunk-16-1.png","evaluacin-y-validacin_files/figure-html5/unnamed-chunk-6-1.png","evaluacin-y-validacin_files/header-attrs-2.15/header-attrs.js","evaluacin-y-validacin_files/jquery-3.6.0/jquery-3.6.0.js","evaluacin-y-validacin_files/jquery-3.6.0/jquery-3.6.0.min.js","evaluacin-y-validacin_files/jquery-3.6.0/jquery-3.6.0.min.map","evaluacin-y-validacin_files/popper-2.6.0/popper.min.js","evaluacin-y-validacin_files/tippy-6.2.7/tippy-bundle.umd.min.js","evaluacin-y-validacin_files/tippy-6.2.7/tippy-light-border.css","evaluacin-y-validacin_files/tippy-6.2.7/tippy.css","evaluacin-y-validacin_files/tippy-6.2.7/tippy.umd.min.js","evaluacin-y-validacin_files/webcomponents-2.0.0/webcomponents.js"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -189,6 +189,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   d-article table.gt_table td,
   d-article table.gt_table th {
     border-bottom: none;
+    font-size: 100%;
   }
 
   .html-widget {
@@ -1261,15 +1262,21 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
       // hoverable references
       $('span.citation[data-cites]').each(function() {
-        if ($(this).children()[0].nodeName == "D-FOOTNOTE") {
-          var fn = $(this).children()[0]
+        const citeChild = $(this).children()[0]
+        // Do not process if @xyz has been used without escaping and without bibliography activated
+        // https://github.com/rstudio/distill/issues/466
+        if (citeChild === undefined) return true
+
+        if (citeChild.nodeName == "D-FOOTNOTE") {
+          var fn = citeChild
           $(this).html(fn.shadowRoot.querySelector("sup"))
           $(this).id = fn.id
           fn.remove()
         }
         var refs = $(this).attr('data-cites').split(" ");
         var refHtml = refs.map(function(ref) {
-          return "<p>" + $('#ref-' + ref).html() + "</p>";
+          // Could use CSS.escape too here, we insure backward compatibility in navigator
+          return "<p>" + $('div[id="ref-' + ref + '"]').html() + "</p>";
         }).join("\n");
         window.tippy(this, {
           allowHTML: true,
@@ -1468,7 +1475,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </script>
 
   <!--/radix_placeholder_distill-->
-  <script src="evaluacin-y-validacin_files/header-attrs-2.15/header-attrs.js"></script>
+  <script src="evaluacin-y-validacin_files/header-attrs-2.18/header-attrs.js"></script>
   <script src="evaluacin-y-validacin_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
   <script src="evaluacin-y-validacin_files/popper-2.6.0/popper.min.js"></script>
   <link href="evaluacin-y-validacin_files/tippy-6.2.7/tippy.css" rel="stylesheet" />
@@ -1512,13 +1519,940 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </div>
 
 <div class="d-article">
-<p>Distill is a publication format for scientific and technical writing,
-native to the web.</p>
-<p>Learn more about using Distill at <a
-href="https://rstudio.github.io/distill"
-class="uri">https://rstudio.github.io/distill</a>.</p>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<p>Ya aqui vamos a ver los modelos finales.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://tidyverse.tidyverse.org'>tidyverse</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://strengejacke.github.io/sjmisc/'>sjmisc</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://haven.tidyverse.org'>haven</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/statistikat/VIM'>VIM</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://haozhu233.github.io/kableExtra/'>kableExtra</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://docs.ropensci.org/skimr/'>skimr</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://strengejacke.github.io/sjPlot/'>sjPlot</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/njtierney/naniar'>naniar</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://www.sthda.com/english/wiki/ggcorrplot-visualization-of-a-correlation-matrix-using-ggplot2'>ggcorrplot</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/njtierney/naniar'>naniar</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://had.co.nz/plyr'>plyr</a></span><span class='op'>)</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://dplyr.tidyverse.org'>dplyr</a></span><span class='op'>)</span> <span class='co'># df manipulation</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/leifeld/texreg/'>texreg</a></span><span class='op'>)</span> <span class='co'># model evaluation</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://www.stats.ox.ac.uk/pub/MASS4/'>MASS</a></span><span class='op'>)</span> <span class='co'># ordinal regression</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://www.stats.ox.ac.uk/pub/MASS4/'>nnet</a></span><span class='op'>)</span> <span class='co'># multinomial regression</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://moderndive.github.io/moderndive/'>moderndive</a></span><span class='op'>)</span> <span class='co'># get_regression_table</span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://broom.tidymodels.org/'>broom</a></span><span class='op'>)</span></span></code></pre>
+</div>
+</div>
+<p>Cargamos los datos:</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://rdrr.io/r/base/rm.html'>rm</a></span><span class='op'>(</span>list <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/ls.html'>ls</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span></span>
+<span><span class='va'>ind_con_control</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://haven.tidyverse.org/reference/read_spss.html'>read_sav</a></span><span class='op'>(</span><span class='st'>"data/var_independientes_y_control.sav"</span><span class='op'>)</span></span>
+<span><span class='va'>dep_pca_total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://haven.tidyverse.org/reference/read_spss.html'>read_sav</a></span><span class='op'>(</span><span class='st'>"data/var_dependientes_total_pca.sav"</span><span class='op'>)</span></span>
+<span><span class='va'>dep_pca_importancia</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://haven.tidyverse.org/reference/read_spss.html'>read_sav</a></span><span class='op'>(</span><span class='st'>"data/var_dependientes_importancia_pca.sav"</span><span class='op'>)</span></span>
+<span><span class='va'>dep_pca_preocupacion</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://haven.tidyverse.org/reference/read_spss.html'>read_sav</a></span><span class='op'>(</span><span class='st'>"data/var_dependientes_preocupacion_pca.sav"</span><span class='op'>)</span></span>
+<span><span class='va'>dep_total_clean</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://haven.tidyverse.org/reference/read_spss.html'>read_sav</a></span><span class='op'>(</span><span class='st'>"data/var_dependientes_total_clean_unreduced_final.sav"</span><span class='op'>)</span></span></code></pre>
+</div>
+</div>
+<h1 id="construcción-de-modelo">1 Construcción de modelo</h1>
+<p>Juntamos los dataframes:</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>reg_pca_total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/merge.html'>merge</a></span><span class='op'>(</span><span class='va'>ind_con_control</span>, <span class='va'>dep_pca_total</span>,</span>
+<span>                          by <span class='op'>=</span> <span class='st'>'row.names'</span>, all <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span><span class='va'>reg_pca_importancia</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/merge.html'>merge</a></span><span class='op'>(</span><span class='va'>ind_con_control</span>, <span class='va'>dep_pca_importancia</span>,</span>
+<span>                          by <span class='op'>=</span> <span class='st'>'row.names'</span>, all <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span><span class='va'>reg_pca_preocupacion</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/merge.html'>merge</a></span><span class='op'>(</span><span class='va'>ind_con_control</span>, <span class='va'>dep_pca_preocupacion</span>,</span>
+<span>                          by <span class='op'>=</span> <span class='st'>'row.names'</span>, all <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span><span class='va'>dep_total_clean</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/merge.html'>merge</a></span><span class='op'>(</span><span class='va'>ind_con_control</span>, <span class='va'>dep_total_clean</span>,</span>
+<span>                          by <span class='op'>=</span> <span class='st'>'row.names'</span>, all <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span></code></pre>
+</div>
+</div>
+<h2 id="conceptos-basicos-para-modelos-de-regresion">Conceptos basicos para modelos de regresion</h2>
+<p>Nuestra variable dependiente es continua ya que se toma el promedio.</p>
+<p>Requisitos para regresión múltiple:</p>
+<ul>
+<li>Tamano muestral elevado de minimo 500 observaciones. Tenemos 6466 observaciones asi que satisfacemos eso.</li>
+<li>Variable dependiente tiene que ser continua o dicotómica</li>
+<li>Mejor es ver relacion individual entre VD y VI y despues anadir al set de componentes</li>
+<li>No anadir variables innecesarias!</li>
+<li>Para tener variables significativas , el p &lt; 0.05</li>
+</ul>
+<p>Controlamos por las variables confundidoras mas relevantes según la literatura. Esto seria, el nivel socio-economico (NSE), el nivel de educación, y la edad.</p>
+<h2 id="modelo-regresión-lineal-para-el-indice-de-pca">Modelo regresión lineal para el indice de PCA</h2>
+<p>Tampoco las variables confundidoras parecen tener alguna significancia estadistica.</p>
+<p>Usamos el primer indice ya que ese anade mas significancia al peso relativo de cada dimension. Ese es el <strong>indice_01</strong>.</p>
+<p>Para los modelos del primer indice vemos que las zonas no tienen significancia estadistica. Tampoco las otras covariables. Solo tienen significancia con valor-p &lt; 0.05 el Tipo de combustible que usa un auto. Esta significancia tambien la vimos en el modelo del post anterior. Sin embargo para investigar esto bien, habria que estratificar nuestros datos para que tengamos solo a las personas que manejan un auto para ver si hay una diferencia entre ellos. Con este dataset no es posible investigarlo, habria que anadir la pregunta de <strong>P41: ¿Tiene automóvil de uso particular en su casa?</strong>.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_01</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_pca</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas</span>,<span class='va'>modelo_pca_zonas_nse</span>,<span class='va'>modelo_pca_zonas_edu</span>,<span class='va'>modelo_pca_zonas_edad</span>,<span class='va'>modelo_pca_zonas_estudiante</span>,<span class='va'>modelo_pca_zonas_razon_bici</span>,<span class='va'>modelo_pca_zonas_transporte</span>, <span class='va'>modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_pca</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       61.47 ***    61.72 ***    61.77 ***    61.51 ***    61.63 ***    61.78 ***    62.85 ***    61.52 ***
+                                  (0.27)       (0.36)       (2.11)       (0.48)       (0.39)       (0.81)       (2.28)       (0.37)   
+factor(ZONAS)2                     0.52         0.52         0.53         0.52         0.53         0.42         0.47         0.68    
+                                  (0.40)       (0.40)       (0.40)       (0.40)       (0.40)       (0.41)       (0.43)       (0.54)   
+factor(ZONAS)3                     0.30         0.29         0.31         0.30         0.30         0.25         0.27         0.01    
+                                  (0.41)       (0.41)       (0.41)       (0.41)       (0.41)       (0.42)       (0.44)       (0.56)   
+factor(ZONAS)4                     0.22         0.23         0.21         0.22         0.23         0.13         0.14         0.23    
+                                  (0.37)       (0.37)       (0.37)       (0.37)       (0.37)       (0.38)       (0.40)       (0.49)   
+factor(NSE)2                                   -0.53                                                                                  
+                                               (0.38)                                                                                 
+factor(NSE)3                                   -0.62                                                                                  
+                                               (0.40)                                                                                 
+factor(NSE)4                                    0.04                                                                                  
+                                               (0.43)                                                                                 
+factor(NSE)5                                    1.19                                                                                  
+                                               (0.81)                                                                                 
+factor(Niv_Edu)2                                             1.20                                                                     
+                                                            (2.22)                                                                    
+factor(Niv_Edu)3                                            -0.10                                                                     
+                                                            (2.17)                                                                    
+factor(Niv_Edu)4                                             0.08                                                                     
+                                                            (2.17)                                                                    
+factor(Niv_Edu)5                                            -0.69                                                                     
+                                                            (2.11)                                                                    
+factor(Niv_Edu)6                                            -1.28                                                                     
+                                                            (2.33)                                                                    
+factor(Niv_Edu)7                                            -0.48                                                                     
+                                                            (2.13)                                                                    
+factor(Niv_Edu)8                                            -0.12                                                                     
+                                                            (2.13)                                                                    
+factor(Niv_Edu)9                                            -0.20                                                                     
+                                                            (2.11)                                                                    
+factor(Niv_Edu)10                                           -0.43                                                                     
+                                                            (2.21)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.01)                                                       
+factor(Estudiante)2                                                                   -0.20                                           
+                                                                                      (0.36)                                          
+factor(Estudiante)8                                                                   -2.23                                           
+                                                                                      (7.71)                                          
+factor(Estudiante)9                                                                   -1.24                                           
+                                                                                      (2.93)                                          
+factor(Razon_Bici)2                                                                                 0.70                              
+                                                                                                   (0.87)                             
+factor(Razon_Bici)3                                                                                 0.32                              
+                                                                                                   (0.98)                             
+factor(Razon_Bici)4                                                                                -0.70                              
+                                                                                                   (0.89)                             
+factor(Razon_Bici)5                                                                                -0.71                              
+                                                                                                   (0.95)                             
+factor(Razon_Bici)6                                                                                -0.30                              
+                                                                                                   (0.84)                             
+factor(Razon_Bici)7                                                                                 0.46                              
+                                                                                                   (0.89)                             
+factor(Razon_Bici)8                                                                                -0.65                              
+                                                                                                   (0.80)                             
+factor(Razon_Bici)9                                                                                -0.43                              
+                                                                                                   (0.81)                             
+factor(Razon_Bici)10                                                                               -0.37                              
+                                                                                                   (1.06)                             
+factor(Transporte_mas_freq)1                                                                                    -1.08                 
+                                                                                                                (2.29)                
+factor(Transporte_mas_freq)2                                                                                    -1.78                 
+                                                                                                                (2.33)                
+factor(Transporte_mas_freq)3                                                                                    -1.34                 
+                                                                                                                (2.28)                
+factor(Transporte_mas_freq)4                                                                                     0.69                 
+                                                                                                                (2.54)                
+factor(Transporte_mas_freq)5                                                                                    -1.77                 
+                                                                                                                (2.31)                
+factor(Transporte_mas_freq)6                                                                                    -1.67                 
+                                                                                                                (2.34)                
+factor(Transporte_mas_freq)7                                                                                    -1.41                 
+                                                                                                                (2.32)                
+factor(Transporte_mas_freq)9                                                                                    -3.36                 
+                                                                                                                (6.69)                
+factor(Automovil_Combustible)2                                                                                               -1.00 *  
+                                                                                                                             (0.45)   
+factor(Automovil_Combustible)3                                                                                                3.77    
+                                                                                                                             (6.40)   
+factor(Automovil_Combustible)4                                                                                                1.89    
+                                                                                                                             (2.48)   
+factor(Automovil_Combustible)5                                                                                                3.01    
+                                                                                                                             (3.08)   
+factor(Automovil_Combustible)6                                                                                                3.65    
+                                                                                                                             (4.95)   
+factor(Automovil_Combustible)9                                                                                                3.44    
+                                                                                                                             (3.69)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                          -0.00         0.00        -0.00        -0.00        -0.00         0.00        -0.00         0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<p>Seguimos con el modelo con <strong>indice 02</strong> a ver si hay significancia.</p>
+<p>En el segundo indice notamos que la Zona 2 tiene significancia estadistica. Esto significa que la respuesta de encuestados en la zona 2: <strong>EL NORTE</strong> comparten una percepción hacia el medio ambiente mas uniforme que se encuentra en otras zonas. Es decir, las personas tienen una percepción mas similar. Sin embargo, esto no indica ninguna causalidad, especialmente porque en las otras zonas no hay significancia estadistica.</p>
+<p>Vemos tambien que el Nivel Socio Economico mas pobre (nivel 5, cual indica NSE de <strong>E</strong>) parece tener significancia estadistica para determinar la percepción de alguien hacia el medio ambiente. Repetimos, no podemos hablar de causalidad porque el otros niveles socio-economicos no parecen influir la percepción.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_pca_2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas</span>,<span class='va'>modelo_pca_zonas_nse</span>,<span class='va'>modelo_pca_zonas_edu</span>,<span class='va'>modelo_pca_zonas_edad</span>,<span class='va'>modelo_pca_zonas_estudiante</span>,<span class='va'>modelo_pca_zonas_razon_bici</span>,<span class='va'>modelo_pca_zonas_transporte</span>, <span class='va'>modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_pca_2</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       66.67 ***    66.69 ***    66.01 ***    66.69 ***    66.83 ***    66.58 ***    68.67 ***    66.79 ***
+                                  (0.18)       (0.24)       (1.38)       (0.31)       (0.26)       (0.53)       (1.49)       (0.24)   
+factor(ZONAS)2                     0.55 *       0.53 *       0.54 *       0.55 *       0.55 *       0.47         0.62 *       0.53    
+                                  (0.26)       (0.26)       (0.26)       (0.26)       (0.26)       (0.27)       (0.28)       (0.34)   
+factor(ZONAS)3                     0.34         0.32         0.34         0.34         0.35         0.29         0.43        -0.11    
+                                  (0.27)       (0.27)       (0.27)       (0.27)       (0.27)       (0.28)       (0.29)       (0.36)   
+factor(ZONAS)4                     0.30         0.29         0.31         0.30         0.32         0.25         0.35         0.09    
+                                  (0.24)       (0.24)       (0.24)       (0.24)       (0.24)       (0.25)       (0.26)       (0.31)   
+factor(NSE)2                                    0.02                                                                                  
+                                               (0.25)                                                                                 
+factor(NSE)3                                   -0.41                                                                                  
+                                               (0.26)                                                                                 
+factor(NSE)4                                    0.17                                                                                  
+                                               (0.28)                                                                                 
+factor(NSE)5                                    1.65 **                                                                               
+                                               (0.53)                                                                                 
+factor(Niv_Edu)2                                             1.60                                                                     
+                                                            (1.45)                                                                    
+factor(Niv_Edu)3                                             0.96                                                                     
+                                                            (1.42)                                                                    
+factor(Niv_Edu)4                                             0.85                                                                     
+                                                            (1.42)                                                                    
+factor(Niv_Edu)5                                             0.30                                                                     
+                                                            (1.38)                                                                    
+factor(Niv_Edu)6                                             0.45                                                                     
+                                                            (1.53)                                                                    
+factor(Niv_Edu)7                                             0.80                                                                     
+                                                            (1.39)                                                                    
+factor(Niv_Edu)8                                             0.95                                                                     
+                                                            (1.40)                                                                    
+factor(Niv_Edu)9                                             0.57                                                                     
+                                                            (1.38)                                                                    
+factor(Niv_Edu)10                                            0.58                                                                     
+                                                            (1.45)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.01)                                                       
+factor(Estudiante)2                                                                   -0.20                                           
+                                                                                      (0.24)                                          
+factor(Estudiante)8                                                                    0.68                                           
+                                                                                      (5.04)                                          
+factor(Estudiante)9                                                                   -0.46                                           
+                                                                                      (1.92)                                          
+factor(Razon_Bici)2                                                                                 0.29                              
+                                                                                                   (0.57)                             
+factor(Razon_Bici)3                                                                                 0.50                              
+                                                                                                   (0.64)                             
+factor(Razon_Bici)4                                                                                 0.26                              
+                                                                                                   (0.58)                             
+factor(Razon_Bici)5                                                                                -0.18                              
+                                                                                                   (0.62)                             
+factor(Razon_Bici)6                                                                                 0.35                              
+                                                                                                   (0.55)                             
+factor(Razon_Bici)7                                                                                 0.48                              
+                                                                                                   (0.58)                             
+factor(Razon_Bici)8                                                                                -0.04                              
+                                                                                                   (0.53)                             
+factor(Razon_Bici)9                                                                                 0.02                              
+                                                                                                   (0.53)                             
+factor(Razon_Bici)10                                                                               -0.05                              
+                                                                                                   (0.69)                             
+factor(Transporte_mas_freq)1                                                                                    -1.85                 
+                                                                                                                (1.50)                
+factor(Transporte_mas_freq)2                                                                                    -1.98                 
+                                                                                                                (1.53)                
+factor(Transporte_mas_freq)3                                                                                    -2.12                 
+                                                                                                                (1.49)                
+factor(Transporte_mas_freq)4                                                                                    -0.29                 
+                                                                                                                (1.66)                
+factor(Transporte_mas_freq)5                                                                                    -2.43                 
+                                                                                                                (1.51)                
+factor(Transporte_mas_freq)6                                                                                    -2.30                 
+                                                                                                                (1.53)                
+factor(Transporte_mas_freq)7                                                                                    -2.13                 
+                                                                                                                (1.52)                
+factor(Transporte_mas_freq)9                                                                                    -2.03                 
+                                                                                                                (4.38)                
+factor(Automovil_Combustible)2                                                                                               -0.39    
+                                                                                                                             (0.29)   
+factor(Automovil_Combustible)3                                                                                                4.03    
+                                                                                                                             (4.11)   
+factor(Automovil_Combustible)4                                                                                                1.12    
+                                                                                                                             (1.60)   
+factor(Automovil_Combustible)5                                                                                                1.23    
+                                                                                                                             (1.98)   
+factor(Automovil_Combustible)6                                                                                               -4.81    
+                                                                                                                             (3.18)   
+factor(Automovil_Combustible)9                                                                                                1.70    
+                                                                                                                             (2.37)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                           0.00         0.00         0.00         0.00        -0.00        -0.00         0.00         0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<p>Evaluamos dos cosas mas usando el indice 02:</p>
+<ul>
+<li><ol type="1">
+<li>Crear una columna que indice si la zona es afuera o adentro de la región metropolitana. Despues corremos nuevamente los modelos a ver si la predicción mejora.</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Lo que podemos hacer es estratificar a personas mas pobres de cada zonas y re-evaluar si hay alguna significancia estadistica para cada zona.</li>
+</ol></li>
+</ul>
+<p><strong>1</strong></p>
+<p>Solo en el modelo 6 cuando se considera el uso de transporte mas frecuente, vivir en la Región Metropolitana (RM, Zona 1) tiene alguna significancia estadistica. Esto se podria explicar porque el transporte público en la RM es diferente al resto de Chile. La RM consiste de metros, cosa que otras zonas no tienen. Tambien tienen muchos mas taxis, micros, colectivos por estar en la región donde hay mas actividad económica, y mas densa de Chile. Sin embargo tambien es la zona con mas desigualdad de Chile, con muchos pobres y muchos ricos. Sin embargo para este modelo (modelo 2) no parecio mostrar significancia estadistica.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'># #RECODING the values</span></span>
+<span><span class='va'>zonas_rec</span> <span class='op'>&lt;-</span> <span class='va'>reg_pca_total</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'><a href='https://strengejacke.github.io/sjmisc/reference/rec.html'>rec</a></span><span class='op'>(</span>rec<span class='op'>=</span> <span class='st'>"1=1;2,3,4=0;else=copy"</span>,suffix<span class='op'>=</span><span class='st'>""</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>zonas_rec</span> <span class='op'>&lt;-</span> <span class='va'>reg_pca_importancia</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'><a href='https://strengejacke.github.io/sjmisc/reference/rec.html'>rec</a></span><span class='op'>(</span>rec<span class='op'>=</span> <span class='st'>"1=1;2,3,4=0;else=copy"</span>,suffix<span class='op'>=</span><span class='st'>""</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>zonas_rec</span> <span class='op'>&lt;-</span> <span class='va'>reg_pca_preocupacion</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'>dplyr</span><span class='fu'>::</span><span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span></span>
+<span>  <span class='fu'><a href='https://strengejacke.github.io/sjmisc/reference/rec.html'>rec</a></span><span class='op'>(</span>rec<span class='op'>=</span> <span class='st'>"1=1;2,3,4=0;else=copy"</span>,suffix<span class='op'>=</span><span class='st'>""</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>reg_pca_total</span><span class='op'>$</span><span class='va'>Zonas_recoded</span> <span class='op'>&lt;-</span> <span class='va'>zonas_rec</span></span>
+<span><span class='va'>reg_pca_importancia</span><span class='op'>$</span><span class='va'>Zonas_recoded</span> <span class='op'>&lt;-</span> <span class='va'>zonas_rec</span></span>
+<span><span class='va'>reg_pca_preocupacion</span><span class='op'>$</span><span class='va'>Zonas_recoded</span> <span class='op'>&lt;-</span> <span class='va'>zonas_rec</span></span>
+<span></span>
+<span><span class='va'>reg_pca_total</span><span class='op'>[</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>reg_pca_total</span>, <span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span> <span class='fu'><a href='https://rdrr.io/r/base/numeric.html'>as.numeric</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/character.html'>as.character</a></span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span></span>
+<span><span class='va'>reg_pca_total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='va'>data.frame</span>, <span class='va'>reg_pca_total</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>reg_pca_importancia</span><span class='op'>[</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>reg_pca_importancia</span>, <span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span> <span class='fu'><a href='https://rdrr.io/r/base/numeric.html'>as.numeric</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/character.html'>as.character</a></span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span></span>
+<span><span class='va'>reg_pca_importancia</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='va'>data.frame</span>, <span class='va'>reg_pca_importancia</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>reg_pca_preocupacion</span><span class='op'>[</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>reg_pca_preocupacion</span>, <span class='kw'>function</span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span> <span class='fu'><a href='https://rdrr.io/r/base/numeric.html'>as.numeric</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/character.html'>as.character</a></span><span class='op'>(</span><span class='va'>x</span><span class='op'>)</span><span class='op'>)</span><span class='op'>)</span></span>
+<span><span class='va'>reg_pca_preocupacion</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='va'>data.frame</span>, <span class='va'>reg_pca_preocupacion</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>recoded_modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>recoded_modelos_pca</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>recoded_modelo_pca_zonas</span>,<span class='va'>recoded_modelo_pca_zonas_nse</span>,<span class='va'>recoded_modelo_pca_zonas_edu</span>,</span>
+<span>                    <span class='va'>recoded_modelo_pca_zonas_edad</span>,<span class='va'>recoded_modelo_pca_zonas_estudiante</span>,</span>
+<span>                    <span class='va'>recoded_modelo_pca_zonas_razon_bici</span>,<span class='va'>recoded_modelo_pca_zonas_transporte</span>, <span class='va'>recoded_modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>recoded_modelos_pca</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       67.06 ***    67.06 ***    66.41 ***    67.07 ***    67.23 ***    66.85 ***    69.12 ***    66.96 ***
+                                  (0.11)       (0.20)       (1.37)       (0.29)       (0.23)       (0.48)       (1.49)       (0.15)   
+factor(Zonas_recoded)1            -0.38        -0.37        -0.39        -0.38        -0.40        -0.33        -0.45 *      -0.17    
+                                  (0.21)       (0.21)       (0.21)       (0.21)       (0.21)       (0.21)       (0.23)       (0.27)   
+factor(NSE)2                                    0.01                                                                                  
+                                               (0.25)                                                                                 
+factor(NSE)3                                   -0.41                                                                                  
+                                               (0.26)                                                                                 
+factor(NSE)4                                    0.17                                                                                  
+                                               (0.28)                                                                                 
+factor(NSE)5                                    1.66 **                                                                               
+                                               (0.53)                                                                                 
+factor(Niv_Edu)2                                             1.60                                                                     
+                                                            (1.45)                                                                    
+factor(Niv_Edu)3                                             0.95                                                                     
+                                                            (1.42)                                                                    
+factor(Niv_Edu)4                                             0.84                                                                     
+                                                            (1.42)                                                                    
+factor(Niv_Edu)5                                             0.29                                                                     
+                                                            (1.38)                                                                    
+factor(Niv_Edu)6                                             0.45                                                                     
+                                                            (1.53)                                                                    
+factor(Niv_Edu)7                                             0.79                                                                     
+                                                            (1.39)                                                                    
+factor(Niv_Edu)8                                             0.95                                                                     
+                                                            (1.40)                                                                    
+factor(Niv_Edu)9                                             0.56                                                                     
+                                                            (1.38)                                                                    
+factor(Niv_Edu)10                                            0.56                                                                     
+                                                            (1.45)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.01)                                                       
+factor(Estudiante)2                                                                   -0.21                                           
+                                                                                      (0.24)                                          
+factor(Estudiante)8                                                                    0.75                                           
+                                                                                      (5.04)                                          
+factor(Estudiante)9                                                                   -0.47                                           
+                                                                                      (1.92)                                          
+factor(Razon_Bici)2                                                                                 0.35                              
+                                                                                                   (0.56)                             
+factor(Razon_Bici)3                                                                                 0.56                              
+                                                                                                   (0.63)                             
+factor(Razon_Bici)4                                                                                 0.32                              
+                                                                                                   (0.58)                             
+factor(Razon_Bici)5                                                                                -0.12                              
+                                                                                                   (0.62)                             
+factor(Razon_Bici)6                                                                                 0.40                              
+                                                                                                   (0.55)                             
+factor(Razon_Bici)7                                                                                 0.53                              
+                                                                                                   (0.58)                             
+factor(Razon_Bici)8                                                                                 0.00                              
+                                                                                                   (0.52)                             
+factor(Razon_Bici)9                                                                                 0.07                              
+                                                                                                   (0.52)                             
+factor(Razon_Bici)10                                                                                0.00                              
+                                                                                                   (0.69)                             
+factor(Transporte_mas_freq)1                                                                                    -1.84                 
+                                                                                                                (1.50)                
+factor(Transporte_mas_freq)2                                                                                    -1.98                 
+                                                                                                                (1.53)                
+factor(Transporte_mas_freq)3                                                                                    -2.12                 
+                                                                                                                (1.49)                
+factor(Transporte_mas_freq)4                                                                                    -0.27                 
+                                                                                                                (1.66)                
+factor(Transporte_mas_freq)5                                                                                    -2.40                 
+                                                                                                                (1.51)                
+factor(Transporte_mas_freq)6                                                                                    -2.31                 
+                                                                                                                (1.53)                
+factor(Transporte_mas_freq)7                                                                                    -2.13                 
+                                                                                                                (1.52)                
+factor(Transporte_mas_freq)9                                                                                    -1.98                 
+                                                                                                                (4.37)                
+factor(Automovil_Combustible)2                                                                                               -0.39    
+                                                                                                                             (0.29)   
+factor(Automovil_Combustible)3                                                                                                4.03    
+                                                                                                                             (4.11)   
+factor(Automovil_Combustible)4                                                                                                1.11    
+                                                                                                                             (1.59)   
+factor(Automovil_Combustible)5                                                                                                1.30    
+                                                                                                                             (1.98)   
+factor(Automovil_Combustible)6                                                                                               -4.89    
+                                                                                                                             (3.18)   
+factor(Automovil_Combustible)9                                                                                                1.60    
+                                                                                                                             (2.37)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                           0.00         0.00         0.00         0.00         0.00        -0.00         0.00        -0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<p>Para confirmar esto vemos la distribucion de uso de transporte entre la zona metropolitana y region metropolitana.</p>
+<p>En la RM se usa mas el metro relativo a las 3 otras zonas. Sin embargo, se usa mas el micro y automovil en otra zona. Concluyendo, este uso de metro (indicador de persona residiendo en la RM) parece tener algún efecto en la percepción hacia el medio ambiente.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>reg_pca_total</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> </span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot</a></span><span class='op'>(</span><span class='fu'><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>Transporte_mas_freq</span>, na.rm <span class='op'>=</span> <span class='cn'>T</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/geom_histogram.html'>geom_histogram</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/facet_grid.html'>facet_grid</a></span><span class='op'>(</span><span class='op'>~</span><span class='va'>Zonas_recoded</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/labs.html'>labs</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='st'>"Medio de transporte usado con mas frecuencia por zona metropolitana (1) y no metropolitana (0)"</span>, y <span class='op'>=</span> <span class='st'>"Frecuencia"</span>,</span>
+<span>       title <span class='op'>=</span> <span class='st'>"Transporte"</span>,       caption <span class='op'>=</span> <span class='st'>"Fuente: Encuesta Nacional 2018"</span><span class='op'>)</span></span></code></pre>
+</div>
+<p><img src="evaluacin-y-validacin_files/figure-html5/unnamed-chunk-6-1.png" width="624" /></p>
+</div>
+<p><strong>2</strong></p>
+Dividimos el subset
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>nse_5</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/subset.html'>subset</a></span><span class='op'>(</span><span class='va'>reg_pca_total</span>, <span class='va'>NSE</span> <span class='op'>==</span> <span class='fl'>5</span><span class='op'>)</span></span></code></pre>
+</div>
+</div>
+<p>Corremos el modelo para gente del quinto nivel socioeconomico.</p>
+<p>Los niveles de educación (<strong>2 a 5,basica incompleta a media completa</strong>) mas bajo parece afectar la percepción entre la población mas pobre. Esto concuerda con nuestro marco teórico.</p>
+<p>Sin embargo, no vemos una significancia para la distribución de gente de NSE de E entre las diferentes zonas.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>nse_5</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_pca</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas</span>,<span class='va'>modelo_pca_zonas_edu</span>,<span class='va'>modelo_pca_zonas_edad</span>,<span class='va'>modelo_pca_zonas_estudiante</span>,<span class='va'>modelo_pca_zonas_razon_bici</span>,<span class='va'>modelo_pca_zonas_transporte</span>, <span class='va'>modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_pca</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+=================================================================================================================
+                                Model 1     Model 2     Model 3     Model 4     Model 5     Model 6     Model 7  
+-----------------------------------------------------------------------------------------------------------------
+(Intercept)                      69.14 ***   63.79 ***   71.25 ***   69.35 ***   68.56 ***   69.21 ***  70.16 ***
+                                 (1.02)      (2.38)      (1.93)      (1.62)      (2.43)      (1.23)     (2.90)   
+factor(ZONAS)2                   -0.92       -1.19       -0.92       -1.06       -1.64       -0.95      -5.36    
+                                 (1.38)      (1.42)      (1.38)      (1.41)      (1.35)      (1.49)     (3.65)   
+factor(ZONAS)3                   -1.29       -2.00       -1.58       -1.43       -1.48       -1.32      -5.55    
+                                 (1.49)      (1.51)      (1.51)      (1.52)      (1.44)      (1.62)     (3.40)   
+factor(ZONAS)4                    0.02       -0.35       -0.18       -0.09       -0.69       -0.35      -2.55    
+                                 (1.35)      (1.37)      (1.36)      (1.38)      (1.33)      (1.46)     (3.79)   
+factor(Niv_Edu)2                              6.40 **                                                            
+                                             (2.42)                                                              
+factor(Niv_Edu)3                              5.66 *                                                             
+                                             (2.51)                                                              
+factor(Niv_Edu)4                              6.33 *                                                             
+                                             (3.03)                                                              
+factor(Niv_Edu)5                              6.63 *                                                             
+                                             (2.61)                                                              
+factor(Niv_Edu)6                             -4.43                                                               
+                                             (5.37)                                                              
+factor(Niv_Edu)7                              3.53                                                               
+                                             (5.41)                                                              
+factor(Niv_Edu)8                              3.16                                                               
+                                             (3.18)                                                              
+factor(Niv_Edu)9                              6.06                                                               
+                                             (3.64)                                                              
+Edad                                                     -0.04                                                   
+                                                         (0.03)                                                  
+factor(Estudiante)2                                                  -0.08                                       
+                                                                     (1.37)                                      
+factor(Estudiante)9                                                  -2.15                                       
+                                                                     (3.78)                                      
+factor(Razon_Bici)2                                                               1.26                           
+                                                                                 (2.67)                          
+factor(Razon_Bici)3                                                              -0.17                           
+                                                                                 (2.87)                          
+factor(Razon_Bici)4                                                               3.22                           
+                                                                                 (2.71)                          
+factor(Razon_Bici)5                                                              -0.15                           
+                                                                                 (2.71)                          
+factor(Razon_Bici)6                                                               5.41 *                         
+                                                                                 (2.63)                          
+factor(Razon_Bici)7                                                              -1.13                           
+                                                                                 (3.22)                          
+factor(Razon_Bici)8                                                              -0.74                           
+                                                                                 (2.53)                          
+factor(Razon_Bici)9                                                               1.28                           
+                                                                                 (2.37)                          
+factor(Razon_Bici)10                                                             -4.18                           
+                                                                                 (4.44)                          
+factor(Transporte_mas_freq)2                                                                 -0.79               
+                                                                                             (2.60)              
+factor(Transporte_mas_freq)3                                                                 -0.65               
+                                                                                             (1.42)              
+factor(Transporte_mas_freq)4                                                                  0.87               
+                                                                                             (2.59)              
+factor(Transporte_mas_freq)5                                                                  0.08               
+                                                                                             (1.72)              
+factor(Transporte_mas_freq)6                                                                 -0.19               
+                                                                                             (2.12)              
+factor(Transporte_mas_freq)7                                                                  1.86               
+                                                                                             (1.83)              
+factor(Automovil_Combustible)2                                                                          -2.22    
+                                                                                                        (2.76)   
+-----------------------------------------------------------------------------------------------------------------
+R^2                               0.01        0.07        0.01        0.01        0.09        0.02       0.08    
+Adj. R^2                         -0.01        0.02       -0.01       -0.02        0.04       -0.03      -0.01    
+Num. obs.                       204         204         204         204         203         204         44       
+=================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<h2 id="regresión-lineal-para-importancia-y-preocupación">Regresión lineal para importancia y preocupación</h2>
+<p>No hay nada que indique algo interesante para investigar.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_importancia</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_pca_2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas</span>,<span class='va'>modelo_pca_zonas_nse</span>,<span class='va'>modelo_pca_zonas_edu</span>,<span class='va'>modelo_pca_zonas_edad</span>,<span class='va'>modelo_pca_zonas_estudiante</span>,<span class='va'>modelo_pca_zonas_razon_bici</span>,<span class='va'>modelo_pca_zonas_transporte</span>, <span class='va'>modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_pca_2</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       21.18 ***    21.18 ***    21.01 ***    21.28 ***    21.23 ***    21.34 ***    22.57 ***    21.39 ***
+                                  (0.13)       (0.17)       (1.01)       (0.23)       (0.19)       (0.39)       (1.09)       (0.17)   
+factor(ZONAS)2                    -0.15        -0.15        -0.14        -0.15        -0.15        -0.19        -0.11        -0.26    
+                                  (0.19)       (0.19)       (0.19)       (0.19)       (0.19)       (0.20)       (0.21)       (0.25)   
+factor(ZONAS)3                    -0.02        -0.02        -0.01        -0.01        -0.02        -0.08         0.00        -0.34    
+                                  (0.20)       (0.20)       (0.20)       (0.20)       (0.20)       (0.20)       (0.21)       (0.26)   
+factor(ZONAS)4                    -0.04        -0.05        -0.04        -0.04        -0.04        -0.08        -0.03         0.03    
+                                  (0.18)       (0.18)       (0.18)       (0.18)       (0.18)       (0.18)       (0.19)       (0.23)   
+factor(NSE)2                                    0.03                                                                                  
+                                               (0.18)                                                                                 
+factor(NSE)3                                   -0.02                                                                                  
+                                               (0.19)                                                                                 
+factor(NSE)4                                    0.07                                                                                  
+                                               (0.21)                                                                                 
+factor(NSE)5                                   -0.36                                                                                  
+                                               (0.39)                                                                                 
+factor(Niv_Edu)2                                             0.05                                                                     
+                                                            (1.07)                                                                    
+factor(Niv_Edu)3                                            -0.20                                                                     
+                                                            (1.04)                                                                    
+factor(Niv_Edu)4                                             0.33                                                                     
+                                                            (1.04)                                                                    
+factor(Niv_Edu)5                                             0.09                                                                     
+                                                            (1.01)                                                                    
+factor(Niv_Edu)6                                             0.61                                                                     
+                                                            (1.12)                                                                    
+factor(Niv_Edu)7                                             0.21                                                                     
+                                                            (1.02)                                                                    
+factor(Niv_Edu)8                                             0.09                                                                     
+                                                            (1.02)                                                                    
+factor(Niv_Edu)9                                             0.21                                                                     
+                                                            (1.01)                                                                    
+factor(Niv_Edu)10                                            0.57                                                                     
+                                                            (1.06)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.00)                                                       
+factor(Estudiante)2                                                                   -0.06                                           
+                                                                                      (0.17)                                          
+factor(Estudiante)8                                                                   -7.34 *                                         
+                                                                                      (3.70)                                          
+factor(Estudiante)9                                                                    0.55                                           
+                                                                                      (1.40)                                          
+factor(Razon_Bici)2                                                                                -0.18                              
+                                                                                                   (0.42)                             
+factor(Razon_Bici)3                                                                                -0.05                              
+                                                                                                   (0.47)                             
+factor(Razon_Bici)4                                                                                 0.07                              
+                                                                                                   (0.43)                             
+factor(Razon_Bici)5                                                                                -0.24                              
+                                                                                                   (0.46)                             
+factor(Razon_Bici)6                                                                                -0.32                              
+                                                                                                   (0.40)                             
+factor(Razon_Bici)7                                                                                 0.06                              
+                                                                                                   (0.43)                             
+factor(Razon_Bici)8                                                                                -0.31                              
+                                                                                                   (0.38)                             
+factor(Razon_Bici)9                                                                                 0.03                              
+                                                                                                   (0.39)                             
+factor(Razon_Bici)10                                                                                0.25                              
+                                                                                                   (0.51)                             
+factor(Transporte_mas_freq)1                                                                                    -1.44                 
+                                                                                                                (1.10)                
+factor(Transporte_mas_freq)2                                                                                    -1.46                 
+                                                                                                                (1.12)                
+factor(Transporte_mas_freq)3                                                                                    -1.28                 
+                                                                                                                (1.10)                
+factor(Transporte_mas_freq)4                                                                                    -1.64                 
+                                                                                                                (1.22)                
+factor(Transporte_mas_freq)5                                                                                    -1.65                 
+                                                                                                                (1.11)                
+factor(Transporte_mas_freq)6                                                                                    -1.26                 
+                                                                                                                (1.12)                
+factor(Transporte_mas_freq)7                                                                                    -1.60                 
+                                                                                                                (1.11)                
+factor(Transporte_mas_freq)9                                                                                    -2.92                 
+                                                                                                                (3.21)                
+factor(Automovil_Combustible)2                                                                                               -0.24    
+                                                                                                                             (0.21)   
+factor(Automovil_Combustible)3                                                                                               -2.44    
+                                                                                                                             (2.98)   
+factor(Automovil_Combustible)4                                                                                               -0.84    
+                                                                                                                             (1.16)   
+factor(Automovil_Combustible)5                                                                                               -0.56    
+                                                                                                                             (1.43)   
+factor(Automovil_Combustible)6                                                                                               -6.03 ** 
+                                                                                                                             (2.31)   
+factor(Automovil_Combustible)9                                                                                               -2.02    
+                                                                                                                             (1.72)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                          -0.00        -0.00        -0.00        -0.00        -0.00        -0.00        -0.00         0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edu</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Niv_Edu</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_edad</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='va'>Edad</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_estudiante</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Estudiante</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_razon_bici</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Razon_Bici</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_transporte</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Transporte_mas_freq</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>modelo_pca_zonas_combustible</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>Automovil_Combustible</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_preocupacion</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_pca_2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas</span>,<span class='va'>modelo_pca_zonas_nse</span>,<span class='va'>modelo_pca_zonas_edu</span>,<span class='va'>modelo_pca_zonas_edad</span>,<span class='va'>modelo_pca_zonas_estudiante</span>,<span class='va'>modelo_pca_zonas_razon_bici</span>,<span class='va'>modelo_pca_zonas_transporte</span>, <span class='va'>modelo_pca_zonas_combustible</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_pca_2</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       35.77 ***    35.19 ***    30.31 ***    35.79 ***    35.99 ***    35.35 ***    41.10 ***    36.33 ***
+                                  (0.41)       (0.54)       (3.14)       (0.71)       (0.59)       (1.20)       (3.40)       (0.55)   
+factor(ZONAS)2                     0.98         0.92         0.97         0.98         0.99         0.80         1.15         0.15    
+                                  (0.60)       (0.60)       (0.60)       (0.60)       (0.60)       (0.61)       (0.65)       (0.79)   
+factor(ZONAS)3                     0.80         0.72         0.80         0.80         0.81         0.59         0.93        -0.60    
+                                  (0.62)       (0.62)       (0.62)       (0.62)       (0.62)       (0.63)       (0.65)       (0.82)   
+factor(ZONAS)4                     0.61         0.54         0.69         0.62         0.64         0.50         0.77         0.07    
+                                  (0.55)       (0.55)       (0.55)       (0.55)       (0.55)       (0.56)       (0.59)       (0.71)   
+factor(NSE)2                                    1.05                                                                                  
+                                               (0.57)                                                                                 
+factor(NSE)3                                    0.06                                                                                  
+                                               (0.60)                                                                                 
+factor(NSE)4                                    1.13                                                                                  
+                                               (0.64)                                                                                 
+factor(NSE)5                                    2.68 *                                                                                
+                                               (1.22)                                                                                 
+factor(Niv_Edu)2                                             6.63 *                                                                   
+                                                            (3.31)                                                                    
+factor(Niv_Edu)3                                             6.53 *                                                                   
+                                                            (3.23)                                                                    
+factor(Niv_Edu)4                                             5.74                                                                     
+                                                            (3.24)                                                                    
+factor(Niv_Edu)5                                             4.83                                                                     
+                                                            (3.15)                                                                    
+factor(Niv_Edu)6                                             6.12                                                                     
+                                                            (3.48)                                                                    
+factor(Niv_Edu)7                                             5.93                                                                     
+                                                            (3.17)                                                                    
+factor(Niv_Edu)8                                             6.55 *                                                                   
+                                                            (3.18)                                                                    
+factor(Niv_Edu)9                                             4.69                                                                     
+                                                            (3.15)                                                                    
+factor(Niv_Edu)10                                            6.36                                                                     
+                                                            (3.30)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.01)                                                       
+factor(Estudiante)2                                                                   -0.28                                           
+                                                                                      (0.54)                                          
+factor(Estudiante)8                                                                    1.46                                           
+                                                                                     (11.50)                                          
+factor(Estudiante)9                                                                   -2.60                                           
+                                                                                      (4.37)                                          
+factor(Razon_Bici)2                                                                                 0.05                              
+                                                                                                   (1.29)                             
+factor(Razon_Bici)3                                                                                 1.35                              
+                                                                                                   (1.46)                             
+factor(Razon_Bici)4                                                                                 0.71                              
+                                                                                                   (1.33)                             
+factor(Razon_Bici)5                                                                                 0.16                              
+                                                                                                   (1.42)                             
+factor(Razon_Bici)6                                                                                 0.50                              
+                                                                                                   (1.26)                             
+factor(Razon_Bici)7                                                                                 1.49                              
+                                                                                                   (1.33)                             
+factor(Razon_Bici)8                                                                                 0.21                              
+                                                                                                   (1.20)                             
+factor(Razon_Bici)9                                                                                 0.93                              
+                                                                                                   (1.20)                             
+factor(Razon_Bici)10                                                                               -0.24                              
+                                                                                                   (1.58)                             
+factor(Transporte_mas_freq)1                                                                                    -5.62                 
+                                                                                                                (3.41)                
+factor(Transporte_mas_freq)2                                                                                    -5.09                 
+                                                                                                                (3.48)                
+factor(Transporte_mas_freq)3                                                                                    -5.62                 
+                                                                                                                (3.41)                
+factor(Transporte_mas_freq)4                                                                                    -2.00                 
+                                                                                                                (3.79)                
+factor(Transporte_mas_freq)5                                                                                    -5.69                 
+                                                                                                                (3.45)                
+factor(Transporte_mas_freq)6                                                                                    -4.71                 
+                                                                                                                (3.49)                
+factor(Transporte_mas_freq)7                                                                                    -5.46                 
+                                                                                                                (3.47)                
+factor(Transporte_mas_freq)9                                                                                    -5.18                 
+                                                                                                                (9.98)                
+factor(Automovil_Combustible)2                                                                                               -0.05    
+                                                                                                                             (0.66)   
+factor(Automovil_Combustible)3                                                                                                2.56    
+                                                                                                                             (9.39)   
+factor(Automovil_Combustible)4                                                                                               -0.52    
+                                                                                                                             (3.65)   
+factor(Automovil_Combustible)5                                                                                               -2.55    
+                                                                                                                             (4.52)   
+factor(Automovil_Combustible)6                                                                                              -21.13 ** 
+                                                                                                                             (7.27)   
+factor(Automovil_Combustible)9                                                                                                2.26    
+                                                                                                                             (5.42)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                           0.00         0.00         0.00        -0.00        -0.00        -0.00         0.00         0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<h1 id="evaluación">Evaluación</h1>
+<p>Como ya podemos ver en los summaries, todos los <span class="math inline">\(R_{2}\)</span> son de 0. No se puede predecir absolutamente nada.</p>
+<p>Evaluamos los modelos mas relevantes a nuestra hipotesis:</p>
+<ul>
+<li>modelo: indice 02, pca total, zonas (2), nse (5)</li>
+<li>modelo: indice 02, pca total, zonas (RM vs resto)</li>
+</ul>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='va'>modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span><span class='va'>recoded_modelo_pca_zonas_nse</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/stats/lm.html'>lm</a></span><span class='op'>(</span><span class='va'>indice_02</span> <span class='op'>~</span> <span class='fl'>1</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>ZONAS</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'><a href='https://rdrr.io/r/base/factor.html'>factor</a></span><span class='op'>(</span><span class='va'>NSE</span><span class='op'>)</span>, data <span class='op'>=</span> <span class='va'>reg_pca_total</span>, na.action <span class='op'>=</span> <span class='va'>na.exclude</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='va'>modelos_buenos</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas_nse</span>,<span class='va'>recoded_modelo_pca_zonas_nse</span><span class='op'>)</span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/texreg/man/screenreg.html'>screenreg</a></span><span class='op'>(</span><span class='va'>modelos_buenos</span><span class='op'>)</span> </span></code></pre>
+</div>
+<pre><code>
+========================================
+                Model 1      Model 2    
+----------------------------------------
+(Intercept)       66.69 ***    66.69 ***
+                  (0.24)       (0.24)   
+factor(ZONAS)2     0.53 *       0.53 *  
+                  (0.26)       (0.26)   
+factor(ZONAS)3     0.32         0.32    
+                  (0.27)       (0.27)   
+factor(ZONAS)4     0.29         0.29    
+                  (0.24)       (0.24)   
+factor(NSE)2       0.02         0.02    
+                  (0.25)       (0.25)   
+factor(NSE)3      -0.41        -0.41    
+                  (0.26)       (0.26)   
+factor(NSE)4       0.17         0.17    
+                  (0.28)       (0.28)   
+factor(NSE)5       1.65 **      1.65 ** 
+                  (0.53)       (0.53)   
+----------------------------------------
+R^2                0.00         0.00    
+Adj. R^2           0.00         0.00    
+Num. obs.       6130         6130       
+========================================
+*** p &lt; 0.001; ** p &lt; 0.01; * p &lt; 0.05</code></pre>
+</div>
+<p>No hay sesgo explicito para los modelos.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot</a></span><span class='op'>(</span>mapping <span class='op'>=</span> <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>modelo_pca_zonas_nse</span><span class='op'>$</span><span class='va'>fitted.values</span>, y <span class='op'>=</span> <span class='va'>modelo_pca_zonas_nse</span><span class='op'>$</span><span class='va'>residuals</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/labs.html'>labs</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='st'>"Valores predichos"</span>, y <span class='op'>=</span> <span class='st'>"Residuos"</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/geom_point.html'>geom_point</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/geom_abline.html'>geom_hline</a></span><span class='op'>(</span>mapping <span class='op'>=</span> <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></span><span class='op'>(</span>yintercept <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>, color <span class='op'>=</span> <span class='st'>"red"</span><span class='op'>)</span></span></code></pre>
+</div>
+<p><img src="evaluacin-y-validacin_files/figure-html5/unnamed-chunk-12-1.png" width="624" /></p>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot</a></span><span class='op'>(</span>mapping <span class='op'>=</span> <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>recoded_modelo_pca_zonas_nse</span><span class='op'>$</span><span class='va'>fitted.values</span>, y <span class='op'>=</span> <span class='va'>recoded_modelo_pca_zonas_nse</span><span class='op'>$</span><span class='va'>residuals</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/labs.html'>labs</a></span><span class='op'>(</span>x <span class='op'>=</span> <span class='st'>"Valores predichos"</span>, y <span class='op'>=</span> <span class='st'>"Residuos"</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/geom_point.html'>geom_point</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span></span>
+<span>  <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/geom_abline.html'>geom_hline</a></span><span class='op'>(</span>mapping <span class='op'>=</span> <span class='fu'><a href='https://ggplot2.tidyverse.org/reference/aes.html'>aes</a></span><span class='op'>(</span>yintercept <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>, color <span class='op'>=</span> <span class='st'>"red"</span><span class='op'>)</span></span></code></pre>
+</div>
+<p><img src="evaluacin-y-validacin_files/figure-html5/unnamed-chunk-13-1.png" width="624" /></p>
+</div>
+<p>El <span class="math inline">\(R_{2}\)</span> es muy bajo.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://github.com/atahk/pscl'>pscl</a></span><span class='op'>)</span></span>
+<span></span>
+<span><span class='co'># Pseudo R-cuadrado</span></span>
+<span></span>
+<span><span class='fu'><a href='https://rdrr.io/pkg/pscl/man/pR2.html'>pR2</a></span><span class='op'>(</span><span class='va'>recoded_modelo_pca_zonas_nse</span><span class='op'>)</span><span class='op'>[[</span><span class='st'>"McFadden"</span><span class='op'>]</span><span class='op'>]</span></span></code></pre>
+</div>
+<pre><code>fitting null model for pseudo-r2</code></pre>
+<pre><code>[1] 0.0005067496</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://rdrr.io/pkg/pscl/man/pR2.html'>pR2</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas_nse</span><span class='op'>)</span><span class='op'>[[</span><span class='st'>"McFadden"</span><span class='op'>]</span><span class='op'>]</span></span></code></pre>
+</div>
+<pre><code>fitting null model for pseudo-r2</code></pre>
+<pre><code>[1] 0.0005067496</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'># Pseudo R cuadrado ajustado</span></span>
+<span></span>
+<span><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://andrisignorell.github.io/DescTools/'>DescTools</a></span><span class='op'>)</span></span>
+<span></span>
+<span><span class='fu'><a href='https://andrisignorell.github.io/DescTools/reference/PseudoR2.html'>PseudoR2</a></span><span class='op'>(</span><span class='va'>recoded_modelo_pca_zonas_nse</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"McFadden"</span><span class='op'>)</span><span class='op'>)</span></span></code></pre>
+</div>
+<pre><code>[1] NA</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'><a href='https://andrisignorell.github.io/DescTools/reference/PseudoR2.html'>PseudoR2</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas_nse</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"McFadden"</span><span class='op'>)</span><span class='op'>)</span></span></code></pre>
+</div>
+<pre><code>[1] NA</code></pre>
+</div>
+<h3 id="testeando-los-modelos">Testeando los modelos</h3>
+<p>Los gráficos de diagnóstico muestran los residuos de cuatro maneras diferentes:</p>
+<p>Para la relación <strong>residuos vs real</strong> Residuos vs. Ajuste: se utiliza para comprobar los supuestos de linealidad. Si los residuos se distribuyen por igual en torno a una línea horizontal sin patrones distintos (la línea roja es aproximadamente horizontal en cero), es una buena indicación de que existe una relación lineal.</p>
+<p><strong>En ambos modelos no se distribuye de una manera horizontal alrededor del 0. Hay un sesgo para cada valor predicho por lo que fluctua verticalmente.</strong></p>
+<p>Lo ideal es una línea horizontal alrededor de cero:</p>
+<p>Para la <strong>distribución de residuos</strong> Q-Q normal: se utiliza para comprobar el supuesto de normalidad de los residuos. Si la mayoría de los residuos siguen la línea recta discontinua, se cumple el supuesto.</p>
+<p>El gráfico QQ de los residuos puede utilizarse para comprobar visualmente el supuesto de normalidad. El gráfico de probabilidad normal de los residuos debe seguir aproximadamente una línea recta”. Un patrón de desviaciones en forma de arco con respecto a la diagonal indica que los residuos tienen una asimetría excesiva (es decir, no están distribuidos simétricamente, con demasiados errores grandes en la misma dirección). Un patrón de desviaciones en forma de S indica que los residuos tienen una curtosis excesiva, es decir, que hay demasiados o muy pocos errores grandes en ambas direcciones.</p>
+<p><strong>En ambos modelos el QQ Plot parece distribuirse relativamente igual por el espacio. Es decir podemos asumir normalidad entre los residuos. </strong></p>
+<p>Para la <strong>Homoesticidad</strong> Escala-Localización: se utiliza para comprobar la homocedasticidad de los residuos (igual varianza de los residuos). Si los residuos se reparten de forma aleatoria y se ve una línea horizontal con puntos repartidos de forma igual (aleatoria), entonces se cumple la hipótesis.</p>
+<p><strong>Claramente hay homoesticidad en ambos modelos.</strong></p>
+<p>Gráfico de escala-ubicación / gráfico de dispersión-ubicación (igual que el anterior, sólo que utilizando residuos estandarizados) “Queremos una línea más o menos horizontal con puntos más o menos equitativos alrededor”.</p>
+<p><strong>No lo evaluamos</strong> Residuales vs. Apalancamiento: se utiliza para identificar cualquier valor influyente en nuestro conjunto de datos. Los valores influyentes son valores extremos que podrían influir en los resultados de la regresión cuando se incluyen o excluyen del análisis. Busque los casos fuera de la línea discontinua.</p>
+<p>Ayuda recibida de: <a href="https://bookdown.org/jimr1603/Intermediate_R_-_R_for_Survey_Analysis/testing-regression-assumptions.html" class="uri">https://bookdown.org/jimr1603/Intermediate_R_-_R_for_Survey_Analysis/testing-regression-assumptions.html</a></p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'># Change the panel layout to 2 x 2 (to look at all 4 plots at once)</span></span>
+<span><span class='fu'><a href='https://rdrr.io/r/graphics/par.html'>par</a></span><span class='op'>(</span>mfrow <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='co'># Use plot() function to create diagnostic plots</span></span>
+<span><span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas_nse</span><span class='op'>)</span></span></code></pre>
+</div>
+<p><img src="evaluacin-y-validacin_files/figure-html5/unnamed-chunk-15-1.png" width="624" /></p>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='co'># Change the panel layout to 2 x 2 (to look at all 4 plots at once)</span></span>
+<span><span class='fu'><a href='https://rdrr.io/r/graphics/par.html'>par</a></span><span class='op'>(</span>mfrow <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>2</span><span class='op'>)</span><span class='op'>)</span></span>
+<span></span>
+<span><span class='co'># Use plot() function to create diagnostic plots</span></span>
+<span><span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>recoded_modelo_pca_zonas_nse</span><span class='op'>)</span></span></code></pre>
+</div>
+<p><img src="evaluacin-y-validacin_files/figure-html5/unnamed-chunk-16-1.png" width="624" /></p>
+</div>
+<h3 id="multicolinealidad-en-la-regresión">Multicolinealidad en la regresión</h3>
+<p>Mientras que la colinealidad puede detectarse con una matriz de correlación, la multicolinealidad no es tan fácil de detectar. El Factor de Inflación de la Varianza (VIF) puede utilizarse para determinar en qué medida la varianza de un coeficiente de regresión está inflada debido a la multicolinealidad en el modelo. El menor valor posible es uno, lo que indica que no hay multicolinealidad. Un valor superior a 5 o 10 indica una cantidad problemática de multicolinealidad en los datos. En R utilizamos la función vif() del paquete auto para detectar la multicolinealidad en un modelo de regresión múltiple (donde la variable de respuesta es el ozono y se añaden todas las variables explicativas):</p>
+<p>Idealmente esta cerca de 1. Si no removemos esta variable de nuestra regresión.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span><span class='fu'>car</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/car/man/vif.html'>vif</a></span><span class='op'>(</span><span class='va'>modelo_pca_zonas_nse</span><span class='op'>)</span></span></code></pre>
+</div>
+<pre><code>                  GVIF Df GVIF^(1/(2*Df))
+factor(ZONAS) 1.007176  3        1.001192
+factor(NSE)   1.007176  4        1.000894</code></pre>
+</div>
+<h1 id="conclusión">Conclusión</h1>
+<h2 id="los-modelos">Los modelos</h2>
+<p>Habiamos empezado esta investigación para ver si se podia predecir la percepción sobre el cambio climatico y medio ambiente que alguien tiene a base de la zona de donde viene. Teóreticamente esto parecia tener una relación ya que Chile es el pais mas largo del mundo, contando con una diferencia grande en ecosistemas para cada zona, llevando a otra experiencia de lo que significa el cambio climatico o la importancia hacia el medio ambiente. Al crear un PCA para la percepción de importancia, de preocupación, y una de las dos, creamos un indice que nos servia de variable dependiente para la percepción. Nuestra variable independiente fueron las zonas, y los indicadores socio-economicos y socio-demograficos fueron nuestras variables independientes.</p>
+<p>Tras correr varios modelos encontramos que <strong>no se puede predicir la percepción hacia el medio ambiente a base de donde viene alguien en Chile</strong>. Sin embargo, confirmamos que se puede predicir con un valor-p &lt;0.05 la percepción para las personas de educación (basico incompleto a medio completo) y nivel socio economico (E) bajo. Esto concuerda con nuestro marco teórico donde encontramos que hay una relación entre la percepción ambiental y el nivel de educación o el nivel socio-económico.</p>
+<p>Los modelos para la percepción misma son imprecisos, donde no son posible de predicir. Adicionalmente, cuentan con homoestacidad que sesga a las predicciones del modelo.</p>
+<p>Hay algunas cosas que notamos interesante:</p>
+<ul>
+<li>Hay demasiados datos faltantes para variables independientes y dependientes, para diferentes encuestados.</li>
+<li>Hay un desbalance minimo entre la cantidad de gente que se encueste de cada zona.</li>
+<li>Hay un desbalance entre la cantidad de mujeres y hombres que se entrevisto.</li>
+<li>El nivel de calidad de algunas preguntas es bajo. Para muchas parillas habia un alfa de Cronbach relativamente bajo. Tambien la manera en la que se codifico dejo a muchas respuestas excluyentes. Ultimamente, se escogio para algunas variables codificar de una manera innecesariamente diferente a las otras preguntas.</li>
+<li>La calidad de las preguntas. Aunque era una encuesta hacia el medio ambiente, se toco a veces de forma muy inclara el sentimiento o percepción que alguien tiene hacia el medio ambiente. En algunos casos se pregunto muy directo. En la parilla P19 cuando alguien se le pregunta si tiene dolor por el cambio climatico, pocos responderan que si.</li>
+</ul>
+<p>Todos estas observaciones y mas que se hacen durante la investigación llevan a que el mejor modelo aun llegue a ser impreciso. Hay que reparar los errores de datos muestrales primero que proseguir con su uso para la investigación. Especialmente la falta de datos desigual entre variables dependientes y independientes hace que la cantidad de datos para evaluación sea menos de lo que pensamos.</p>
+<h2 id="el-cluster">El cluster</h2>
+<p>Los clusters a base de region y zona no dieron nada que tenga significancia. Sin embargo, se podria investigar el nivel socio-económico de encuestados de cada región/zona. Entendiendo esto mas se puede ver que aspecto de los encuestados es mas relevante para caracterizar percepciones medio ambientales.</p>
+<p>A la futura investigación se recomienda reducir la evaluación a algo mas simplistico. Querer controlar solo indicadores sociales hizo todo mas dificil. Es mejor agregar este tipo de resultados/asumir. En nuestro caso tener todo desagregado pudo haber traido mucha influencia de covariables que dejan el Backdoor Path (BDP) abierto. Este BDP se puede cerrar por incluir mas variables que las cancelen, o como ya mencione, agregar las variables usadas para poder ignorar algunas covariables. No recomendamos trabajar con datos desagregados a nivel nacional. Simplifica o la hipotesis o las muestras usadas. Aunque el modelo sea menos realistico, imaginamos que tendra mas significancia.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
@@ -1526,6 +2460,15 @@ class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"><
 <div class="d-appendix">
 </div>
 
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 
 <!--radix_placeholder_site_after_body-->
 <!--/radix_placeholder_site_after_body-->
