@@ -1,3 +1,0 @@
-"0","ATT_psm = Match(Y = Y_PLAN, Tr = consprog, X = glm_psm$fitted, estimand = ""ATT"", M = 1, ties = TRUE, replace = TRUE)"
-"0",""
-"0","ATE_psm = Match(Y = Y_PLAN, Tr = consprog, X = glm_psm$fitted, estimand = ""ATE"", M=1, ties = TRUE, replace = TRUE)"

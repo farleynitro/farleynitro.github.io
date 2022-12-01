@@ -1,0 +1,19 @@
+"0","library(mice)"
+"2","Warning: package 'mice' was built under R version 4.2.2"
+"2","
+Attaching package: 'mice'
+
+"
+"2","The following object is masked from 'package:stats':
+
+    filter
+
+"
+"2","The following objects are masked from 'package:base':
+
+    cbind, rbind
+
+"
+"0","md.pattern(region_3)"
+"2","Error in md.pattern(region_3) : object 'region_3' not found
+"

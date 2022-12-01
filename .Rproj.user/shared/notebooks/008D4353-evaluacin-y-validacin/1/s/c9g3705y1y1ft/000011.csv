@@ -1,0 +1,32 @@
+"0","modelo_pca_zonas_nse <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(NSE), data = reg_pca_total, na.action = na.exclude)"
+"0","recoded_modelo_pca_zonas_nse <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(NSE), data = reg_pca_total, na.action = na.exclude)"
+"0",""
+"0","modelos_buenos <- list(modelo_pca_zonas_nse,recoded_modelo_pca_zonas_nse)"
+"0","screenreg(modelos_buenos) "
+"1","
+========================================
+                Model 1      Model 2    
+----------------------------------------
+(Intercept)       66.69 ***    66.69 ***
+                  (0.24)       (0.24)   
+factor(ZONAS)2     0.53 *       0.53 *  
+                  (0.26)       (0.26)   
+factor(ZONAS)3     0.32         0.32    
+                  (0.27)       (0.27)   
+factor(ZONAS)4     0.29         0.29    
+                  (0.24)       (0.24)   
+factor(NSE)2       0.02         0.02    
+                  (0.25)       (0.25)   
+factor(NSE)3      -0.41        -0.41    
+                  (0.26)       (0.26)   
+factor(NSE)4       0.17         0.17    
+                  (0.28)       (0.28)   
+factor(NSE)5       1.65 **      1.65 ** 
+                  (0.53)       (0.53)   
+----------------------------------------
+R^2                0.00         0.00    
+Adj. R^2           0.00         0.00    
+Num. obs.       6130         6130       
+========================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

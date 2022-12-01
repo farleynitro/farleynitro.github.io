@@ -1,0 +1,7 @@
+"0","# estimadores <- get_regression_table(modelo_pca_imp_1_5)"
+"0","# estimadores_obs <- get_regression_points(modelo_pca_imp_1_5)"
+"0",""
+"0","ggplot(mapping = aes(x = modelo_pca_zonas_nse$fitted.values, y = modelo_pca_zonas_nse$residuals)) +"
+"0","  labs(x = ""Valores predichos"", y = ""Residuos"") +"
+"0","  geom_point() +"
+"0","  geom_hline(mapping = aes(yintercept = 0), color = ""red"")"

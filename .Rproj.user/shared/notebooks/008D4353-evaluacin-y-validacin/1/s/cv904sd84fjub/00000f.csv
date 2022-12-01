@@ -1,0 +1,5 @@
+"0","# Change the panel layout to 2 x 2 (to look at all 4 plots at once)"
+"0","par(mfrow = c(2, 2))"
+"0",""
+"0","# Use plot() function to create diagnostic plots"
+"0","plot(recoded_modelo_pca_zonas_nse)"

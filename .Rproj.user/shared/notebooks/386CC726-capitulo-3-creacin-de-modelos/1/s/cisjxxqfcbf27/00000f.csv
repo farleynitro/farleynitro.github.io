@@ -1,27 +1,53 @@
-"0","modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)"
-"0","modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + ZONAS + NSE + Edad + Niv_Edu, data = reg_pca_total, na.action = na.exclude)"
+"0","modelo_pca_tot_1_2 <- lm(indice_01 ~ 1 + factor(ZONAS) + factor(NSE) + Edad + factor(Niv_Edu), data = reg_pca_total, na.action = na.exclude)"
+"0","modelo_pca_tot_2_2 <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(NSE) + Edad + factor(Niv_Edu), data = reg_pca_total, na.action = na.exclude)"
 "0",""
 "0","modelos_pca_tot_2 <- list(modelo_pca_tot_1_2, modelo_pca_tot_2_2)"
 "0",""
 "0","screenreg(modelos_pca_tot_2) "
 "1","
-=====================================
-             Model 1      Model 2    
--------------------------------------
-(Intercept)    61.45 ***    66.35 ***
-               (1.10)       (0.72)   
-ZONAS           0.04         0.06    
-               (0.12)       (0.08)   
-NSE             0.10         0.14    
-               (0.17)       (0.11)   
-Edad           -0.00        -0.00    
-               (0.01)       (0.01)   
-Niv_Edu         0.00         0.02    
-               (0.09)       (0.06)   
--------------------------------------
-R^2             0.00         0.00    
-Adj. R^2       -0.00        -0.00    
-Num. obs.    6130         6130       
-=====================================
+===========================================
+                   Model 1      Model 2    
+-------------------------------------------
+(Intercept)          61.62 ***    65.43 ***
+                     (2.24)       (1.47)   
+factor(ZONAS)2        0.53         0.53 *  
+                     (0.40)       (0.26)   
+factor(ZONAS)3        0.31         0.33    
+                     (0.42)       (0.27)   
+factor(ZONAS)4        0.23         0.31    
+                     (0.37)       (0.24)   
+factor(NSE)2         -0.54        -0.06    
+                     (0.42)       (0.27)   
+factor(NSE)3         -0.42        -0.30    
+                     (0.49)       (0.32)   
+factor(NSE)4          0.14         0.24    
+                     (0.55)       (0.36)   
+factor(NSE)5          0.92         1.63 ** 
+                     (0.95)       (0.62)   
+Edad                 -0.00         0.00    
+                     (0.01)       (0.01)   
+factor(Niv_Edu)2      1.10         1.47    
+                     (2.22)       (1.45)   
+factor(Niv_Edu)3     -0.03         1.16    
+                     (2.18)       (1.42)   
+factor(Niv_Edu)4      0.34         1.26    
+                     (2.19)       (1.43)   
+factor(Niv_Edu)5     -0.26         0.89    
+                     (2.14)       (1.40)   
+factor(Niv_Edu)6     -0.82         1.06    
+                     (2.36)       (1.54)   
+factor(Niv_Edu)7      0.13         1.41    
+                     (2.17)       (1.42)   
+factor(Niv_Edu)8      0.35         1.55    
+                     (2.18)       (1.43)   
+factor(Niv_Edu)9      0.23         1.15    
+                     (2.16)       (1.41)   
+factor(Niv_Edu)10    -0.16         1.14    
+                     (2.27)       (1.48)   
+-------------------------------------------
+R^2                   0.00         0.00    
+Adj. R^2             -0.00         0.00    
+Num. obs.          6130         6130       
+===========================================
 *** p < 0.001; ** p < 0.01; * p < 0.05
 "

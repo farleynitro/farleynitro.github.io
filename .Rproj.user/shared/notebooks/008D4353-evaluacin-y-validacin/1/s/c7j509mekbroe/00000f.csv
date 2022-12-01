@@ -1,0 +1,1 @@
+"0","nse_5 <- subset(reg_pca_total, NSE == 5)"

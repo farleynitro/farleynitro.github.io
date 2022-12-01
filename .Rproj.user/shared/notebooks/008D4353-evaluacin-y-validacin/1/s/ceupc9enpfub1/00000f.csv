@@ -1,0 +1,6 @@
+"0","reg_pca_total %>% "
+"0","  ggplot(aes(x = Transporte_mas_freq, na.rm = T)) +"
+"0","  geom_histogram() +"
+"0","  facet_grid(~Zonas_recoded) +"
+"0","  labs(x = ""Medio de transporte usado con mas frecuencia por zona metropolitana (1) y no metropolitana (0)"", y = ""Frecuencia"","
+"0","       title = ""Transporte"",       caption = ""Fuente: Encuesta Nacional 2018"")"

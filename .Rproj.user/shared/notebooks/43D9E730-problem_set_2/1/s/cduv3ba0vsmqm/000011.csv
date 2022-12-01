@@ -1,0 +1,8 @@
+"0","#scale between 0 and 1"
+"0",""
+"0","# data$net_forest_change = scale(data$net_forest_change)"
+"0",""
+"0",""
+"0","glm_psm <- glm(as.factor(consprog ) ~ 1 + popdensity + income,  family = binomial(link = ""probit""), data = d)"
+"2","Error in is.data.frame(data) : object 'd' not found
+"

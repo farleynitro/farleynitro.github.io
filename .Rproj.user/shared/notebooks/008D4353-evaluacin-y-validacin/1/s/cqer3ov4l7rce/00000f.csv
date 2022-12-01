@@ -1,0 +1,111 @@
+"0","modelo_pca_zonas <- lm(indice_02 ~ 1 + factor(ZONAS), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_nse <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(NSE), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_edu <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(Niv_Edu), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_edad <- lm(indice_02 ~ 1 + factor(ZONAS) + Edad, data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_estudiante <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(Estudiante), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_razon_bici <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(Razon_Bici), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_transporte <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(Transporte_mas_freq), data = reg_pca_importancia, na.action = na.exclude)"
+"0","modelo_pca_zonas_combustible <- lm(indice_02 ~ 1 + factor(ZONAS) + factor(Automovil_Combustible), data = reg_pca_importancia, na.action = na.exclude)"
+"0",""
+"0","modelos_pca_2 <- list(modelo_pca_zonas,modelo_pca_zonas_nse,modelo_pca_zonas_edu,modelo_pca_zonas_edad,modelo_pca_zonas_estudiante,modelo_pca_zonas_razon_bici,modelo_pca_zonas_transporte, modelo_pca_zonas_combustible)"
+"0",""
+"0","screenreg(modelos_pca_2) "
+"1","
+======================================================================================================================================
+                                Model 1      Model 2      Model 3      Model 4      Model 5      Model 6      Model 7      Model 8    
+--------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       21.18 ***    21.18 ***    21.01 ***    21.28 ***    21.23 ***    21.34 ***    22.57 ***    21.39 ***
+                                  (0.13)       (0.17)       (1.01)       (0.23)       (0.19)       (0.39)       (1.09)       (0.17)   
+factor(ZONAS)2                    -0.15        -0.15        -0.14        -0.15        -0.15        -0.19        -0.11        -0.26    
+                                  (0.19)       (0.19)       (0.19)       (0.19)       (0.19)       (0.20)       (0.21)       (0.25)   
+factor(ZONAS)3                    -0.02        -0.02        -0.01        -0.01        -0.02        -0.08         0.00        -0.34    
+                                  (0.20)       (0.20)       (0.20)       (0.20)       (0.20)       (0.20)       (0.21)       (0.26)   
+factor(ZONAS)4                    -0.04        -0.05        -0.04        -0.04        -0.04        -0.08        -0.03         0.03    
+                                  (0.18)       (0.18)       (0.18)       (0.18)       (0.18)       (0.18)       (0.19)       (0.23)   
+factor(NSE)2                                    0.03                                                                                  
+                                               (0.18)                                                                                 
+factor(NSE)3                                   -0.02                                                                                  
+                                               (0.19)                                                                                 
+factor(NSE)4                                    0.07                                                                                  
+                                               (0.21)                                                                                 
+factor(NSE)5                                   -0.36                                                                                  
+                                               (0.39)                                                                                 
+factor(Niv_Edu)2                                             0.05                                                                     
+                                                            (1.07)                                                                    
+factor(Niv_Edu)3                                            -0.20                                                                     
+                                                            (1.04)                                                                    
+factor(Niv_Edu)4                                             0.33                                                                     
+                                                            (1.04)                                                                    
+factor(Niv_Edu)5                                             0.09                                                                     
+                                                            (1.01)                                                                    
+factor(Niv_Edu)6                                             0.61                                                                     
+                                                            (1.12)                                                                    
+factor(Niv_Edu)7                                             0.21                                                                     
+                                                            (1.02)                                                                    
+factor(Niv_Edu)8                                             0.09                                                                     
+                                                            (1.02)                                                                    
+factor(Niv_Edu)9                                             0.21                                                                     
+                                                            (1.01)                                                                    
+factor(Niv_Edu)10                                            0.57                                                                     
+                                                            (1.06)                                                                    
+Edad                                                                     -0.00                                                        
+                                                                         (0.00)                                                       
+factor(Estudiante)2                                                                   -0.06                                           
+                                                                                      (0.17)                                          
+factor(Estudiante)8                                                                   -7.34 *                                         
+                                                                                      (3.70)                                          
+factor(Estudiante)9                                                                    0.55                                           
+                                                                                      (1.40)                                          
+factor(Razon_Bici)2                                                                                -0.18                              
+                                                                                                   (0.42)                             
+factor(Razon_Bici)3                                                                                -0.05                              
+                                                                                                   (0.47)                             
+factor(Razon_Bici)4                                                                                 0.07                              
+                                                                                                   (0.43)                             
+factor(Razon_Bici)5                                                                                -0.24                              
+                                                                                                   (0.46)                             
+factor(Razon_Bici)6                                                                                -0.32                              
+                                                                                                   (0.40)                             
+factor(Razon_Bici)7                                                                                 0.06                              
+                                                                                                   (0.43)                             
+factor(Razon_Bici)8                                                                                -0.31                              
+                                                                                                   (0.38)                             
+factor(Razon_Bici)9                                                                                 0.03                              
+                                                                                                   (0.39)                             
+factor(Razon_Bici)10                                                                                0.25                              
+                                                                                                   (0.51)                             
+factor(Transporte_mas_freq)1                                                                                    -1.44                 
+                                                                                                                (1.10)                
+factor(Transporte_mas_freq)2                                                                                    -1.46                 
+                                                                                                                (1.12)                
+factor(Transporte_mas_freq)3                                                                                    -1.28                 
+                                                                                                                (1.10)                
+factor(Transporte_mas_freq)4                                                                                    -1.64                 
+                                                                                                                (1.22)                
+factor(Transporte_mas_freq)5                                                                                    -1.65                 
+                                                                                                                (1.11)                
+factor(Transporte_mas_freq)6                                                                                    -1.26                 
+                                                                                                                (1.12)                
+factor(Transporte_mas_freq)7                                                                                    -1.60                 
+                                                                                                                (1.11)                
+factor(Transporte_mas_freq)9                                                                                    -2.92                 
+                                                                                                                (3.21)                
+factor(Automovil_Combustible)2                                                                                               -0.24    
+                                                                                                                             (0.21)   
+factor(Automovil_Combustible)3                                                                                               -2.44    
+                                                                                                                             (2.98)   
+factor(Automovil_Combustible)4                                                                                               -0.84    
+                                                                                                                             (1.16)   
+factor(Automovil_Combustible)5                                                                                               -0.56    
+                                                                                                                             (1.43)   
+factor(Automovil_Combustible)6                                                                                               -6.03 ** 
+                                                                                                                             (2.31)   
+factor(Automovil_Combustible)9                                                                                               -2.02    
+                                                                                                                             (1.72)   
+--------------------------------------------------------------------------------------------------------------------------------------
+R^2                                0.00         0.00         0.00         0.00         0.00         0.00         0.00         0.00    
+Adj. R^2                          -0.00        -0.00        -0.00        -0.00        -0.00        -0.00        -0.00         0.00    
+Num. obs.                       6130         6130         6130         6130         6130         6091         6130         3636       
+======================================================================================================================================
+*** p < 0.001; ** p < 0.01; * p < 0.05
+"

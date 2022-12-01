@@ -1,2 +1,0 @@
-"0","# slice_sample() by group in R "
-"0","stratified_data <- data %>% group_by(income, popdensity) %>% slice_sample(n = 1)"

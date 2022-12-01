@@ -1,0 +1,4 @@
+"0","ggplot(mapping = aes(x = recoded_modelo_pca_zonas_nse$fitted.values, y = recoded_modelo_pca_zonas_nse$residuals)) +"
+"0","  labs(x = ""Valores predichos"", y = ""Residuos"") +"
+"0","  geom_point() +"
+"0","  geom_hline(mapping = aes(yintercept = 0), color = ""red"")"
